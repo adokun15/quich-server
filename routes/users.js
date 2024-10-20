@@ -1,7 +1,5 @@
 import express, { response } from "express";
-//import { verifyToken } from "../db/firebase/users.js";
-//import { db } from "../utils/firebase-client";
-//import { auth, storage } from "firebase-admin";
+import { getAuth } from "firebase-admin/auth";
 import { getBanks, VerifyBankAccount } from "../db/paystack/bankVerify.js";
 import { addAccountUserDb } from "../db/firebase/account.js";
 import {
@@ -25,7 +23,7 @@ userRoute
     //list of bank;
     const banks = await getBanks();
 
-    res.json({ banks });
+    res.json({ banks })
   })
   .post(async (req, res) => {
     //Verify accountnumber & bankcode
