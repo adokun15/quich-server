@@ -1,7 +1,8 @@
 import express, { json } from "express";
 import cors from "cors";
-import orderRoute from "./routes/orders.js";
-import customerRoute from "./routes/customers.js";
+//import orderRoute from "./routes/orders.js";
+//import customerRoute from "./routes/customers.js";
+import webhook from "./routes/webhooks.js";
 import userRoute from "./routes/users.js";
 import storeRoute from "./routes/store.js";
 import authRoute from "./routes/auth.js";
@@ -29,10 +30,13 @@ app.use("/store", storeRoute);
 
 
 //seller private orders route
-app.use("/order", orderRoute);
+//app.use("/order", orderRoute);
 
 //seller private customers route
-app.use("/customer", customerRoute);
+//app.use("/customer", customerRoute);
+
+app.use("/webhook", webhook);
+
 
 //seller private Account
 app.use("/user", userRoute);
