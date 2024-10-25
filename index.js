@@ -1,6 +1,5 @@
 import express, { json } from "express";
 import cors from "cors";
-import inventoryRoute from "./routes/inventory.js";
 import orderRoute from "./routes/orders.js";
 import customerRoute from "./routes/customers.js";
 import userRoute from "./routes/users.js";
@@ -12,21 +11,22 @@ import { configDotenv } from "dotenv";
 
 configDotenv()
 
-
-
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
 const app = express();
+
 app.use(json());
 app.use(cors());
 
 //seller private customers route
 app.use("/auth", authRoute);
 
-//seller private inventory route
-app.use("/inventory", inventoryRoute);
+
+//buyer public route
+app.use("/store", storeRoute);
+
 
 //seller private orders route
 app.use("/order", orderRoute);
@@ -37,13 +37,10 @@ app.use("/customer", customerRoute);
 //seller private Account
 app.use("/user", userRoute);
 
-//buyer public route
-app.use("/store", storeRoute);
-
 //Error
 app.use(function (err, req, res, next) {
   console.log(err.stack);
   
   res.status(500).send("Something is Not Right");
 });
-app.listen(5050);
+app.listen(8080)

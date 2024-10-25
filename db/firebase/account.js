@@ -1,15 +1,21 @@
 import { getFirestore } from "firebase-admin/firestore";
-import { GetSubAccount } from "../paystack/subaccount.js";
+import { GetSplitCode, GetSubAccount } from "../paystack/subaccount.js";
 
 export const addAccountUserDb = async function (uid, data) {
   const { business_name, bank_code, account_number } = data;
   try {
-    // Generate Split Code function
+    // Generate SubAcccount function
     const subaccountDetail = await GetSubAccount({
       business_name,
       bank_code,
       account_number,
     });
+
+    // Generate Split Code function
+    const splitDetail = await GetSplitCode(
+      subaccountDetail?.account_name,
+      subaccountDetail?.subaccount_code
+    );
 
     //  Store in Firebase;
     return await getFirestore()
@@ -23,6 +29,7 @@ export const addAccountUserDb = async function (uid, data) {
           accountNumber: subaccountDetail?.account_number,
           subaccountCode: subaccountDetail?.subaccount_code,
           createdOn: subaccountDetail?.createdAt,
+          splitCode: splitDetail?.split_code,
         },
       })
       .then(() => "Successfully Added Bank Info!");
@@ -32,3 +39,5 @@ export const addAccountUserDb = async function (uid, data) {
     );
   }
 };
+
+export const getSplitAccount = () => {};

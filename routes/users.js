@@ -5,6 +5,7 @@ import { addAccountUserDb } from "../db/firebase/account.js";
 import {
   createUserDb,
   GenerateStoreLink,
+  getUserDb,
   saveStoreLink,
 } from "../db/firebase/users.js";
 const userRoute = express.Router();
@@ -23,7 +24,7 @@ userRoute
     //list of bank;
     const banks = await getBanks();
 
-    res.json({ banks })
+    res.json({ banks });
   })
   .post(async (req, res) => {
     //Verify accountnumber & bankcode
@@ -78,8 +79,10 @@ userRoute
     const mes = await createUserDb(req?.uid, req.body);
     res.json(mes);
   })
-  .get((req, res) => {
+  .get(async (req, res) => {
     //Get User
+    const user = await getUserDb(req.uid);
+    res.json(user);
   })
   .delete((req, res) => {
     //delete User

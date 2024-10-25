@@ -17,7 +17,7 @@ export async function paystack(config, data) {
 
     const response = await paystack.json();
 
-     if (!response.status) {
+    if (!response.status) {
       throw new Error(response.message || "Something went wrong");
     }
 

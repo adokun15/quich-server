@@ -14,7 +14,7 @@ export const verifyToken = async function (token) {
     const user = await getAuth().getUser(uid);
     return user;
   } catch (err) {
-    console.log(err)
+    console.log(err);
     throw new Error("Could not authenticate!");
   }
 };
@@ -37,8 +37,6 @@ export const saveStoreLink = async function (uid, link) {
 //Create user Db Business
 export const createUserDb = async function (uid, data) {
   try {
- 
-
     await getFirestore().collection("users/").doc(`${uid}`).set({
       userId: uid,
       businessName: data?.business_name,
@@ -50,9 +48,20 @@ export const createUserDb = async function (uid, data) {
       logo: "",
       role: "",
     });
-    
+
     return { message: "Success. Business details saved" };
   } catch (err) {
     throw new Error(err?.code || "Could not upload details!");
+  }
+};
+//Get user Db
+export const getUserDb = async function (uid) {
+  try {
+    const user = (
+      await getFirestore().collection("users/").doc(`${uid}`).get()
+    ).data();
+    return { ...user };
+  } catch (err) {
+    throw new Error(err?.code || "Could not get User");
   }
 };
