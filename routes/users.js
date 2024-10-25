@@ -56,7 +56,7 @@ userRoute
     const { link } = req.body;
 
     if (!req?.uid) {
-      res.status(404).send("User Id not found!");
+      res.status(404).json({ message: "User Id not found!" });
     }
 
     if (!link) {
