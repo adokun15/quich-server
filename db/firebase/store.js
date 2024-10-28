@@ -5,11 +5,18 @@ export default async function getAllStoreProduct(link) {
 
   let products = [];
 
-  await ref.get().then((data) => {
-    data.forEach((product) =>
-      products.push({ ...product.data(), productId: product.id })
-    );
-  });
+  await ref
+    .get()
+    .then((data) => {
+      data.forEach((product) => {
+        if (product.exists) {
+          products.push({ ...product.data(), productId: product.id });
+        } else {
+          throw "Store has no product";
+        }
+      });
+    })
+    .catch((err) => console.log(err));
 
   return { store: products };
 }

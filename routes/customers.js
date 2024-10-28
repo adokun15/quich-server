@@ -1,17 +1,26 @@
 import express from "express";
+import { getAuth } from "firebase-admin/auth";
+
+import { getAllCustomers } from "../db/firebase/customers.js";
 const customerRoute = express.Router();
 
-//For All end-user
-customerRoute.get("/", (req, res) => res.send("customer Part"));
+//Provide-Uid-Middleware
+customerRoute.use(async (req, res, next) => {
+  const token = req.get("Authorization").split(" ")[1];
+  const decodedToken = await getAuth().verifyIdToken(token); //uid, email
+  req.uid = decodedToken.uid;
+  next();
+});
 
-customerRoute
-  .route("/:customerId")
-  .get((req, res) => {
-    console.log(req.params.customerId);
-    res.send("Test" + req.params.customerId);
-  })
-  .post((req, res) => {
-    console.log(req.params.customerId);
-    res.send("Test" + req.params.customerId);
-  });
+customerRoute.route("/").get(async (req, res, next) => {
+  const merchantId = req.uid;
+
+  try {
+    const customers = await getAllCustomers(merchantId);
+    res.json(customers);
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+});
 export default customerRoute;

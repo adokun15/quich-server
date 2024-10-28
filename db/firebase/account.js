@@ -29,8 +29,8 @@ export const addAccountUserDb = async function (uid, data) {
           accountNumber: subaccountDetail?.account_number,
           subaccountCode: subaccountDetail?.subaccount_code,
           createdOn: subaccountDetail?.createdAt,
-          splitCode: splitDetail?.split_code,
         },
+        splitCode: splitDetail?.split_code,
       })
       .then(() => "Successfully Added Bank Info!");
   } catch (err) {
@@ -39,5 +39,3 @@ export const addAccountUserDb = async function (uid, data) {
     );
   }
 };
-
-export const getSplitAccount = () => {};

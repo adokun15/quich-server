@@ -11,7 +11,7 @@ class Order {
     merchantid,
     customer,
     ref,
-    subaccount,
+    splitCode,
     transId
   ) {
     this.orderId = orderid;
@@ -23,9 +23,9 @@ class Order {
     this.checkoutList = lineItem;
     this.requestCode = rqCode;
     this.merchantId = merchantid; //metadata : { }
-    this.customer = customer;
+    this.customerId = customer;
     this.reference = ref;
-    this.subaccount = subaccount;
+    this.splitCode = splitCode;
     this.transactionId = transId;
   }
 }

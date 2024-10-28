@@ -10,25 +10,29 @@ storeRoute
     const storeLink = req.params.storeSlug;
 
     const store = await getAllStoreProduct(storeLink);
-
+    console.log(store);
     res.json(store);
   })
-  .post(async (req, res) => {
-    //Checkout
-    const storeLink = req.params.storeSlug;
+  .post(async (req, res, next) => {
+    try {
+      //Checkout
+      const storeLink = req.params.storeSlug;
 
-    //checkout: {customer: { email, phone, name}, storeOwner: merchantId, items: [allproduct], cartId}
-    const { customer } = req.body;
-    //
-    const data = {
-      items: req.body.items,
-      cartId: req.body.cartId,
-      merchantId: req.body.merchantId,
-    };
+      //checkout: {customer: { email, phone, name}, storeOwner: merchantId, items: [allproduct], cartId}
+      const { customer } = req.body;
+      //
+      const data = {
+        items: req.body.items,
+        cartId: req.body.cartId,
+        merchantId: req.body.merchantId,
+      };
 
-    const url = await paymentRequest(customer, data, storeLink);
+      const url = await paymentRequest(customer, data, storeLink);
 
-    res.json({ url: `https://paystack.com/pay/${url}` });
+      res.json({ url: `https://paystack.com/pay/${url}` });
+    } catch (e) {
+      next(e);
+    }
   });
 
 export default storeRoute;
