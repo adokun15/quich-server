@@ -40,11 +40,10 @@ userRoute.route("/account").post(async (req, res) => {
   if (!req?.uid) {
     res.status(404).send("User Id not found!");
   }
-
   const addToBank = await addAccountUserDb(req?.uid, req.body);
-
   res.json({ message: addToBank });
 });
+
 userRoute
   .route("/link")
   .get(async (req, res) => {
@@ -70,15 +69,15 @@ userRoute
 
 userRoute
   .route("/")
-  .post(async (req, res) => {
-    //Create Db
-    if (!req?.uid) {
-      res.status(404).send("User Id not found!");
-    }
+  // .post(async (req, res) => {
+  //   //Create Db
+  //  if (!req?.uid) {
+  //  res.status(404).send("User Id not found!");
+  //}
 
-    const mes = await createUserDb(req?.uid, req.body);
-    res.json(mes);
-  })
+  // const mes = await createUserDb(req?.uid, req.body);
+  //res.json(mes);
+  //})
   .get(async (req, res) => {
     //Get User
     const user = await getUserDb(req.uid);
@@ -88,6 +87,6 @@ userRoute
     //delete User
   })
   .put((req, res) => {
-    //Update Certain Field
+    //Update Certain Field: PRO
   });
 export default userRoute;

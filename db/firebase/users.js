@@ -28,29 +28,20 @@ export const GenerateStoreLink = function () {
 };
 //save Store Link
 export const saveStoreLink = async function (uid, link) {
-  return await getFirestore()
-    .collection("users/")
-    .doc(`${uid}`)
-    .update({ link });
+  return await getFirestore().collection("users/").doc(`${uid}`).set({ link });
 };
 
 //Create user Db Business
-export const createUserDb = async function (uid, data) {
+export const createUserDb = async function (uid) {
   try {
-    await getFirestore().collection("users/").doc(`${uid}`).set({
+    await getFirestore().collection("users/").doc(`${uid}`).update({
       userId: uid,
-      businessName: data?.business_name,
-      businessNumber: data?.business_number,
-      businessDescription: data?.business_desc,
-      businessCategory: data?.business_category,
       account: {},
-      link: "",
-      logo: "",
-      role: "",
     });
 
     return { message: "Success. Business details saved" };
   } catch (err) {
+    console.log(err);
     throw new Error(err?.code || "Could not upload details!");
   }
 };
