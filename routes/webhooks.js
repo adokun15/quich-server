@@ -19,8 +19,8 @@ webhook.post("/paystack", async (req, res) => {
       if (event === "paymentrequest.pending") {
         //Create new Order
         try {
-          await createNewOrder(data);
           res.sendStatus(200).json({ message: "Payment Request pending" });
+          await createNewOrder(data);
         } catch (e) {
           res.sendStatus(500).json({ message: "Something went Wrong" });
         }
@@ -29,11 +29,11 @@ webhook.post("/paystack", async (req, res) => {
       if (event === "paymentrequest.success") {
         //update order and product
         try {
+          res.sendStatus(200).json({ message: "Payment Request success" });
           await SuccessOrder(
             data,
             `${data?.metadata?.store}&${data?.metadata?.cartId}`
           );
-          res.sendStatus(200).json({ message: "Payment Request success" });
         } catch (e) {
           res.sendStatus(500).json({ message: "Something went Wrong" });
         }
@@ -42,8 +42,8 @@ webhook.post("/paystack", async (req, res) => {
       if (event === "charge.success") {
         //Create/update: Customer and transaction
         try {
-          await addCustomerTransactions(data);
           res.sendStatus(200).json({ message: "Charge Success" });
+          await addCustomerTransactions(data);
         } catch (e) {
           res.sendStatus(500).json({ message: "Something went Wrong" });
         }
