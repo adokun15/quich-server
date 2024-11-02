@@ -6,17 +6,25 @@ export const paymentRequest = async (
   { merchantId, items, cartId },
   link
 ) => {
+  console.log(customerInfo);
+  console.log(merchantId);
+  console.log(items);
+  console.log(cartId);
+  console.log(link);
   let config = {
     method: "POST",
     endpoint: "/paymentrequest",
   };
+
   try {
     //merchant
-    const merchant = await getUserDb(merchantId).catch((err) =>
-      console.log(err)
-    );
+    //const merchant = await getUserDb(merchantId)
+
     //user
-    const customer = await Customer(customerInfo);
+    //const customer = await Customer(customerInfo);
+
+    //console.log(customer);
+    // console.log(merchant);
 
     const data = {
       line_items: items.map((item) => ({
@@ -27,45 +35,36 @@ export const paymentRequest = async (
       })),
       due_date: "2024-11-11",
       //remove comment later
-      // split_code: merchant?.splitCode,
+      customer: "CUS_dcihtw5347ob33z",
+      split_code: "SPL_gMbkCKGkaC",
       metadata: {
         merchant: {
           id: merchantId,
-          name: merchant?.businessName,
-          phone: merchant.businessNumber,
+          //      name: merchant?.businessName,
+          //    phone: merchant.businessNumber,
         },
-        user: customer?.customer_code,
         store: link,
+        user: "CUS_dcihtw5347ob33z",
         cartId,
         products: items.map((item) => ({
           productId: item?.productId,
-          quantity: item.qty,
-          name: item.productName,
-          amount: item.total,
+          quantity: item?.qty,
+          name: item?.productName,
+          amount: item?.total,
         })),
       },
     };
 
-    const paymentRequestProcess = await paystack(config, data);
+    const paymentRequestProcess = await paystack(config, data)
+      .then((data) => data.data)
+      .catch((err) => {
+        console.log(err);
+        throw new Error(err.message);
+      });
 
-    console.log(paymentRequestProcess);
-    // })
-    //   .then((data) => data.data)
-    //  .catch((err) => {
-    //    console.log(err);
-    // throw new Error(err.message);
-    // }
-    //Customer
-
-    //console.log(customer);
-    //console.log(items);
-    //get split code
-    //  const merchant = await getUserDb(merchantId).catch((err) => console.log(err));
-
-    //return paymentRequestProcess?.request_code;
+    return paymentRequestProcess?.request_code;
   } catch (e) {
     console.log(e);
     throw new Error(e?.message || "Something went wrong!!");
   }
-  return "love";
 };

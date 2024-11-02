@@ -9,8 +9,6 @@ const secret = process.env.WEBHOOK_SECRET_KEY;
 webhook.post("/paystack", async (req, res) => {
   //Update order: paymentrequest.success
   const { event, data } = req.body;
-  console.log(req.body);
-  console.log(req.header["x-paystack-signature"]);
   try {
     const verifyheader = crypto
       .createHmac("sha512", secret)

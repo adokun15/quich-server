@@ -16,7 +16,7 @@ const updateMerchantProducts = async (storelink, item, data) => {
         //Set new data,
         throw new Error("Product Not Found!");
       }
-
+      console.log(data);
       //Update Transaction Only
       if (
         productDoc.data().productQty >= 1 &&
