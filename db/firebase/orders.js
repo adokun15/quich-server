@@ -74,6 +74,7 @@ const updateMerchantOrder = async (data, id) => {
 
 export const createNewOrder = async (data) => {
   try {
+    console.log(data);
     //Order Model
     const orderModel = new Order(
       data?.metadata?.cartId,
@@ -94,6 +95,7 @@ export const createNewOrder = async (data) => {
     //Retrieve Customer;
     const customer = await getCustomers(data?.metadata?.user);
 
+    console.log(customer);
     //Save to Db
     await getFirestore()
       .collection(`orders/${data?.metadata?.merchant.id}/transactions`)
