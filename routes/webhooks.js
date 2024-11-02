@@ -9,49 +9,54 @@ const secret = process.env.WEBHOOK_SECRET_KEY;
 webhook.post("/paystack", async (req, res) => {
   //Update order: paymentrequest.success
   const { event, data } = req.body;
+  console.log(req.body);
+  console.log(req.header["x-paystack-signature"]);
+  try {
+    const verifyheader = crypto
+      .createHmac("sha512", secret)
+      .update(JSON.stringify(req.body))
+      .digest("hex");
 
-  const verifyheader = crypto
-    .createHmac("sha512", secret)
-    .update(JSON.stringify(req.body))
-    .digest("hex");
-
-  if (verifyheader === req.header["x-paystack-signature"]) {
-    if (event === "paymentrequest.pending") {
-      //Create new Order
-      try {
-        await createNewOrder(data);
-        res.sendStatus(200).json({ message: "Payment Request pending" });
-      } catch (e) {
-        res.sendStatus(500).json({ message: "Something went Wrong" });
-      }
-    }
-
-    if (event === "paymentrequest.success") {
-      //update order and product
-      try {
-        await SuccessOrder(
-          data,
-          `${data?.metadata?.store}&${data?.metadata?.cartId}`
-        );
-        res.sendStatus(200).json({ message: "Payment Request success" });
-      } catch (e) {
-        res.sendStatus(500).json({ message: "Something went Wrong" });
-      }
-    }
-
-    if (event === "charge.success") {
-      //Create/update: Customer and transaction
-      try {
-        await addCustomerTransactions(data);
-        res.sendStatus(200).json({ message: "Charge Success" });
-      } catch (e) {
-        res.sendStatus(500).json({ message: "Something went Wrong" });
+    if (verifyheader === req.header["x-paystack-signature"]) {
+      if (event === "paymentrequest.pending") {
+        //Create new Order
+        try {
+          await createNewOrder(data);
+          res.sendStatus(200).json({ message: "Payment Request pending" });
+        } catch (e) {
+          res.sendStatus(500).json({ message: "Something went Wrong" });
+        }
       }
 
-      res.sendStatus(200).json({ message: "Webhook received" });
-    } else {
-      res.sendStatus(400).json({ message: "Bad Request!" });
+      if (event === "paymentrequest.success") {
+        //update order and product
+        try {
+          await SuccessOrder(
+            data,
+            `${data?.metadata?.store}&${data?.metadata?.cartId}`
+          );
+          res.sendStatus(200).json({ message: "Payment Request success" });
+        } catch (e) {
+          res.sendStatus(500).json({ message: "Something went Wrong" });
+        }
+      }
+
+      if (event === "charge.success") {
+        //Create/update: Customer and transaction
+        try {
+          await addCustomerTransactions(data);
+          res.sendStatus(200).json({ message: "Charge Success" });
+        } catch (e) {
+          res.sendStatus(500).json({ message: "Something went Wrong" });
+        }
+
+        res.sendStatus(200).json({ message: "Webhook received" });
+      } else {
+        res.sendStatus(400).json({ message: "Bad Request!" });
+      }
     }
+  } catch (e) {
+    res.sendStatus(500).json({ message: "Something went wrong!" });
   }
 });
 export default webhook;

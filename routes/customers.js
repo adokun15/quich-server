@@ -17,6 +17,7 @@ customerRoute.route("/").get(async (req, res, next) => {
 
   try {
     const customers = await getAllCustomers(merchantId);
+
     res.json(customers);
   } catch (err) {
     console.log(err);

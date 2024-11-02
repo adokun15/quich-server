@@ -1,9 +1,8 @@
-import express, { response } from "express";
+import express from "express";
 import { getAuth } from "firebase-admin/auth";
 import { getBanks, VerifyBankAccount } from "../db/paystack/bankVerify.js";
 import { addAccountUserDb } from "../db/firebase/account.js";
 import {
-  createUserDb,
   GenerateStoreLink,
   getUserDb,
   saveStoreLink,

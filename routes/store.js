@@ -4,10 +4,21 @@ import express from "express";
 import getAllStoreProduct, {
   createUserStore,
   getUserStore,
+  updateMerchantVisibility,
   updateUserStore,
 } from "../db/firebase/store.js";
 import { paymentRequest } from "../db/paystack/paymentRequest.js";
 const storeRoute = express.Router();
+
+storeRoute.patch("/:storeId/merchant/publish", async (req, res, next) => {
+  try {
+    const publishFunc = await updateMerchantVisibility(req.params.storeId);
+    res.json(publishFunc);
+  } catch (e) {
+    console.log(e);
+    next(e?.message);
+  }
+});
 
 storeRoute
   .route("/:storeId/merchant")
@@ -18,12 +29,12 @@ storeRoute
 
     res.json(storeMerchant);
   })
-  .post(async (req, res,next) => {
+  .post(async (req, res, next) => {
     try {
       const storeLink = req.params.storeId;
       const token = req.get("Authorization").split(" ")[1];
       const decodedToken = await getAuth().verifyIdToken(token); //uid, email
-    
+
       const Merchant = await createUserStore(
         storeLink,
         decodedToken?.uid,

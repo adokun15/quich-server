@@ -56,3 +56,27 @@ export const updateUserStore = async (link, data) => {
     throw new Error(err?.code || "Could not update details!");
   }
 };
+
+export const updateMerchantVisibility = async (link) => {
+  try {
+    console.log(link);
+    //const merchantPath = db.collection("store").doc(`${link}`);
+    const merchantPath = getFirestore().collection("store").doc(`${link}`);
+
+    await getFirestore().runTransaction(async (transaction) => {
+      const merchantDoc = await transaction.get(merchantPath);
+
+      if (!merchantDoc.exists) {
+        throw new Error("Merchant does not Exist!");
+      }
+
+      const prevState = merchantDoc.data().published;
+
+      transaction.update(merchantPath, { published: !prevState });
+    });
+    return { message: "Store Updated!" };
+  } catch (err) {
+    console.log(err);
+    throw new Error(err?.code || "Could not update details!");
+  }
+};
