@@ -92,17 +92,13 @@ export const createNewOrder = async (data) => {
       null
     );
 
-    //Retrieve Customer;
-    const customer = await getCustomers(data?.metadata?.user);
-
-    //console.log(customer);
     //Save to Db
     await getFirestore()
       .collection(`orders/${data?.metadata?.merchant.id}/transactions`)
       .doc(`${data?.metadata?.store}&${data?.metadata?.cartId}`)
       .set({
         customerInfo: {
-          ...customer,
+          ...data?.metadata?.user,
         },
         ...orderModel,
         createdOn: data?.created_at,

@@ -16,7 +16,6 @@ webhook.post("/paystack", async (req, res) => {
 */
   //  if (verifyheader === req.header["x-paystack-signature"]) {
   const { event, data } = req.body;
-  res.status(200).end();
 
   console.log(event);
   console.log(data);
@@ -25,6 +24,7 @@ webhook.post("/paystack", async (req, res) => {
     //Create new Order
     try {
       await createNewOrder(data);
+      res.status(200).end();
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }

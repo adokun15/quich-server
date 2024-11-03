@@ -21,7 +21,7 @@ export const paymentRequest = async (
     //const merchant = await getUserDb(merchantId)
 
     //user
-    //const customer = await Customer(customerInfo);
+    const customer = await Customer(customerInfo);
 
     //console.log(customer);
     // console.log(merchant);
@@ -35,7 +35,7 @@ export const paymentRequest = async (
       })),
       due_date: "2024-11-11",
       //remove comment later
-      customer: "CUS_dcihtw5347ob33z",
+      customer: { ...customer },
       split_code: "SPL_gMbkCKGkaC",
       metadata: {
         merchant: {
