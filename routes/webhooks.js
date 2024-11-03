@@ -16,11 +16,15 @@ webhook.post("/paystack", async (req, res) => {
 
     if (verifyheader === req.header["x-paystack-signature"]) {
       const { event, data } = req.body;
+      res.status(200).end();
+
+      console.log(event);
+      console.log(data);
+
       if (event === "paymentrequest.pending") {
         //Create new Order
         try {
           await createNewOrder(data);
-          res.sendStatus(200).json({ message: "Payment Request pending" });
         } catch (e) {
           res.sendStatus(500).json({ message: "Something went Wrong" });
         }
@@ -33,7 +37,6 @@ webhook.post("/paystack", async (req, res) => {
             data,
             `${data?.metadata?.store}&${data?.metadata?.cartId}`
           );
-          res.sendStatus(200).json({ message: "Payment Request success" });
         } catch (e) {
           res.sendStatus(500).json({ message: "Something went Wrong" });
         }
@@ -42,13 +45,10 @@ webhook.post("/paystack", async (req, res) => {
       if (event === "charge.success") {
         //Create/update: Customer and transaction
         try {
-          res.sendStatus(200).json({ message: "Charge Success" });
           await addCustomerTransactions(data);
         } catch (e) {
           res.sendStatus(500).json({ message: "Something went Wrong" });
         }
-
-        res.sendStatus(200).json({ message: "Webhook received" });
       } else {
         res.sendStatus(400).json({ message: "Bad Request!" });
       }
