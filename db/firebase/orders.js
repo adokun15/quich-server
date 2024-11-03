@@ -19,10 +19,10 @@ const updateMerchantProducts = async (storelink, item, data) => {
       //Update Transaction Only
       if (
         productDoc.data().productQty >= 1 &&
-        Number(item.quantity) <= productDoc.data().productQty
+        productDoc.data().productQty >= Number(item.qty)
       ) {
         transaction.update(productRef, {
-          productQty: productDoc.data().productQty - Number(item.quantity),
+          productQty: productDoc.data().productQty - Number(item.qty),
           orders: [
             {
               name: data?.name,
@@ -73,7 +73,6 @@ const updateMerchantOrder = async (data, id) => {
 
 export const createNewOrder = async (data) => {
   try {
-    console.log(data);
     //Order Model
     const orderModel = new Order(
       data?.metadata?.cartId,
@@ -109,7 +108,7 @@ export const SuccessOrder = async (data, orderDocId) => {
     //orders: works
     await updateMerchantOrder(data, orderDocId);
 
-    //products
+    //products: works
     data?.metadata?.products?.forEach(
       async (items) =>
         await updateMerchantProducts(data?.metadata?.store, items, {

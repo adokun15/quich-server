@@ -9,22 +9,21 @@ const secret = process.env.WEBHOOK_SECRET_KEY;
 webhook.post("/paystack", async (req, res) => {
   //Update order: paymentrequest.success
   //try {
-  /*const verifyheader = crypto
-      .createHmac("sha512", secret)
-      .update(JSON.stringify(req.body))
-      .digest("hex");
-*/
-  //  if (verifyheader === req.header["x-paystack-signature"]) {
-  const { event, data } = req.body;
+  const verifyheader = crypto
+    .createHmac("sha512", secret)
+    .update(JSON.stringify(req.body))
+    .digest("hex");
 
-  console.log(event);
-  console.log(data);
+  if (verifyheader !== req.header["x-paystack-signature"]) return;
+
+  const { event, data } = req.body;
 
   if (event === "paymentrequest.pending") {
     //Create new Order
     try {
       await createNewOrder(data);
       res.status(200).end();
+      return;
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }
@@ -38,6 +37,7 @@ webhook.post("/paystack", async (req, res) => {
         `${data?.metadata?.store}&${data?.metadata?.cartId}`
       );
       res.status(200).end();
+      return;
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }
@@ -48,6 +48,7 @@ webhook.post("/paystack", async (req, res) => {
     try {
       await addCustomerTransactions(data);
       res.status(200).end();
+      return;
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }
