@@ -35,8 +35,6 @@ export const paymentRequest = async (
       metadata: {
         merchant: {
           id: merchantId,
-          //      name: merchant?.businessName,
-          //    phone: merchant.businessNumber,
         },
         store: link,
         user: { ...customer },

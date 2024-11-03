@@ -54,7 +54,7 @@ export const addCustomerTransactions = async (data) => {
         //Update Transaction Only
         const newOrderList = [newOrder, ...customerDoc.data().orders];
 
-        transaction.update({ orders: newOrderList });
+        transaction.update(customerRef, { orders: newOrderList });
         return "Existing Customer order updated!";
       }
     );
@@ -87,4 +87,3 @@ export const getAllCustomers = async (merchantId) => {
     });
   return { customers };
 };
-

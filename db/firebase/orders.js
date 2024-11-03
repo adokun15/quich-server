@@ -1,6 +1,5 @@
 import { getFirestore } from "firebase-admin/firestore";
 import Order from "../../model/order.js";
-import { getCustomers } from "../paystack/customer.js";
 
 //Product
 const updateMerchantProducts = async (storelink, item, data) => {
@@ -16,7 +15,7 @@ const updateMerchantProducts = async (storelink, item, data) => {
         //Set new data,
         throw new Error("Product Not Found!");
       }
-      console.log(data);
+
       //Update Transaction Only
       if (
         productDoc.data().productQty >= 1 &&
@@ -37,7 +36,6 @@ const updateMerchantProducts = async (storelink, item, data) => {
         });
       }
       //Else NOtify merchant!
-
       return "Product updated!";
     }
   );
@@ -86,7 +84,7 @@ export const createNewOrder = async (data) => {
       data?.metadata?.products,
       data?.request_code,
       data?.metadata?.merchant.id,
-      data?.customer,
+      data?.metadata?.user,
       data?.offline_reference,
       data?.split_code,
       null
@@ -97,15 +95,11 @@ export const createNewOrder = async (data) => {
       .collection(`orders/${data?.metadata?.merchant.id}/transactions`)
       .doc(`${data?.metadata?.store}&${data?.metadata?.cartId}`)
       .set({
-        customerInfo: {
-          ...data?.metadata?.user,
-        },
         ...orderModel,
         createdOn: data?.created_at,
       });
     return "success";
   } catch (e) {
-    console.log(e);
     throw new Error(e?.message);
   }
 };
@@ -114,24 +108,21 @@ export const SuccessOrder = async (data, orderDocId) => {
   try {
     //orders
     await updateMerchantOrder(data, orderDocId);
-    //Get Customer
-    //  const customer = await getCustomers(data?.metadata?.user);
+
     //products
     data?.metadata?.products?.forEach(
       async (items) =>
         await updateMerchantProducts(data?.metadata?.store, items, {
-          name: data?.metadata?.user?.first_name || null,
+          name: data?.metadata?.user?.name || null,
           status: data?.status,
-          code: data?.metadata?.user?.customer_code,
+          code: data?.metadata?.user?.customerCode,
           email: data?.metadata?.user?.email,
           phone: data?.metadata?.user?.phone,
           paidAt: data?.paid_at,
         }) //id, qty
     );
-
     return "success";
   } catch (e) {
-    console.log(e);
     throw new Error(e?.message);
   }
 };

@@ -44,7 +44,7 @@ webhook.post("/paystack", async (req, res) => {
   }
 
   if (event === "charge.success") {
-    //Create/update: Customer and transaction
+    //Create/update: Customer and transaction: working fine
     try {
       await addCustomerTransactions(data);
       res.status(200).end();
