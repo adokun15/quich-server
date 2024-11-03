@@ -22,6 +22,7 @@ const updateMerchantProducts = async (storelink, item, data) => {
         Number(item.quantity) <= productDoc.data().productQty
       ) {
         transaction.update(productRef, {
+          productQty: productDoc.data().productQty - Number(item.quantity),
           orders: [
             {
               name: data?.name,
@@ -86,8 +87,7 @@ export const createNewOrder = async (data) => {
       data?.metadata?.merchant.id,
       data?.metadata?.user,
       data?.offline_reference,
-      data?.split_code,
-      null
+      data?.split_code
     );
 
     //Save to Db
@@ -106,7 +106,7 @@ export const createNewOrder = async (data) => {
 
 export const SuccessOrder = async (data, orderDocId) => {
   try {
-    //orders
+    //orders: works
     await updateMerchantOrder(data, orderDocId);
 
     //products

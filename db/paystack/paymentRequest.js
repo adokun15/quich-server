@@ -30,7 +30,7 @@ export const paymentRequest = async (
       })),
       due_date: "2024-11-11",
       //remove comment later
-      customer: customer?.customer_code,
+      customer: customer?.customerCode,
       split_code: "SPL_gMbkCKGkaC",
       metadata: {
         merchant: {

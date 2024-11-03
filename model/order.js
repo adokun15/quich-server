@@ -23,10 +23,9 @@ class Order {
     this.checkoutList = lineItem;
     this.requestCode = rqCode;
     this.merchantId = merchantid; //metadata : { }
-    this.customerId = customer;
+    this.customer = customer;
     this.reference = ref;
     this.splitCode = splitCode;
-    this.transactionId = transId;
   }
 }
 
