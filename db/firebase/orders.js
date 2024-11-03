@@ -93,7 +93,7 @@ export const createNewOrder = async (data) => {
     );
 
     //Retrieve Customer;
-    const customer = await getCustomers(data?.metadata?.user);
+    //   const customer = await getCustomers(data?.metadata?.user);
 
     console.log(customer);
     //Save to Db
@@ -101,9 +101,9 @@ export const createNewOrder = async (data) => {
       .collection(`orders/${data?.metadata?.merchant.id}/transactions`)
       .doc(`${data?.metadata?.store}&${data?.metadata?.cartId}`)
       .set({
-        customerInfo: {
-          ...customer,
-        },
+        //     customerInfo: {
+        ///     ...customer,
+        //   },
         ...orderModel,
         createdOn: data?.created_at,
       });
