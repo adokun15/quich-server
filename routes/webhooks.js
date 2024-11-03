@@ -37,6 +37,7 @@ webhook.post("/paystack", async (req, res) => {
         data,
         `${data?.metadata?.store}&${data?.metadata?.cartId}`
       );
+      res.status(200).end();
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }
@@ -46,6 +47,7 @@ webhook.post("/paystack", async (req, res) => {
     //Create/update: Customer and transaction
     try {
       await addCustomerTransactions(data);
+      res.status(200).end();
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }

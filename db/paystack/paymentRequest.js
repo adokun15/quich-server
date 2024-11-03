@@ -6,11 +6,6 @@ export const paymentRequest = async (
   { merchantId, items, cartId },
   link
 ) => {
-  console.log(customerInfo);
-  console.log(merchantId);
-  console.log(items);
-  console.log(cartId);
-  console.log(link);
   let config = {
     method: "POST",
     endpoint: "/paymentrequest",
@@ -20,7 +15,7 @@ export const paymentRequest = async (
     //merchant
     //const merchant = await getUserDb(merchantId)
 
-    //user
+    //user//edi later
     const customer = await Customer(customerInfo);
 
     //console.log(customer);
@@ -35,7 +30,7 @@ export const paymentRequest = async (
       })),
       due_date: "2024-11-11",
       //remove comment later
-      customer: { ...customer },
+      customer: customer?.customer_code,
       split_code: "SPL_gMbkCKGkaC",
       metadata: {
         merchant: {
@@ -44,7 +39,7 @@ export const paymentRequest = async (
           //    phone: merchant.businessNumber,
         },
         store: link,
-        user: "CUS_dcihtw5347ob33z",
+        user: { ...customer },
         cartId,
         products: items.map((item) => ({
           productId: item?.productId,

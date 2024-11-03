@@ -114,19 +114,17 @@ export const SuccessOrder = async (data, orderDocId) => {
   try {
     //orders
     await updateMerchantOrder(data, orderDocId);
-
     //Get Customer
-    const customer = await getCustomers(data?.metadata?.user);
-
+    //  const customer = await getCustomers(data?.metadata?.user);
     //products
     data?.metadata?.products?.forEach(
       async (items) =>
         await updateMerchantProducts(data?.metadata?.store, items, {
-          name: customer?.name,
+          name: data?.metadata?.user?.first_name || null,
           status: data?.status,
-          code: customer?.customerCode,
-          email: customer?.email,
-          phone: customer?.phone,
+          code: data?.metadata?.user?.customer_code,
+          email: data?.metadata?.user?.email,
+          phone: data?.metadata?.user?.phone,
           paidAt: data?.paid_at,
         }) //id, qty
     );
