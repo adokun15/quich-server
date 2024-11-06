@@ -1,3 +1,4 @@
+import AsyncError from "../../utils/AsyncError.js";
 import { paystack_ } from "../../utils/paystack.js";
 
 //Use {subaccount: in paymentRequest}

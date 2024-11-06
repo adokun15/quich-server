@@ -1,5 +1,6 @@
 //Read & Deleted
 import { getFirestore } from "firebase-admin/firestore";
+import CustomError from "../../utils/error.js";
 
 //Charge Success - splitCode - merchant
 const getMerchantBySplitCode = async (splitCode) => {
@@ -24,6 +25,7 @@ export const addCustomerTransactions = async (data) => {
     const customerRef = getFirestore()
       .collection(`customers/${merchantId}/users`)
       .doc(`${data?.customer?.customer_code}`);
+
     const updateCustomerOrder = await getFirestore().runTransaction(
       async (transaction) => {
         const customerDoc = await transaction.get(customerRef);
@@ -67,23 +69,28 @@ export const addCustomerTransactions = async (data) => {
 
 export const getAllCustomers = async (merchantId) => {
   //paginate late
-  const ref = getFirestore().collection(`customers/${merchantId}/users`);
+  try {
+    const ref = getFirestore().collection(`customers/${merchantId}/users`);
+    //Run tansaction
+    const Customers = await getFirestore().runTransaction(
+      async (transaction) => {
+        const customersDoc = await transaction.get(ref);
 
-  let customers = [];
-
-  await ref
-    .get()
-    .then((data) => {
-      data.forEach((customer) => {
-        if (customer?.exists) {
-          customers.push({ ...customer.data(), customerDocId: customer.id });
+        if (customersDoc.empty) {
+          throw new CustomError("Could not get customers!");
         }
-      });
-    })
-    .catch((err) => {
-      throw new Error(
-        err?.code || err?.message || "Something went wrong getting customers"
-      );
-    });
-  return { customers };
+
+        let list = [];
+        //Get all customer
+        customersDoc.docs.forEach((customer) => {
+          list.push({ ...customer.data(), customerDocId: customer.id });
+        });
+        return list;
+      }
+    );
+
+    return Customers;
+  } catch (e) {
+    throw new CustomError(e?.message || e?.code);
+  }
 };

@@ -77,7 +77,7 @@ export const createNewOrder = async (data) => {
     const orderModel = new Order(
       data?.metadata?.cartId,
       data.invoice_number,
-      data.amount,
+      data.amount / 100,
       data?.due_date,
       data?.pdf_url,
       data?.status,

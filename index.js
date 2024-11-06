@@ -9,6 +9,7 @@ import authRoute from "./routes/auth.js";
 import admin from "firebase-admin";
 import serviceAccount from "./utils/secret.json" with {type: "json"};
 import { configDotenv } from "dotenv";
+import { globalErr } from "./utils/globalError.js";
 
 configDotenv()
 
@@ -42,7 +43,6 @@ app.use("/webhook", webhook);
 app.use("/user", userRoute);
 
 //Error
-app.use(function (err, req, res, next) {
-  res.status(500).send(err?.message || "Something Went Wrong" );
-});
+app.use(globalErr);
+
 app.listen(8080)

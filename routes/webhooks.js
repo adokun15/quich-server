@@ -7,15 +7,15 @@ const webhook = express.Router();
 const secret = process.env.WEBHOOK_SECRET_KEY;
 
 webhook.post("/paystack", async (req, res) => {
-  //Update order: paymentrequest.success
-  //try {
   const verifyheader = crypto
     .createHmac("sha512", secret)
     .update(JSON.stringify(req.body))
     .digest("hex");
 
-  if (verifyheader !== req.header["x-paystack-signature"]) return;
-
+  if (verifyheader !== req.header["x-paystack-signature"]) {
+    res.status(400).end();
+    return;
+  }
   const { event, data } = req.body;
 
   if (event === "paymentrequest.pending") {
@@ -37,27 +37,20 @@ webhook.post("/paystack", async (req, res) => {
         `${data?.metadata?.store}&${data?.metadata?.cartId}`
       );
       res.status(200).end();
-      return;
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }
   }
 
   if (event === "charge.success") {
-    //Create/update: Customer and transaction: working fine
+    //Create/update: Customer and transaction
     try {
       await addCustomerTransactions(data);
       res.status(200).end();
-      return;
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }
-  } else {
-    res.sendStatus(400).json({ message: "Bad Request!" });
   }
-  // }
-  // } catch (e) {
-  // res.sendStatus(500).json({ message: "Something went wrong!" });
-  // }
+  res.status(200).end();
 });
 export default webhook;

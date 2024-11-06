@@ -1,6 +1,7 @@
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import generateUniqueId from "generate-unique-id";
+import CustomError from "../../utils/error.js";
 
 export const verifyToken = async function (token) {
   try {
@@ -14,8 +15,17 @@ export const verifyToken = async function (token) {
     const user = await getAuth().getUser(uid);
     return user;
   } catch (err) {
-    console.log(err);
-    throw new Error("Could not authenticate!");
+    if (err?.errorInfo?.code === "auth/id-token-expired") {
+      throw new CustomError("Session Timed out!", 401);
+    } else if (err?.errorInfo?.code === "app/network-error") {
+      throw new CustomError("No Internet Connection", 500);
+    } else if (err?.errorInfo?.code === "auth/argument-error") {
+      throw new CustomError("Unauthorized Access!", 401);
+    } else if (err?.errorInfo?.code === "app/network-timeout") {
+      throw new CustomError("Slow  Internet Detected!", 500);
+    } else {
+      throw new CustomError(err?.errorInfo?.code || "Could not Authenticate!");
+    }
   }
 };
 
