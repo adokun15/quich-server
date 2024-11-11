@@ -1,4 +1,6 @@
-import { paystack, paystack_ } from "../../utils/paystack.js";
+import CustomError from "../../utils/error.js";
+import { paystack } from "../../utils/paystack.js";
+import { getUserStore } from "../firebase/store.js";
 import { getUserDb } from "../firebase/users.js";
 import { Customer } from "./customer.js";
 export const paymentRequest = async (
@@ -11,30 +13,32 @@ export const paymentRequest = async (
     endpoint: "/paymentrequest",
   };
 
+  const oneWeek = new Date().setMilliseconds(1000 * 60 * 60 * 24 * 7);
+
   try {
     //merchant
-    //const merchant = await getUserDb(merchantId)
+    const merchant = await getUserStore(link);
+
+    const user = await getUserDb(merchantId);
 
     //user//edi later
     const customer = await Customer(customerInfo);
 
-    //console.log(customer);
-    // console.log(merchant);
-
     const data = {
       line_items: items.map((item) => ({
-        //id: item?.productId,
         quantity: item?.qty,
         name: item?.productName,
         amount: item?.total,
       })),
-      due_date: "2024-11-11",
+      due_date: oneWeek.toLocaleString(),
       //remove comment later
       customer: customer?.customerCode,
-      split_code: "SPL_gMbkCKGkaC",
+      split_code: user?.split_code,
       metadata: {
         merchant: {
           id: merchantId,
+          phone: merchant?.phone,
+          name: merchant?.businessName,
         },
         store: link,
         user: { ...customer },
@@ -48,16 +52,10 @@ export const paymentRequest = async (
       },
     };
 
-    const paymentRequestProcess = await paystack(config, data)
-      .then((data) => data.data)
-      .catch((err) => {
-        console.log(err);
-        throw new Error(err.message);
-      });
+    const paymentRequestProcess = await paystack(config, data);
 
-    return paymentRequestProcess?.request_code;
+    return paymentRequestProcess?.data?.request_code;
   } catch (e) {
-    console.log(e);
-    throw new Error(e?.message || "Something went wrong!!");
+    throw new CustomError(e?.message || "SOMETHING WENT WRONG", 5000);
   }
 };

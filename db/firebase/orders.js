@@ -1,5 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
 import Order from "../../model/order.js";
+import CustomError from "../../utils/error.js";
 
 //Product
 const updateMerchantProducts = async (storelink, item, data) => {
@@ -127,15 +128,26 @@ export const SuccessOrder = async (data, orderDocId) => {
 };
 
 export const getOrders = async (merchantId) => {
-  const ref = getFirestore().collection(`orders/${merchantId}/transactions`);
+  try {
+    const ref = getFirestore().collection(`orders/${merchantId}/transactions`);
+    //Run tansaction
+    const Orders = await getFirestore().runTransaction(async (transaction) => {
+      const ordersDoc = await transaction.get(ref);
 
-  let orders = [];
+      if (ordersDoc.empty) {
+        throw new CustomError("Could not get orders!");
+      }
 
-  await ref.get().then((data) => {
-    data.forEach((order) => {
-      orders.push({ ...order.data(), orderDocId: order.id });
+      let list = [];
+      //Get all customer
+      ordersDoc.docs.forEach((order) => {
+        list.push({ ...order.data(), orderDocId: order.id });
+      });
+      return list;
     });
-  });
 
-  return { orders };
+    return Orders;
+  } catch (e) {
+    throw new CustomError(e?.message || e?.code);
+  }
 };

@@ -1,24 +1,41 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { createUserDb } from "./users.js";
+import CustomError from "../../utils/error.js";
 
-export default async function getAllStoreProduct(link) {
-  const ref = getFirestore().collection(`store/${link}/products`);
-  let products = [];
-  await ref
-    .get()
-    .then((data) => {
-      data.forEach((product) => {
-        if (product.exists) {
-          products.push({ ...product.data(), productId: product.id });
-        } else {
-          throw "Store has no product";
+const getAllStoreProducts = async function (link) {
+  try {
+    const ref = getFirestore().collection(`store/${link}/products`);
+    //Run tansaction
+    const products = await getFirestore().runTransaction(
+      async (transaction) => {
+        const productsDoc = await transaction.get(ref);
+
+        if (productsDoc.empty) {
+          throw new CustomError("This store has no Product Available!");
         }
-      });
-    })
-    .catch((err) => console.log(err));
 
-  return { store: products };
-}
+        let list = [];
+        productsDoc.forEach((product) => {
+          console.log(product.data());
+          if (product.data()?.published) {
+            list.push({ ...product.data(), productId: product.id });
+          }
+        });
+
+        return list;
+      }
+    );
+
+    return products;
+  } catch (e) {
+    console.log(e);
+    throw new CustomError(
+      e?.message || e?.code || "SOMETHING WENT WRONG!",
+      500
+    );
+  }
+};
+
 //Initalize store and user Db;
 export const createUserStore = async (link, uid, data) => {
   try {
@@ -30,37 +47,53 @@ export const createUserStore = async (link, uid, data) => {
       category: data?.business_category,
     });
     await createUserDb(uid);
-    return { message: "Success. Business details saved" };
-  } catch (err) {
-    console.log(err);
-    throw new Error(err?.code || "Could not upload details!");
+    return { message: "Success. Merchant details saved" };
+  } catch (e) {
+    throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }
 };
 
-export const getUserStore = async (link) => {
+export const getUserStore = async (link, uid = "") => {
+  const merchantDocPath = getFirestore().collection("store/").doc(`${link}`);
   try {
-    const storeUser = (
-      await getFirestore().collection("store/").doc(`${link}`).get()
-    ).data();
-    return { ...storeUser };
-  } catch (err) {
-    throw new Error(err?.code || "Could not get User store details");
+    const getMerchant = getFirestore().runTransaction(async (transaction) => {
+      const merchantDoc = await transaction.get(merchantDocPath);
+
+      if (!merchantDoc.exists) {
+        throw new CustomError(
+          "THIS STORE DOES NOT EXIST. CHECK THE LINK AND TRY AGAIN!"
+        );
+      }
+
+      if (
+        merchantDoc.exists &&
+        !merchantDoc?.data()?.published &&
+        merchantDoc?.data()?.userId !== uid
+      ) {
+        throw new CustomError(
+          "THIS STORE IS CURRENTLY OFFLINE. COME BACK LATER!"
+        );
+      }
+
+      return merchantDoc.data();
+    });
+    return getMerchant;
+  } catch (e) {
+    throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }
 };
 
 export const updateUserStore = async (link, data) => {
   try {
     await getFirestore().collection("store/").doc(`${link}`).update(data);
-    return { message: "Success. Business details Updated" };
-  } catch (err) {
-    throw new Error(err?.code || "Could not update details!");
+    return { message: "Success. Merchant details Updated" };
+  } catch (e) {
+    throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }
 };
 
 export const updateMerchantVisibility = async (link) => {
   try {
-    console.log(link);
-    //const merchantPath = db.collection("store").doc(`${link}`);
     const merchantPath = getFirestore().collection("store").doc(`${link}`);
 
     await getFirestore().runTransaction(async (transaction) => {
@@ -75,8 +108,9 @@ export const updateMerchantVisibility = async (link) => {
       transaction.update(merchantPath, { published: !prevState });
     });
     return { message: "Store Updated!" };
-  } catch (err) {
-    console.log(err);
-    throw new Error(err?.code || "Could not update details!");
+  } catch (e) {
+    throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }
 };
+
+export default getAllStoreProducts;

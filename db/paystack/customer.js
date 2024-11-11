@@ -7,42 +7,24 @@ export const Customer = async (customerInfo) => {
     endpoint: "/customer",
   };
 
-  let data = {
+  let info = {
     email: customerInfo?.email,
     phone: customerInfo?.phone,
     first_name: customerInfo?.name,
   };
 
   //Get Customer;
-  const customer = await paystack(config, data)
-    .then(({ data }) => {
-      //  const currentCustomer = data?.find(customer => customer.id === id);
+  const customer = await paystack(config, info);
 
-      return {
-        email: data?.email,
-        phone: data?.phone,
-        name: data?.first_name,
-        customerCode: data?.customer_code,
-        createdOn: data?.createdAt,
-      };
-    })
-    .catch((err) => {
-      throw new Error(err.message);
-    });
+  const { data, status } = customer;
 
-  return customer;
+  if (status) {
+    return {
+      email: data?.email,
+      phone: data?.phone,
+      name: data?.first_name,
+      customerCode: data?.customer_code,
+      createdOn: data?.createdAt,
+    };
+  }
 };
-
-/*{
-  transactions: [],
-  subscriptions: [],
-  authorizations: [],
-  integration: 1043425,
-  domain: 'test',
-  metadata: {},
-  risk_action: 'default',
-  id: 200087139,
-  updatedAt: '2024-10-24T23:07:13.147Z',
-  identified: false,
-  identifications: null
-}*/

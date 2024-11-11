@@ -1,5 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { GetSplitCode, GetSubAccount } from "../paystack/subaccount.js";
+import CustomError from "../../utils/error.js";
 
 export const addAccountUserDb = async function (uid, data) {
   const { business_name, bank_code, account_number } = data;
@@ -34,8 +35,8 @@ export const addAccountUserDb = async function (uid, data) {
       })
       .then(() => "Successfully Added Bank Info!");
   } catch (err) {
-    throw new Error(
-      err?.message || err?.details || err?.code || "Could not add bank detail"
+    throw new CustomError(
+      err?.message || err?.code || "Could not add bank detail"
     );
   }
 };

@@ -1,25 +1,23 @@
 import express from "express";
 import { getOrders } from "../db/firebase/orders.js";
-import { getAuth } from "firebase-admin/auth";
+import { AuthorizationRouteMiddleware } from "../utils/Auth.js";
+import AsyncError from "../utils/AsyncError.js";
 const orderRoute = express.Router();
 
 //Get Merchant Orders
+orderRoute.use(AuthorizationRouteMiddleware);
 
-orderRoute.use(async (req, res, next) => {
-  const token = req.get("Authorization").split(" ")[1];
-  const decodedToken = await getAuth().verifyIdToken(token); //uid, email
-  req.uid = decodedToken.uid;
-  next();
-});
-
-orderRoute.route("/").get(async (req, res, next) => {
-  try {
+orderRoute.route("/").get(
+  AsyncError(async (req, res, next) => {
     const merchantId = req.uid;
+
+    if (!merchantId) {
+      throw CustomError("Unauthorized Access to Order Data!", 403);
+    }
+
     const orders = await getOrders(merchantId);
-    res.json(orders);
-  } catch (e) {
-    next(e);
-  }
-});
+    res.json({ orders });
+  })
+);
 
 export default orderRoute;

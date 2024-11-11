@@ -1,5 +1,4 @@
 import express from "express";
-import { getAuth } from "firebase-admin/auth";
 import { getBanks, VerifyBankAccount } from "../db/paystack/bankVerify.js";
 import { addAccountUserDb } from "../db/firebase/account.js";
 import {
@@ -7,64 +6,69 @@ import {
   getUserDb,
   saveStoreLink,
 } from "../db/firebase/users.js";
+import { AuthorizationRouteMiddleware } from "../utils/Auth.js";
+import AsyncError from "../utils/AsyncError.js";
+import CustomError from "../utils/error.js";
 const userRoute = express.Router();
 
 //Provide-Uid-Middleware
-userRoute.use(async (req, res, next) => {
-  const token = req.get("Authorization").split(" ")[1];
-  const decodedToken = await getAuth().verifyIdToken(token); //uid, email
-  req.uid = decodedToken.uid;
-  next();
-});
+userRoute.use(AuthorizationRouteMiddleware);
 
 userRoute
   .route("/bank")
-  .get(async (req, res) => {
-    //list of bank;
-    const banks = await getBanks();
+  .get(
+    AsyncError(async (req, res) => {
+      const banks = await getBanks();
+      res.json({ banks });
+    })
+  )
+  .post(
+    AsyncError(async (req, res) => {
+      //Verify accountnumber & bankcode
+      const { number, code } = req.body;
+      const getBankUser = await VerifyBankAccount({ number, code });
+      //Return {accountName, number}
+      res.json({ getBankUser });
+    })
+  );
 
-    res.json({ banks });
+userRoute.route("/account").post(
+  AsyncError(async (req, res) => {
+    //user account
+    if (!req?.uid) {
+      throw new CustomError("User Id not found!");
+    }
+    const addToBank = await addAccountUserDb(req?.uid, req.body);
+    res.json({ message: addToBank });
   })
-  .post(async (req, res) => {
-    //Verify accountnumber & bankcode
-    const { number, code } = req.body;
-
-    const getBankUser = await VerifyBankAccount({ number, code });
-    //Return {accountName, number}
-    res.json({ getBankUser });
-  });
-
-userRoute.route("/account").post(async (req, res) => {
-  //user account
-  if (!req?.uid) {
-    res.status(404).send("User Id not found!");
-  }
-  const addToBank = await addAccountUserDb(req?.uid, req.body);
-  res.json({ message: addToBank });
-});
+);
 
 userRoute
   .route("/link")
-  .get(async (req, res) => {
-    const generatedLink = GenerateStoreLink();
-    res.json({ link: generatedLink });
-  })
-  .post(async (req, res) => {
-    //create link
-    const { link } = req.body;
+  .get(
+    AsyncError(async (req, res) => {
+      const generatedLink = GenerateStoreLink();
+      res.json({ link: generatedLink });
+    })
+  )
+  .post(
+    AsyncError(async (req, res) => {
+      //create link
+      const { link } = req.body;
 
-    if (!req?.uid) {
-      res.status(404).json({ message: "User Id not found!" });
-    }
+      if (!req?.uid) {
+        throw new CustomError("User Id not found!");
+      }
 
-    if (!link) {
-      res.status(400).json({ message: "Invalid StoreLink" });
-    }
+      if (!link) {
+        throw new CustomError("Invalid StoreLink");
+      }
 
-    await saveStoreLink(req?.uid, link);
+      await saveStoreLink(req?.uid, link);
 
-    res.json({ message: "store link has been saved" });
-  });
+      res.json({ message: "Store link has been saved" });
+    })
+  );
 
 userRoute
   .route("/")
@@ -77,11 +81,17 @@ userRoute
   // const mes = await createUserDb(req?.uid, req.body);
   //res.json(mes);
   //})
-  .get(async (req, res) => {
-    //Get User
-    const user = await getUserDb(req.uid);
-    res.json(user);
-  })
+  .get(
+    AsyncError(async (req, res) => {
+      //Get User
+      if (!req?.uid) {
+        throw new CustomError("User Id not found!");
+      }
+
+      const user = await getUserDb(req.uid);
+      res.json(user);
+    })
+  )
   .delete((req, res) => {
     //delete User
   })

@@ -1,3 +1,5 @@
+import CustomError from "./error.js";
+
 //Post, update
 export async function paystack(config, data) {
   try {
@@ -18,12 +20,12 @@ export async function paystack(config, data) {
     const response = await paystack.json();
 
     if (!response.status) {
-      throw new Error(response.message || "Something went wrong");
+      throw new CustomError(response.message || "SOMETHING WENT WRONG!", 500);
     }
 
     return response;
   } catch (err) {
-    throw new Error(err.message || "Something went wrong");
+    throw new Error(err?.message || "Something went wrong", 500);
   }
 }
 export async function paystack_(config) {
@@ -44,11 +46,11 @@ export async function paystack_(config) {
     const response = await paystack.json();
 
     if (!response.status) {
-      throw new Error(response.message || "Something went wrong");
+      throw new CustomError(response.message || "SOMETHING WENT WRONG!", 500);
     }
 
     return response;
   } catch (err) {
-    throw new Error(err.message || "Something went wrong");
+    throw new Error(err?.message || "Something went wrong", 500);
   }
 }

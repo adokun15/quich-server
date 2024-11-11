@@ -1,9 +1,15 @@
 import { paystack } from "../../utils/paystack.js";
+
 export const GetSplitCode = async function (name, account) {
+  if (!name || !account) {
+    throw new CustomError(data?.message || "SOMETHING WENT WRONG!", 500);
+  }
+
   const config = {
     method: "POST",
     endpoint: "/split",
   };
+
   const data = {
     name: name,
     type: "percentage",
@@ -17,11 +23,9 @@ export const GetSplitCode = async function (name, account) {
     ],
   };
 
-  return await paystack(config, data)
-    .then((data) => data.data)
-    .catch((err) => {
-      throw new Error(err.message);
-    });
+  const info = await paystack(config, data);
+
+  return info?.data || "No Split Code Generated!";
 };
 export const GetSubAccount = async function (query) {
   const config = {
@@ -35,9 +39,7 @@ export const GetSubAccount = async function (query) {
     percentage_charge: 5, // My Percentage
   };
 
-  return await paystack(config, data)
-    .then((data) => data.data)
-    .catch((err) => {
-      throw new Error(err.message);
-    });
+  const info = await paystack(config, data);
+
+  return info?.data;
 };

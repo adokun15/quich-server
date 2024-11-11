@@ -36,9 +36,20 @@ export const GenerateStoreLink = function () {
     excludeSymbols: ["@", "#", "$", "%", "^", "&", "*", "!"],
   });
 };
+
 //save Store Link
 export const saveStoreLink = async function (uid, link) {
-  return await getFirestore().collection("users/").doc(`${uid}`).set({ link });
+  try {
+    return await getFirestore()
+      .collection("users/")
+      .doc(`${uid}`)
+      .set({ link });
+  } catch (e) {
+    throw new CustomError(
+      err?.message || err?.code || "Could not add link",
+      500
+    );
+  }
 };
 
 //Create user Db Business
@@ -48,11 +59,12 @@ export const createUserDb = async function (uid) {
       userId: uid,
       account: {},
     });
-
     return { message: "Success. Business details saved" };
   } catch (err) {
-    console.log(err);
-    throw new Error(err?.code || "Could not upload details!");
+    throw new CustomError(
+      err?.message || err?.code || "Could not upload details!",
+      500
+    );
   }
 };
 //Get user Db
@@ -63,6 +75,9 @@ export const getUserDb = async function (uid) {
     ).data();
     return { ...user };
   } catch (err) {
-    throw new Error(err?.code || "Could not get User");
+    throw new CustomError(
+      err?.message || err?.code || "Could not get User",
+      500
+    );
   }
 };
