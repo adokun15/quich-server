@@ -9,20 +9,17 @@ const webhook = express.Router();
 const secret = process.env.WEBHOOK_SECRET_KEY;
 
 webhook.post("/paystack", async (req, res) => {
-  const verifyheader = crypto
+  const hash = crypto
     .createHmac("sha512", secret)
     .update(JSON.stringify(req.body))
     .digest("hex");
 
-  /*  if (verifyheader !== req.header["x-paystack-signature"]) {
+  if (hash !== req.headers["x-paystack-signature"]) {
     res.status(400).end();
     return;
   }
-  */
-  const { event, data } = req.body;
 
-  console.log(event);
-  console.log(data);
+  const { event, data } = req.body;
 
   if (event === "paymentrequest.pending") {
     //Create new Order
@@ -48,7 +45,7 @@ webhook.post("/paystack", async (req, res) => {
   }
 
   if (event === "charge.success" && data?.metadata?.user === "merchant") {
-    //Create/update: Customer and transaction
+    //One time payment Service
     try {
       await addUserPaymentInfo(data);
       res.status(200).end();
@@ -57,6 +54,7 @@ webhook.post("/paystack", async (req, res) => {
     }
     return;
   }
+
   if (event === "charge.success") {
     //Create/update: Customer and transaction
     try {

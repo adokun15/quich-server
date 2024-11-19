@@ -1,3 +1,7 @@
+import { getFirestore } from "firebase-admin/firestore";
+import { NewPaymentPlan, UpgradedPaymentPlan } from "../whatapp/payment";
+import { getAuth } from "firebase-admin/auth";
+
 export const addUserPaymentInfo = async (data) => {
   const uid = data?.metadata?.userId;
   const plan = data?.metadata?.plan;
@@ -18,12 +22,10 @@ export const addUserPaymentInfo = async (data) => {
         expiresIn: null,
       });
 
-      //Notice on whatsapp(later)
-
       let amt = +userDoc.data()?.membership?.amount || 0;
 
-      //add plan to user DB --> plan
       if (data?.metadata.upgrade) {
+        //add plan to user DB --> plan
         transaction.update(userRef, {
           membership: {
             code: data?.customer?.customer_code,
@@ -33,7 +35,17 @@ export const addUserPaymentInfo = async (data) => {
             plan: data?.metadata.plan,
           },
         });
+
+        if (!data?.metadata?.phone) return;
+        //Notice on whatsapp(later)
+        await UpgradedPaymentPlan(data?.metadata?.phone, {
+          amt: (data.amount / 100 + amt).toLocaleString(),
+          plan: `${data?.metadata.plan} plan`.toUpperCase(),
+          name: "Test Name",
+        });
       }
+
+      //New Payment
       if (!data?.metadata.upgrade) {
         transaction.update(userRef, {
           membership: {
@@ -43,6 +55,14 @@ export const addUserPaymentInfo = async (data) => {
             amount: data.amount / 100,
             plan: data?.metadata.plan,
           },
+        });
+
+        if (!data?.metadata?.phone) return;
+
+        await NewPaymentPlan(data?.metadata?.phone, {
+          amt: (data.amount / 100).toLocaleString(),
+          plan: `${data?.metadata.plan} plan`.toUpperCase(),
+          name: "Test Name",
         });
       }
 
