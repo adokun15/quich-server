@@ -2,6 +2,7 @@ import express from "express";
 import { getOrders } from "../db/firebase/orders.js";
 import { AuthorizationRouteMiddleware } from "../utils/Auth.js";
 import AsyncError from "../utils/AsyncError.js";
+import CustomError from "../utils/error.js";
 const orderRoute = express.Router();
 
 //Get Merchant Orders
@@ -12,7 +13,7 @@ orderRoute.route("/").get(
     const merchantId = req.uid;
 
     if (!merchantId) {
-      throw CustomError("Unauthorized Access to Order Data!", 403);
+      throw new CustomError("Unauthorized Access to Order Data!", 403);
     }
 
     const orders = await getOrders(merchantId);

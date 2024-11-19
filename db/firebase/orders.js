@@ -135,7 +135,7 @@ export const getOrders = async (merchantId) => {
       const ordersDoc = await transaction.get(ref);
 
       if (ordersDoc.empty) {
-        throw new CustomError("Could not get orders!");
+        throw new CustomError("No Orders yet!");
       }
 
       let list = [];

@@ -15,7 +15,7 @@ customerRoute.route("/").get(
     const merchantId = req?.uid;
 
     if (!merchantId) {
-      throw CustomError("Unauthorized Access to Customer Data!", 403);
+      throw new CustomError("Unauthorized Access to Customers Data!", 403);
     }
     const customers = await getAllCustomers(merchantId);
     res.json({ customers });

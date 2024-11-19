@@ -6,8 +6,10 @@ import express from "express";
 import getAllStoreProduct, {
   createUserStore,
   getUserStore,
+  sendCodeToDestinateUser,
   updateMerchantVisibility,
   updateUserStore,
+  VerifyCodeFromDestinateUser,
 } from "../db/firebase/store.js";
 import { paymentRequest } from "../db/paystack/paymentRequest.js";
 const storeRoute = express.Router();
@@ -20,6 +22,31 @@ storeRoute.patch(
     }
     const publishFunc = await updateMerchantVisibility(req.params.storeId);
     res.json(publishFunc);
+  })
+);
+
+storeRoute.get(
+  "/:store/merchant/phone/:code",
+  AsyncError(async (req, res) => {
+    //Receive and verify code
+    const store = req.params.store;
+    const code = req.params.code;
+
+    const mes = await VerifyCodeFromDestinateUser(store, code);
+
+    res.json({ message: "Verified" });
+  })
+);
+//Send Code to User
+storeRoute.post(
+  "/:store/merchant/phone",
+  AsyncError(async (req, res) => {
+    const store = req.params.store;
+
+    const mes = await sendCodeToDestinateUser(store, req.body?.phone);
+    console.log(mes);
+
+    res.json({ message: "Sent" });
   })
 );
 
@@ -48,7 +75,7 @@ storeRoute
   )
   .post(
     AsyncError(async (req, res, next) => {
-      const storeLink = req.params.storeId;
+      const storeLink = req.params.store;
 
       const token = req.get("Authorization").split(" ")[1];
       const decodedToken = await getAuth().verifyIdToken(token); //uid, email
@@ -66,14 +93,15 @@ storeRoute
   )
   .patch(
     AsyncError(async (req, res) => {
-      const storeLink = req.params.storeId;
+      const store = req.params.store;
+
       if (!req.body) {
         throw new CustomError("No information provided.");
       }
-      if (!storeLink) {
+      if (!store) {
         throw new CustomError("Invalid store link.");
       }
-      const updateMerchant = await updateUserStore(storeLink, req?.body);
+      const updateMerchant = await updateUserStore(store, req?.body);
       res.json(updateMerchant);
     })
   );

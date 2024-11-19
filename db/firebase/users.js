@@ -3,6 +3,40 @@ import { getFirestore } from "firebase-admin/firestore";
 import generateUniqueId from "generate-unique-id";
 import CustomError from "../../utils/error.js";
 
+// Get
+export const EmailVerified = async (email) => {
+  const currentUser = await getAuth()
+    .getUserByEmail(email)
+    .then((user) => user);
+
+  if (!currentUser.emailVerified) {
+    throw new CustomError("Your Email is not yet verified!", 500);
+  }
+
+  const next14Days = 14 * 24 * 60 * 60 * 1000;
+
+  const date = new Date();
+
+  date.setMilliseconds(next14Days);
+
+  await getFirestore().collection("users/").doc(`${currentUser.uid}`).update({
+    userId: currentUser.uid,
+    account: {}, //No bank info
+    link: "", //No store: no whatapp, order, customer
+  });
+
+  return getAuth()
+    .setCustomUserClaims(currentUser.uid, {
+      role: "free-trial",
+      expiresIn: date.toISOString(),
+    })
+    .then(() => "Your Email Has been successfully Verified. Login To Continue!")
+    .catch((e) => {
+      console.log(e);
+      throw new CustomError(e?.errorInfo?.code || "Email verification failed");
+    });
+};
+
 export const verifyToken = async function (token) {
   try {
     //  const { token } = req.params;
@@ -15,6 +49,7 @@ export const verifyToken = async function (token) {
     const user = await getAuth().getUser(uid);
     return user;
   } catch (err) {
+    console.log(err);
     if (err?.errorInfo?.code === "auth/id-token-expired") {
       throw new CustomError("Session Timed out!", 401);
     } else if (err?.errorInfo?.code === "app/network-error") {
@@ -37,36 +72,6 @@ export const GenerateStoreLink = function () {
   });
 };
 
-//save Store Link
-export const saveStoreLink = async function (uid, link) {
-  try {
-    return await getFirestore()
-      .collection("users/")
-      .doc(`${uid}`)
-      .set({ link });
-  } catch (e) {
-    throw new CustomError(
-      err?.message || err?.code || "Could not add link",
-      500
-    );
-  }
-};
-
-//Create user Db Business
-export const createUserDb = async function (uid) {
-  try {
-    await getFirestore().collection("users/").doc(`${uid}`).update({
-      userId: uid,
-      account: {},
-    });
-    return { message: "Success. Business details saved" };
-  } catch (err) {
-    throw new CustomError(
-      err?.message || err?.code || "Could not upload details!",
-      500
-    );
-  }
-};
 //Get user Db
 export const getUserDb = async function (uid) {
   try {

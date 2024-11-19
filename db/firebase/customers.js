@@ -62,8 +62,7 @@ export const addCustomerTransactions = async (data) => {
     );
     return updateCustomerOrder;
   } catch (e) {
-    console.log(e);
-    throw new Error(e?.code || e?.message || "Something went wrong");
+    throw new CustomError(e?.code || e?.message || "Something went wrong");
   }
 };
 
@@ -77,7 +76,7 @@ export const getAllCustomers = async (merchantId) => {
         const customersDoc = await transaction.get(ref);
 
         if (customersDoc.empty) {
-          throw new CustomError("Could not get customers!");
+          throw new CustomError("No Customer yet!");
         }
 
         let list = [];
