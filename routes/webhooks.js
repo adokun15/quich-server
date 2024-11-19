@@ -46,10 +46,7 @@ webhook.post("/paystack", async (req, res) => {
   if (event === "charge.success") {
     //Create/update: Customer and transaction
     try {
-      if (data.metadata.type === "merchant") {
-        console.log(data);
-      }
-
+      console.log(data);
       await addCustomerTransactions(data);
       res.status(200).end();
     } catch (e) {
