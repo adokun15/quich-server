@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { createNewOrder, SuccessOrder } from "../db/firebase/orders.js";
 import { addCustomerTransactions } from "../db/firebase/customers.js";
 import { whatsappMessage } from "../utils/whatsapp.js";
+import { addUserPaymentInfo } from "../db/firebase/membership.js";
 const webhook = express.Router();
 
 const secret = process.env.WEBHOOK_SECRET_KEY;
@@ -46,11 +47,20 @@ webhook.post("/paystack", async (req, res) => {
     }
   }
 
+  if (event === "charge.success" && data?.metadata?.user === "merchant") {
+    //Create/update: Customer and transaction
+    try {
+      await addUserPaymentInfo(data);
+      res.status(200).end();
+    } catch (e) {
+      res.sendStatus(500).json({ message: "Something went Wrong" });
+    }
+    return;
+  }
   if (event === "charge.success") {
     //Create/update: Customer and transaction
     try {
-      console.log(data);
-      // await addCustomerTransactions(data);
+      await addCustomerTransactions(data);
       res.status(200).end();
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
