@@ -19,12 +19,14 @@ webhook.post("/paystack", async (req, res) => {
   }
   const { event, data } = req.body;
 
+  console.log(event);
+  console.log(data);
+
   if (event === "paymentrequest.pending") {
     //Create new Order
     try {
       await createNewOrder(data);
       res.status(200).end();
-      return;
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }
@@ -47,7 +49,7 @@ webhook.post("/paystack", async (req, res) => {
     //Create/update: Customer and transaction
     try {
       console.log(data);
-      await addCustomerTransactions(data);
+      // await addCustomerTransactions(data);
       res.status(200).end();
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });

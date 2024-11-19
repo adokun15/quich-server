@@ -61,7 +61,7 @@ export const paymentforPremium = async (email, uid, phone) => {
     const data = {
       email,
       callback_url,
-      amount: 3500 * 100,
+      amount: 17900 * 100,
       metadata: {
         plan: "premium",
         phone,
