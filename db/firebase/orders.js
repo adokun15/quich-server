@@ -1,6 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import Order from "../../model/order.js";
 import CustomError from "../../utils/error.js";
+import { newOrder } from "../whatapp/order.js";
 
 //Product
 const updateMerchantProducts = async (storelink, item, data) => {
@@ -36,6 +37,8 @@ const updateMerchantProducts = async (storelink, item, data) => {
             ...productDoc?.data()?.orders,
           ],
         });
+
+        //await newOrder()
       }
       //Else NOtify merchant!
       return "Product updated!";
@@ -135,7 +138,7 @@ export const getOrders = async (merchantId) => {
       const ordersDoc = await transaction.get(ref);
 
       if (ordersDoc.empty) {
-        throw new CustomError("No Orders yet!");
+        throw new CustomError("No Orders yet!", 500);
       }
 
       let list = [];
@@ -148,6 +151,6 @@ export const getOrders = async (merchantId) => {
 
     return Orders;
   } catch (e) {
-    throw new CustomError(e?.message || e?.code);
+    throw new CustomError(e?.message || e?.code || "Something went wrong", 500);
   }
 };

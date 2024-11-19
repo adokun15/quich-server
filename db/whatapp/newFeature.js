@@ -1,4 +1,4 @@
-import { whatsappMessage } from "../../utils/whatsapp";
+import { whatsappMessage } from "../../utils/whatsapp.js";
 
 export async function FeatureAnnouncement(phonenumber, Fname, benefit) {
   const extras = {

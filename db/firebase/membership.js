@@ -1,5 +1,5 @@
 import { getFirestore } from "firebase-admin/firestore";
-import { NewPaymentPlan, UpgradedPaymentPlan } from "../whatapp/payment";
+import { NewPaymentPlan, UpgradedPaymentPlan } from "../whatapp/payment.js";
 import { getAuth } from "firebase-admin/auth";
 
 export const addUserPaymentInfo = async (data) => {
@@ -7,70 +7,72 @@ export const addUserPaymentInfo = async (data) => {
   const plan = data?.metadata?.plan;
 
   const userRef = getFirestore().collection(`users/`).doc(`${uid}`);
+  try {
+    const updateUserPlan = await getFirestore().runTransaction(
+      async (transaction) => {
+        const userDoc = await transaction.get(userRef);
 
-  const updateUserPlan = await getFirestore().runTransaction(
-    async (transaction) => {
-      const userDoc = await transaction.get(userRef);
+        if (!userDoc.exists) {
+          throw new Error("User not Found!");
+        }
 
-      if (!userDoc.exists) {
-        throw new Error("User not Found!");
+        //update custom claim
+        await getAuth().setCustomUserClaims(uid, {
+          role: plan,
+          expiresIn: null,
+        });
+
+        let amt = +userDoc.data()?.membership?.amount || 0;
+
+        if (data?.metadata.upgrade) {
+          //add plan to user DB --> plan
+          transaction.update(userRef, {
+            membership: {
+              code: data?.customer?.customer_code,
+              paymentDate: data?.paid_at,
+              authCode: data?.authorization.authorization_code,
+              amount: data.amount / 100 + amt,
+              plan: data?.metadata.plan,
+            },
+          });
+
+          if (!data?.metadata?.phone) return;
+          //Notice on whatsapp(later)
+          await UpgradedPaymentPlan(data?.metadata?.phone, {
+            amt: (data.amount / 100 + amt).toLocaleString(),
+            plan: `${data?.metadata.plan} plan`.toUpperCase(),
+            name: "Test Name",
+          });
+        }
+
+        //New Payment
+        if (!data?.metadata.upgrade) {
+          transaction.update(userRef, {
+            membership: {
+              code: data?.customer?.customer_code,
+              paymentDate: data?.paid_at,
+              authCode: data?.authorization.authorization_code,
+              amount: data.amount / 100,
+              plan: data?.metadata.plan,
+            },
+          });
+
+          if (!data?.metadata?.phone) return;
+
+          await NewPaymentPlan(data?.metadata?.phone, {
+            amt: (data.amount / 100).toLocaleString(),
+            plan: `${data?.metadata.plan} plan`.toUpperCase(),
+            name: "Test Name",
+          });
+        }
+        return "User plan updated!";
       }
+    );
 
-      //update custom claim
-      await getAuth().setCustomUserClaims(uid, {
-        role: plan,
-        expiresIn: null,
-      });
-
-      let amt = +userDoc.data()?.membership?.amount || 0;
-
-      if (data?.metadata.upgrade) {
-        //add plan to user DB --> plan
-        transaction.update(userRef, {
-          membership: {
-            code: data?.customer?.customer_code,
-            paymentDate: data?.paid_at,
-            authCode: data?.authorization.authorization_code,
-            amount: data.amount / 100 + amt,
-            plan: data?.metadata.plan,
-          },
-        });
-
-        if (!data?.metadata?.phone) return;
-        //Notice on whatsapp(later)
-        await UpgradedPaymentPlan(data?.metadata?.phone, {
-          amt: (data.amount / 100 + amt).toLocaleString(),
-          plan: `${data?.metadata.plan} plan`.toUpperCase(),
-          name: "Test Name",
-        });
-      }
-
-      //New Payment
-      if (!data?.metadata.upgrade) {
-        transaction.update(userRef, {
-          membership: {
-            code: data?.customer?.customer_code,
-            paymentDate: data?.paid_at,
-            authCode: data?.authorization.authorization_code,
-            amount: data.amount / 100,
-            plan: data?.metadata.plan,
-          },
-        });
-
-        if (!data?.metadata?.phone) return;
-
-        await NewPaymentPlan(data?.metadata?.phone, {
-          amt: (data.amount / 100).toLocaleString(),
-          plan: `${data?.metadata.plan} plan`.toUpperCase(),
-          name: "Test Name",
-        });
-      }
-
-      return "User plan updated!";
-    }
-  );
-
-  return updateUserPlan;
+    return updateUserPlan;
+  } catch (e) {
+    throw new CustomError(e?.message || e?.code || " Something went wrong!");
+  }
 };
 
 /**
