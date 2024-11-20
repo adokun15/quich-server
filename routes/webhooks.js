@@ -13,7 +13,10 @@ webhook.post("/paystack", async (req, res) => {
     .update(JSON.stringify(req.body))
     .digest("hex");
 
-  if (hash === req.headers["x-paystack-signature"]) {
+  console.log(hash);
+  console.log(req.headers["x-paystack-signature"]);
+
+  if (hash == req.headers["x-paystack-signature"]) {
     const { event, data } = req.body;
     console.log(data);
 
