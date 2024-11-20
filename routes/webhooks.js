@@ -9,8 +9,8 @@ const secret = `${process.env.WEBHOOK_SECRET_KEY}`;
 
 webhook.post("/paystack", async (req, res) => {
   const hash = crypto
-    .createHmac("sha256", secret)
-    .update(JSON.stringify(req.body))
+    .createHmac("sha512", secret)
+    .update(req.body)
     .digest("hex");
 
   console.log(hash);
@@ -18,7 +18,6 @@ webhook.post("/paystack", async (req, res) => {
 
   if (hash == req.headers["x-paystack-signature"]) {
     const { event, data } = req.body;
-    console.log(data);
 
     if (event === "paymentrequest.pending") {
       //Create new Order
