@@ -13,7 +13,9 @@ export const paymentRequest = async (
     endpoint: "/paymentrequest",
   };
 
-  const oneWeek = new Date().setMilliseconds(1000 * 60 * 60 * 24 * 7);
+  const oneWeek = new Date();
+
+  oneWeek.setMilliseconds(1000 * 60 * 60 * 24 * 7);
 
   try {
     //merchant
@@ -28,9 +30,9 @@ export const paymentRequest = async (
       line_items: items.map((item) => ({
         quantity: item?.qty,
         name: item?.productName,
-        amount: item?.total,
+        amount: item?.price * 100,
       })),
-      due_date: oneWeek.toLocaleString(),
+      due_date: oneWeek.toISOString(),
       //remove comment later
       customer: customer?.customerCode,
       split_code: user?.split_code,
@@ -56,6 +58,6 @@ export const paymentRequest = async (
 
     return paymentRequestProcess?.data?.request_code;
   } catch (e) {
-    throw new CustomError(e?.message || "SOMETHING WENT WRONG", 5000);
+    throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }
 };

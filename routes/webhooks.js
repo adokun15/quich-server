@@ -15,6 +15,7 @@ webhook.post("/paystack", async (req, res) => {
 
   if (hash === req.headers["x-paystack-signature"]) {
     const { event, data } = req.body;
+    console.log(data);
 
     if (event === "paymentrequest.pending") {
       //Create new Order
@@ -27,6 +28,7 @@ webhook.post("/paystack", async (req, res) => {
     }
 
     if (event === "paymentrequest.success") {
+      console.log(data);
       //update order and product
       try {
         await SuccessOrder(
@@ -39,21 +41,20 @@ webhook.post("/paystack", async (req, res) => {
       }
     }
 
-    if (event === "charge.success" && data?.metadata?.user === "merchant") {
-      //One time payment Service
+    if (event === "charge.success" && !data?.metadata?.user) {
+      //Create/update: Customer and transaction
+      console.log(data);
       try {
-        await addUserPaymentInfo(data);
+        await addCustomerTransactions(data);
         res.status(200).end();
       } catch (e) {
         res.sendStatus(500).json({ message: "Something went Wrong" });
       }
-      return;
     }
-
-    if (event === "charge.success") {
-      //Create/update: Customer and transaction
+    if (event === "charge.success" && data?.metadata?.user === "merchant") {
+      //One time payment Service
       try {
-        await addCustomerTransactions(data);
+        await addUserPaymentInfo(data);
         res.status(200).end();
       } catch (e) {
         res.sendStatus(500).json({ message: "Something went Wrong" });
