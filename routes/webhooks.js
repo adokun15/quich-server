@@ -8,9 +8,10 @@ const webhook = express.Router();
 const secret = `${process.env.WEBHOOK_SECRET_KEY}`;
 
 webhook.post("/paystack", async (req, res) => {
+  console.log(req.body);
   const hash = crypto
     .createHmac("sha512", secret)
-    .update(req.body)
+    .update(req.body.toString())
     .digest("hex");
 
   console.log(hash);
