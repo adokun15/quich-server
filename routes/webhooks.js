@@ -42,22 +42,27 @@ webhook.post("/paystack", async (req, res) => {
   if (event === "charge.success" && !data?.metadata?.user) {
     //Create/update: Customer and transaction
     try {
+      console.log(data);
       await addCustomerTransactions(data);
-      res.status(200).end();
+      res.status(200);
+      return;
     } catch (e) {
+      console.log(e);
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }
   }
+
   if (event === "charge.success" && data?.metadata?.user === "merchant") {
     //One time payment Service
     try {
       await addUserPaymentInfo(data);
       res.status(200).end();
+      return;
     } catch (e) {
       res.sendStatus(500).json({ message: "Something went Wrong" });
     }
   }
-  //  }
-  // res.status(200).end();
+
+  res.status(200).end();
 });
 export default webhook;

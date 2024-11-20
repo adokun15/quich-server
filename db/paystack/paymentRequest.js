@@ -35,7 +35,7 @@ export const paymentRequest = async (
       due_date: oneWeek.toISOString(),
       //remove comment later
       customer: customer?.customerCode,
-      split_code: user?.split_code,
+      split_code: user?.splitCode,
       metadata: {
         merchant: {
           id: merchantId,
@@ -53,7 +53,7 @@ export const paymentRequest = async (
         })),
       },
     };
-
+    console.log(data);
     const paymentRequestProcess = await paystack(config, data);
 
     return paymentRequestProcess?.data?.request_code;

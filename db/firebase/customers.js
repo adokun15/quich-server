@@ -4,6 +4,10 @@ import CustomError from "../../utils/error.js";
 
 //Charge Success - splitCode - merchant
 const getMerchantBySplitCode = async (splitCode) => {
+  if (!splitCode) {
+    throw new CustomError("No Found!");
+  }
+
   const merchantRef = getFirestore()
     .collection("users")
     .where("splitCode", "==", splitCode);

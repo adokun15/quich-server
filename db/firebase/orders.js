@@ -18,12 +18,13 @@ const updateMerchantProducts = async (storelink, item, data) => {
         throw new Error("Product Not Found!");
       }
 
+      console.log(productDoc);
       //Update Transaction Only
       if (
         productDoc.data().productQty >= 1 &&
         productDoc.data().productQty >= Number(item.qty)
       ) {
-        transaction.update(productRef, {
+        /*transaction.update(productRef, {
           productQty: productDoc.data().productQty - Number(item.qty),
           orders: [
             {
@@ -36,8 +37,7 @@ const updateMerchantProducts = async (storelink, item, data) => {
             },
             ...productDoc?.data()?.orders,
           ],
-        });
-
+        });*/
         //await newOrder()
       }
       //Else NOtify merchant!
