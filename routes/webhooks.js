@@ -9,7 +9,7 @@ const secret = `${process.env.WEBHOOK_SECRET_KEY}`;
 
 webhook.post("/paystack", async (req, res) => {
   const hash = crypto
-    .createHmac("sha512", "test")
+    .createHmac("sha256", secret)
     .update(JSON.stringify(req.body))
     .digest("hex");
 
