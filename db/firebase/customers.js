@@ -5,7 +5,7 @@ import CustomError from "../../utils/error.js";
 //Charge Success - splitCode - merchant
 const getMerchantBySplitCode = async (splitCode) => {
   if (!splitCode) {
-    throw new CustomError("No Found!");
+    throw new CustomError("Account Not Found!");
   }
 
   const merchantRef = getFirestore()
@@ -24,6 +24,7 @@ const getMerchantBySplitCode = async (splitCode) => {
 
 export const addCustomerTransactions = async (data) => {
   try {
+    const customer_Date = new Date();
     const merchantId = await getMerchantBySplitCode(data?.split?.split_code);
 
     const customerRef = getFirestore()
@@ -50,6 +51,8 @@ export const addCustomerTransactions = async (data) => {
             lastName: data?.customer?.last_name,
             email: data?.customer?.email,
             phone: data?.customer?.phone,
+            updated: customer_Date.getTime(),
+            created: customer_Date.toISOString(),
             code: data?.customer.customer_code,
           };
 
@@ -60,8 +63,20 @@ export const addCustomerTransactions = async (data) => {
         //Update Transaction Only
         const newOrderList = [newOrder, ...customerDoc.data().orders];
 
-        transaction.update(customerRef, { orders: newOrderList });
-        return "Existing Customer order updated!";
+        const transactionExistAlready = customerDoc
+          .data()
+          .orders?.some(
+            (order) => order.transactionId === newOrder?.transactionId
+          );
+        if (!transactionExistAlready) {
+          transaction.update(customerRef, {
+            orders: newOrderList,
+            updated: customer_Date.getTime(),
+          });
+          return "Existing Customer order updated!";
+        } else {
+          return "Transaction already exist on Database!";
+        }
       }
     );
     return updateCustomerOrder;
@@ -73,7 +88,9 @@ export const addCustomerTransactions = async (data) => {
 export const getAllCustomers = async (merchantId) => {
   //paginate late
   try {
-    const ref = getFirestore().collection(`customers/${merchantId}/users`);
+    const ref = getFirestore()
+      .collection(`customers/${merchantId}/users`)
+      .orderBy("updated", "desc");
     //Run tansaction
     const Customers = await getFirestore().runTransaction(
       async (transaction) => {

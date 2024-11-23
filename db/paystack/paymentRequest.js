@@ -53,7 +53,7 @@ export const paymentRequest = async (
         })),
       },
     };
-    console.log(data);
+    
     const paymentRequestProcess = await paystack(config, data);
 
     return paymentRequestProcess?.data?.request_code;

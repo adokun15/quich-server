@@ -7,7 +7,7 @@ const webhook = express.Router();
 
 const secret = `${process.env.WEBHOOK_SECRET_KEY}`;
 
-webhook.post("/paystack", async (req, res) => {
+webhook.post("/paystack", async (req, res, next) => {
   // const hash = crypto
   // .createHmac("sha512", secret)
   //  .update(req.body.toString())
@@ -20,9 +20,9 @@ webhook.post("/paystack", async (req, res) => {
     //Create new Order
     try {
       await createNewOrder(data);
-      res.status(200).end();
+      return res.status(200).json({ message: "success" });
     } catch (e) {
-      res.sendStatus(500).json({ message: "Something went Wrong" });
+      next(e);
     }
   }
 
@@ -33,22 +33,19 @@ webhook.post("/paystack", async (req, res) => {
         data,
         `${data?.metadata?.store}&${data?.metadata?.cartId}`
       );
-      res.status(200).end();
+      return res.status(200).json({ message: "success" });
     } catch (e) {
-      res.sendStatus(500).json({ message: "Something went Wrong" });
+      next(e);
     }
   }
 
   if (event === "charge.success" && !data?.metadata?.user) {
     //Create/update: Customer and transaction
     try {
-      console.log(data);
       await addCustomerTransactions(data);
-      res.status(200);
-      return;
+      return res.status(200).json({ message: "success" });
     } catch (e) {
-      console.log(e);
-      res.sendStatus(500).json({ message: "Something went Wrong" });
+      next(e);
     }
   }
 
@@ -56,13 +53,11 @@ webhook.post("/paystack", async (req, res) => {
     //One time payment Service
     try {
       await addUserPaymentInfo(data);
-      res.status(200).end();
-      return;
+      return res.status(200).json({ message: "success" });
     } catch (e) {
-      res.sendStatus(500).json({ message: "Something went Wrong" });
+      next(e);
     }
   }
-
-  res.status(200).end();
+  return res.status(200).end();
 });
 export default webhook;

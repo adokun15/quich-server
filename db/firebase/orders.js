@@ -18,13 +18,11 @@ const updateMerchantProducts = async (storelink, item, data) => {
         throw new Error("Product Not Found!");
       }
 
-      console.log(productDoc);
-      //Update Transaction Only
       if (
         productDoc.data().productQty >= 1 &&
         productDoc.data().productQty >= Number(item.qty)
       ) {
-        /*transaction.update(productRef, {
+        transaction.update(productRef, {
           productQty: productDoc.data().productQty - Number(item.qty),
           orders: [
             {
@@ -37,7 +35,7 @@ const updateMerchantProducts = async (storelink, item, data) => {
             },
             ...productDoc?.data()?.orders,
           ],
-        });*/
+        });
         //await newOrder()
       }
       //Else NOtify merchant!
@@ -132,7 +130,11 @@ export const SuccessOrder = async (data, orderDocId) => {
 
 export const getOrders = async (merchantId) => {
   try {
-    const ref = getFirestore().collection(`orders/${merchantId}/transactions`);
+    //First list.
+    const ref = getFirestore()
+      .collection(`orders/${merchantId}/transactions`)
+      .orderBy("orderId", "desc");
+
     //Run tansaction
     const Orders = await getFirestore().runTransaction(async (transaction) => {
       const ordersDoc = await transaction.get(ref);
@@ -146,6 +148,7 @@ export const getOrders = async (merchantId) => {
       ordersDoc.docs.forEach((order) => {
         list.push({ ...order.data(), orderDocId: order.id });
       });
+
       return list;
     });
 
