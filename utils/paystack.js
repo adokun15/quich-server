@@ -7,7 +7,7 @@ export async function paystack(config, data) {
       method: config?.method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.PAYSTACK_AUTHORIZATION_KEY}`,
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
       },
       body: JSON.stringify({ ...data }),
     };
