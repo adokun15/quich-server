@@ -3,7 +3,6 @@ import { getFirestore } from "firebase-admin/firestore";
 import generateUniqueId from "generate-unique-id";
 import CustomError from "../../utils/error.js";
 
-// Get
 export const EmailVerified = async (email) => {
   const currentUser = await getAuth()
     .getUserByEmail(email)

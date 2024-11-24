@@ -34,7 +34,7 @@ export async function paystack_(config) {
       method: config?.method || "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.PAYSTACK_AUTHORIZATION_KEY}`,
+        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
       },
     };
 

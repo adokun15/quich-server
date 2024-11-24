@@ -41,7 +41,7 @@ export const addUserPaymentInfo = async (data) => {
           await UpgradedPaymentPlan(data?.metadata?.phone, {
             amt: (data.amount / 100 + amt).toLocaleString(),
             plan: `${data?.metadata.plan} plan`.toUpperCase(),
-            name: "Test Name",
+            name: data?.metadata.username || "No name",
           });
         }
 
@@ -62,7 +62,7 @@ export const addUserPaymentInfo = async (data) => {
           await NewPaymentPlan(data?.metadata?.phone, {
             amt: (data.amount / 100).toLocaleString(),
             plan: `${data?.metadata.plan} plan`.toUpperCase(),
-            name: "Test Name",
+            name: data?.metadata.username || "No name",
           });
         }
         return "User plan updated!";
@@ -96,6 +96,7 @@ export const addUserPaymentInfo = async (data) => {
     user: 'merchant',
     userId: 'KZfR088rlMc67THuyGUzfoDOH5D2',
     cancel_action: ''
+    username:""
   },
   fees_breakdown: null,
   log: null,

@@ -1,6 +1,6 @@
 import { getAuth } from "firebase-admin/auth";
 import AsyncError from "./AsyncError.js";
-
+import CustomError from "./error.js";
 export const AuthorizationRouteMiddleware = AsyncError(async function (
   req,
   res,

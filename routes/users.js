@@ -23,38 +23,38 @@ userRoute.route("/payment/:type").post(
     const type = req.params.type;
 
     const uid = req.uid;
-    const { email, phone } = req.body;
+    const { email, phone, name } = req.body;
 
     let plan = null;
     let upgrade = null;
 
     if (type === "basic") {
-      plan = await paymentforBasic(email, uid, phone);
+      plan = await paymentforBasic(email, uid, phone, name);
       res.json({ url: plan });
     }
 
     if (type === "standard") {
-      plan = await paymentforStandard(email, uid, phone);
+      plan = await paymentforStandard(email, uid, phone, name);
       res.json({ url: plan });
     }
 
     if (type === "premium") {
-      plan = await paymentforPremium(email, uid, phone);
+      plan = await paymentforPremium(email, uid, phone, name);
       res.json({ url: plan });
     }
 
     if (type === "basic_standard") {
-      upgrade = await upgradeToStandard(email, uid, phone);
+      upgrade = await upgradeToStandard(email, uid, phone, name);
       res.json({ url: upgrade });
     }
 
     if (type === "basic_premium") {
-      upgrade = await upgradeFromBasicToPremium(email, uid, phone);
+      upgrade = await upgradeFromBasicToPremium(email, uid, phone, name);
       res.json({ url: upgrade });
     }
 
     if (type === "standard_premium") {
-      upgrade = await upgradeFromStandardToPremium(email, uid, phone);
+      upgrade = await upgradeFromStandardToPremium(email, uid, phone, name);
       res.json({ url: upgrade });
     }
 

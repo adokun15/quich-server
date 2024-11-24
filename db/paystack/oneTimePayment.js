@@ -6,19 +6,39 @@ const transaction = {
   endpoint: "/transaction/initialize",
 };
 
-const callback_url = "";
-const cancel_action = "";
+const callback_url = `${
+  process.env.NODE_ENV === "development"
+    ? process.env.MY_URL_CLIENT_SIDE_DEV
+    : process.env.MY_URL_CLIENT_SIDE_LIVE
+}/auth/login`;
+
+const cancel_action = `${
+  process.env.NODE_ENV === "development"
+    ? process.env.MY_URL_CLIENT_SIDE_DEV
+    : process.env.MY_URL_CLIENT_SIDE_LIVE
+}/dashboard/membership`;
+
+//PlanPrice
+const basic_plan = 3500;
+const standard_plan = 9300;
+const premium_plan = 17900;
+
+//UpgradePrice
+const basic_standard = 5500;
+const basic_premium = 14000;
+const standard_premium = 8000;
 
 //plan
-export const paymentforBasic = async (email, uid, phone) => {
+export const paymentforBasic = async (email, uid, phone, name = null) => {
   try {
     const data = {
       email,
       callback_url,
-      amount: 3500 * 100,
+      amount: +basic_plan * 100,
       metadata: {
         plan: "basic",
         phone,
+        username: name,
         upgrade: false,
         user: "merchant",
         userId: uid,
@@ -33,15 +53,16 @@ export const paymentforBasic = async (email, uid, phone) => {
     throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }
 };
-export const paymentforStandard = async (email, uid, phone) => {
+export const paymentforStandard = async (email, uid, phone, name = null) => {
   try {
     const data = {
       email,
       callback_url,
-      amount: 9300 * 100,
+      amount: +standard_plan * 100,
       metadata: {
         plan: "standard",
         phone,
+        username: name,
         upgrade: false,
         user: "merchant",
         userId: uid,
@@ -56,15 +77,16 @@ export const paymentforStandard = async (email, uid, phone) => {
   }
 };
 
-export const paymentforPremium = async (email, uid, phone) => {
+export const paymentforPremium = async (email, uid, phone, name = null) => {
   try {
     const data = {
       email,
       callback_url,
-      amount: 17900 * 100,
+      amount: +premium_plan * 100,
       metadata: {
         plan: "premium",
         phone,
+        username: name,
         upgrade: false,
         user: "merchant",
         userId: uid,
@@ -80,15 +102,16 @@ export const paymentforPremium = async (email, uid, phone) => {
 };
 
 //upgrade
-export const upgradeToStandard = async (email, uid, phone) => {
+export const upgradeToStandard = async (email, uid, phone, name = null) => {
   try {
     const data = {
       email,
       callback_url,
-      amount: (9300 - 3500) * 100,
+      amount: +basic_standard * 100,
       metadata: {
         plan: "standard",
         phone,
+        username: name,
         upgrade: true,
         user: "merchant",
         userId: uid,
@@ -103,15 +126,21 @@ export const upgradeToStandard = async (email, uid, phone) => {
   }
 };
 
-export const upgradeFromBasicToPremium = async (email, uid, phone) => {
+export const upgradeFromBasicToPremium = async (
+  email,
+  uid,
+  phone,
+  name = null
+) => {
   try {
     const data = {
       email,
       callback_url,
-      amount: (15300 - 3500) * 100,
+      amount: +basic_premium * 100,
       metadata: {
         plan: "premium",
         phone,
+        username: name,
         upgrade: true,
         user: "merchant",
         userId: uid,
@@ -126,15 +155,21 @@ export const upgradeFromBasicToPremium = async (email, uid, phone) => {
   }
 };
 
-export const upgradeFromStandardToPremium = async (email, uid, phone) => {
+export const upgradeFromStandardToPremium = async (
+  email,
+  uid,
+  phone,
+  name = null
+) => {
   try {
     const data = {
       email,
       callback_url,
-      amount: (15300 - 9500) * 100,
+      amount: +standard_premium * 100,
       metadata: {
         plan: "premium",
         phone,
+        username: name,
         upgrade: true,
         user: "merchant",
         userId: uid,

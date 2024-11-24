@@ -12,24 +12,17 @@ webhook.post(
   "/paystack",
   bodyParser.raw({ type: "application/json" }),
   async (req, res, next) => {
-    const body = req.body.toString();
-
-    const jsonData = JSON.parse(body);
-
     const hash = crypto
       .createHmac("sha512", secret)
-      .update(body, "utf-8")
+      .update(JSON.stringify(req.body))
       .digest("hex");
 
+    console.log(req.body);
     console.log(hash);
     console.log(req.headers["x-paystack-signature"]);
-    console.log(body);
-    console.log(jsonData);
 
     if (hash == req.headers["x-paystack-signature"]) {
       const { event, data } = req.body;
-      console.log(event);
-      console.log(data);
 
       if (event === "paymentrequest.pending") {
         //Create new Order

@@ -8,10 +8,10 @@ import storeRoute from "./routes/store.js";
 import authRoute from "./routes/auth.js";
 import admin from "firebase-admin";
 import serviceAccount from "./utils/secret.json" with {type: "json"};
-import { configDotenv } from "dotenv";
+import dotenv from "dotenv";
 import { globalErr } from "./utils/globalError.js";
 
-configDotenv()
+dotenv.config()
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
