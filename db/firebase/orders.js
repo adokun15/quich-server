@@ -2,9 +2,51 @@ import { getFirestore } from "firebase-admin/firestore";
 import Order from "../../model/order.js";
 import CustomError from "../../utils/error.js";
 import { newOrder } from "../whatapp/order.js";
+import { getAuth } from "firebase-admin/auth";
+import { OutOfStock } from "../whatapp/OutOfStock.js";
+import { getUserStore } from "./store.js";
+
+const getUserRole = async (uid) => {
+  return await getAuth()
+    .getUser(uid)
+    .then((user) => user?.customClaims?.role)
+    .catch(() => {
+      throw new CustomError("Cant get User Role", 401);
+    });
+};
+
+const OrderLimit = async (uid) => {
+  const todayDate = new Date();
+
+  const ordersRef = getFirestore().collection(`orders/${uid}/transactions`);
+
+  //Run tansaction
+  const LengthOfOrderInADay = await getFirestore().runTransaction(
+    async (transaction) => {
+      const ordersDoc = await transaction.get(ordersRef);
+
+      if (ordersDoc.empty) {
+        throw new CustomError("No Orders yet!", 500);
+      }
+
+      let orderLength = 0;
+
+      ordersDoc.docs.forEach((order) => {
+        const orderDate = order.data()?.paidAt;
+
+        if (orderDate?.getDate() === todayDate.getDate()) {
+          orderLength = orderLength + 1;
+        }
+      });
+
+      return orderLength;
+    }
+  );
+  return LengthOfOrderInADay;
+};
 
 //Product
-const updateMerchantProducts = async (storelink, item, data) => {
+const updateMerchantProducts = async (storelink, item, data, merchant) => {
   const productRef = getFirestore()
     .collection(`store/${storelink}/products`)
     .doc(`${item.productId}`);
@@ -14,16 +56,15 @@ const updateMerchantProducts = async (storelink, item, data) => {
       const productDoc = await transaction.get(productRef);
 
       if (!productDoc.exists) {
-        //Set new data,
         throw new Error("Product Not Found!");
       }
 
       if (
         productDoc.data().productQty >= 1 &&
-        productDoc.data().productQty >= Number(item.qty)
+        productDoc.data().productQty >= Number(item.quantity)
       ) {
         transaction.update(productRef, {
-          productQty: productDoc.data().productQty - Number(item.qty),
+          productQty: productDoc.data().productQty - Number(item.quantity),
           orders: [
             {
               name: data?.name,
@@ -36,9 +77,10 @@ const updateMerchantProducts = async (storelink, item, data) => {
             ...productDoc?.data()?.orders,
           ],
         });
-        //await newOrder()
+      } else {
+        //Inform About out-of-stock service!
+        await OutOfStock(merchant?.phone, merchant?.name, item?.name);
       }
-      //Else NOtify merchant!
       return "Product updated!";
     }
   );
@@ -48,6 +90,7 @@ const updateMerchantProducts = async (storelink, item, data) => {
 
 //Order
 const updateMerchantOrder = async (data, id) => {
+  //single order
   const orderRef = getFirestore()
     .collection(`orders/${data?.metadata?.merchant.id}/transactions`)
     .doc(`${id}`);
@@ -66,6 +109,24 @@ const updateMerchantOrder = async (data, id) => {
         pdf_url: data?.pdf_url,
         paidAt: data?.paid_at,
       });
+
+      //Track Order Sent!
+      const userRole = await getUserRole(data?.metadata?.merchant.id);
+      const LimitForOrder = await OrderLimit(data?.metadata?.merchant.id);
+
+      //Conditions! to send order on whatapp;
+      if (
+        (userRole === "free-trial" || userRole === "basic") &&
+        LimitForOrder <= 50
+      ) {
+        //await newOrder()
+      }
+      if (userRole === "standard" && LimitForOrder <= 500) {
+        //await newOrder()
+      }
+      if (userRole === "premium") {
+        //await newOrder()
+      }
 
       return "Order updated!";
     }
@@ -110,17 +171,22 @@ export const SuccessOrder = async (data, orderDocId) => {
     //orders: works
     await updateMerchantOrder(data, orderDocId);
 
-    //products: works
+    //products: works//vheck again
     data?.metadata?.products?.forEach(
-      async (items) =>
-        await updateMerchantProducts(data?.metadata?.store, items, {
-          name: data?.metadata?.user?.name || null,
-          status: data?.status,
-          code: data?.metadata?.user?.customerCode,
-          email: data?.metadata?.user?.email,
-          phone: data?.metadata?.user?.phone,
-          paidAt: data?.paid_at,
-        }) //id, qty
+      async (item) =>
+        await updateMerchantProducts(
+          data?.metadata?.store,
+          item,
+          {
+            name: data?.metadata?.user?.name || null,
+            status: data?.status,
+            code: data?.metadata?.user?.customerCode,
+            email: data?.metadata?.user?.email,
+            phone: data?.metadata?.user?.phone,
+            paidAt: data?.paid_at,
+          },
+          data?.metadata?.merchant
+        ) //id, qty
     );
     return "success";
   } catch (e) {
