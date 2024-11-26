@@ -12,7 +12,7 @@ class Order {
     customer,
     ref,
     splitCode,
-    transId
+    profit
   ) {
     this.orderId = orderid;
     this.invoiceId = invoiceid;
@@ -26,6 +26,7 @@ class Order {
     this.customer = customer;
     this.reference = ref;
     this.splitCode = splitCode;
+    this.actualProfitAmount = profit;
   }
 }
 

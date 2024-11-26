@@ -25,14 +25,10 @@ const OrderLimit = async (uid) => {
     async (transaction) => {
       const ordersDoc = await transaction.get(ordersRef);
 
-      if (ordersDoc.empty) {
-        throw new CustomError("No Orders yet!", 500);
-      }
-
       let orderLength = 0;
 
       ordersDoc.docs.forEach((order) => {
-        const orderDate = order.data()?.paidAt;
+        const orderDate = new Date(order.data()?.paidAt);
 
         if (orderDate?.getDate() === todayDate.getDate()) {
           orderLength = orderLength + 1;
@@ -136,6 +132,10 @@ const updateMerchantOrder = async (data, id) => {
 
 export const createNewOrder = async (data) => {
   try {
+    const calcActualProfitAmount = data?.metadata?.products?.reduce(
+      (acc, item) => acc + item?.actualProfitAmount,
+      0
+    );
     //Order Model
     const orderModel = new Order(
       data?.metadata?.cartId,
@@ -149,7 +149,8 @@ export const createNewOrder = async (data) => {
       data?.metadata?.merchant.id,
       data?.metadata?.user,
       data?.offline_reference,
-      data?.split_code
+      data?.split_code,
+      calcActualProfitAmount
     );
 
     //Save to Db

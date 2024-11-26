@@ -47,13 +47,14 @@ export const paymentRequest = async (
         cartId,
         products: items.map((item) => ({
           productId: item?.productId,
+          actualProfitAmount: item?.actualProfitAmount,
           quantity: item?.qty,
           name: item?.productName,
           amount: item?.total,
         })),
       },
     };
-    
+
     const paymentRequestProcess = await paystack(config, data);
 
     return paymentRequestProcess?.data?.request_code;
