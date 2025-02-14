@@ -11,7 +11,10 @@ import getAllStoreProduct, {
   updateUserStore,
   VerifyCodeFromDestinateUser,
 } from "../db/firebase/store.js";
-import { paymentRequest } from "../db/paystack/paymentRequest.js";
+import {
+  getCustomerPaymentInformation,
+  paymentRequest,
+} from "../db/paystack/paymentRequest.js";
 const storeRoute = express.Router();
 
 storeRoute.patch(
@@ -106,6 +109,17 @@ storeRoute
     })
   );
 
+//payment Information;
+storeRoute.get(
+  "/:paymentCode/payment",
+  AsyncError(async (req, res) => {
+    const prq = req.params.paymentCode;
+    console.log(prq);
+    const paymentInfo = await getCustomerPaymentInformation(prq);
+    res.json(paymentInfo);
+  })
+);
+
 storeRoute
   .route("/:storeSlug")
   .get(
@@ -120,7 +134,6 @@ storeRoute
     AsyncError(async (req, res, next) => {
       //Checkout
       const storeLink = req.params.storeSlug;
-      //checkout: {customer: { email, phone, name}, storeOwner: merchantId, items: [allproduct], cartId}
       const { customer } = req.body;
       const data = {
         items: req.body.items,
@@ -128,7 +141,7 @@ storeRoute
         merchantId: req.body.merchantId,
       };
       const url = await paymentRequest(customer, data, storeLink);
-      res.json({ url: `https://paystack.com/pay/${url}` });
+      res.json({ url: `https://paystack.com/pay/${url}`, code: url });
     })
   );
 

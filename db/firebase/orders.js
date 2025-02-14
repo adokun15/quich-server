@@ -133,7 +133,7 @@ const updateMerchantOrder = async (data, id) => {
 export const createNewOrder = async (data) => {
   try {
     const calcActualProfitAmount = data?.metadata?.products?.reduce(
-      (acc, item) => acc + item?.actualProfitAmount,
+      (acc, item) => acc + item?.actualProfitAmount * item?.quantity,
       0
     );
     //Order Model

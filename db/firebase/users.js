@@ -85,3 +85,36 @@ export const getUserDb = async function (uid) {
     );
   }
 };
+
+//Delete Accpunt
+export const deleteUser = async function (uid, storeId) {
+  getAuth()
+    .deleteUser(uid)
+    .then(() => {
+      //Remove from user db
+      getFirestore().collection("users/").doc(`${uid}`).delete();
+    })
+    .then(() => {
+      //Remove from order
+      getFirestore().collection("orders/").doc(`${uid}`).delete();
+    })
+    .then(() => {
+      //Remove from customer
+      getFirestore().collection("customer/").doc(`${uid}`).delete();
+    })
+    .then(() => {
+      //delete store merchant
+      getFirestore().collection("store/").doc(`${storeId}`).delete();
+    })
+    .then(() => {
+      //delete logo(userId) and product(storeId)
+      getFirestore().collection("store/").doc(`${storeId}`).delete();
+    })
+    .then(() => {
+      //delete store product
+      getFirestore().collection("store/").doc(`${storeId}`).delete();
+    })
+    .catch((e) => {
+      throw CustomError(e?.message, 500);
+    });
+};
