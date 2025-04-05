@@ -6,28 +6,167 @@ import express from "express";
 import getAllStoreProduct, {
   createUserStore,
   getUserStore,
-  sendCodeToDestinateUser,
-  updateMerchantVisibility,
   updateUserStore,
-  VerifyCodeFromDestinateUser,
 } from "../db/firebase/store.js";
 import {
   getCustomerPaymentInformation,
   paymentRequest,
 } from "../db/paystack/paymentRequest.js";
+import {
+  getStoreShippingInformation,
+  updateStoreShippingInformation,
+} from "../db/firebase/store/shipping.js";
+import {
+  AddToStoreDeliveryFee,
+  DeleteSingleStoreDeliveryFee,
+  getStoreDeliveryFee,
+  UpdateSingleStoreDeliveryFee,
+} from "../db/firebase/store/delivery.js";
+import {
+  getStoreSuccessMessage,
+  updateStoreSuccessMessage,
+} from "../db/firebase/store/SuccessMessage.js";
+import {
+  getStoreCustomizationInfo,
+  updateStoreCustomizationInfo,
+} from "../db/firebase/store/Appearance.js";
+import {
+  sendCodeToDestinateUser,
+  VerifyCodeFromDestinateUser,
+} from "../db/firebase/store/managePhone.js";
+import {
+  getMerchantVisibility,
+  updateMerchantVisibility,
+} from "../db/firebase/store/visibility.js";
+import { AuthorizationRouteMiddleware } from "../utils/Auth.js";
 const storeRoute = express.Router();
 
-storeRoute.patch(
-  "/:storeId/merchant/publish",
-  AsyncError(async (req, res, next) => {
-    if (!req.params.storeId) {
-      throw new CustomError("Invalid store link.");
-    }
-    const publishFunc = await updateMerchantVisibility(req.params.storeId);
-    res.json(publishFunc);
-  })
-);
+//shipping
+storeRoute
+  .route("/:storeId/merchant/shipping")
+  .get(
+    AsyncError(async (req, res) => {
+      //Get Shipping Info
+      const getShippingInfo = await getStoreShippingInformation(
+        req.params.storeId
+      );
+      res.json(getShippingInfo);
+    })
+  )
+  .post(
+    AsyncError(async (req, res) => {
+      //Update Shipping Info
+      const updateShipping = await updateStoreShippingInformation(
+        req.params.storeId,
+        req.body
+      );
+      res.json(updateShipping);
+    })
+  );
 
+//Delivery
+storeRoute
+  .route("/:storeId/merchant/delivery")
+  .get(
+    AsyncError(async (req, res) => {
+      //Get Delivery Fee List
+      const list = await getStoreDeliveryFee(req.params.storeId);
+      res.json({ list });
+    })
+  )
+  .post(
+    AsyncError(async (req, res) => {
+      //addSingle Delivery Fee
+      const addToList = await AddToStoreDeliveryFee(
+        req.params.storeId,
+        req?.body
+      );
+      res.json(addToList);
+    })
+  )
+  .patch(
+    AsyncError(async (req, res) => {
+      //update Single Delivery Fee
+      const updateList = await UpdateSingleStoreDeliveryFee(
+        req.params.storeId,
+        req.body
+      );
+      res.json(updateList);
+    })
+  )
+  .delete(
+    AsyncError(async (req, res) => {
+      //Delete single Delivery Fee
+      const deleteDelivery = await DeleteSingleStoreDeliveryFee(
+        req.params.storeId,
+        req.body.id
+      );
+      res.json(deleteDelivery);
+    })
+  );
+
+//Success Message
+storeRoute
+  .route("/:storeId/merchant/success_message")
+  .get(
+    AsyncError(async (req, res) => {
+      //Get Success Message
+      const getMessage = await getStoreSuccessMessage(req.params.storeId);
+      res.json(getMessage);
+    })
+  )
+  .post(
+    AsyncError(async (req, res) => {
+      //update Success Message
+      const setMessage = await updateStoreSuccessMessage(
+        req.params.storeId,
+        req.body.message
+      );
+      res.json(setMessage);
+    })
+  );
+
+//Customization
+storeRoute
+  .route("/:storeId/merchant/customize")
+  .get(
+    AsyncError(async (req, res) => {
+      //Get Customized Info
+      const appearance = await getStoreCustomizationInfo(req.params.storeId);
+      res.json(appearance);
+    })
+  )
+  .post(
+    AsyncError(async (req, res) => {
+      //Update Customized Info
+      const setAppearance = await updateStoreCustomizationInfo(
+        req.params.storeId,
+        req.body
+      );
+      res.json(setAppearance);
+    })
+  );
+
+storeRoute
+  .route("/:storeId/merchant/publish")
+  .get(
+    AsyncError(async (req, res) => {
+      //Get Publish State
+      const getPulishedState = await getMerchantVisibility(req.params.storeId);
+      res.json(getPulishedState);
+    })
+  )
+  .patch(
+    AsyncError(async (req, res, next) => {
+      if (!req.params.storeId) {
+        throw new CustomError("Invalid store link.");
+      }
+      const publishFunc = await updateMerchantVisibility(req.params.storeId);
+      res.json(publishFunc);
+    })
+  );
+
+//Whatsapp Verification
 storeRoute.get(
   "/:store/merchant/phone/:code",
   AsyncError(async (req, res) => {
@@ -40,6 +179,7 @@ storeRoute.get(
     res.json({ message: "Verified" });
   })
 );
+
 //Send Code to User
 storeRoute.post(
   "/:store/merchant/phone",
@@ -53,6 +193,7 @@ storeRoute.post(
   })
 );
 
+//StoreFront
 storeRoute
   .route("/:store/merchant")
   .get(
@@ -101,6 +242,7 @@ storeRoute
       if (!req.body) {
         throw new CustomError("No information provided.");
       }
+
       if (!store) {
         throw new CustomError("Invalid store link.");
       }
@@ -114,7 +256,6 @@ storeRoute.get(
   "/:paymentCode/payment",
   AsyncError(async (req, res) => {
     const prq = req.params.paymentCode;
-    console.log(prq);
     const paymentInfo = await getCustomerPaymentInformation(prq);
     res.json(paymentInfo);
   })

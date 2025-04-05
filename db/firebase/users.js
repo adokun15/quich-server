@@ -18,7 +18,7 @@ export const EmailVerified = async (email) => {
 
   date.setMilliseconds(next14Days);
 
-  await getFirestore().collection("users/").doc(`${currentUser.uid}`).update({
+  await getFirestore().collection("users/").doc(`${currentUser.uid}`).set({
     userId: currentUser.uid,
     account: {}, //No bank info
     link: "", //No store: no whatapp, order, customer
@@ -37,30 +37,43 @@ export const EmailVerified = async (email) => {
 };
 
 export const verifyToken = async function (token) {
-  try {
-    //  const { token } = req.params;
-    //Verify Token
-    const decodedToken = await getAuth().verifyIdToken(token); //uid, email
+  return await getAuth()
+    .verifyIdToken(token)
+    .then((token) => token.uid)
+    .then((uid) => {
+      return getAuth().getUser(uid);
+    })
+    .then(async (user) => {
+      const prop = await getFirestore()
+        .collection("users")
+        .doc(`${user?.uid}`)
+        .get();
 
-    //get uid from
-    const uid = decodedToken.uid;
-
-    const user = await getAuth().getUser(uid);
-    return user;
-  } catch (err) {
-    console.log(err);
-    if (err?.errorInfo?.code === "auth/id-token-expired") {
-      throw new CustomError("Session Timed out!", 401);
-    } else if (err?.errorInfo?.code === "app/network-error") {
-      throw new CustomError("No Internet Connection", 500);
-    } else if (err?.errorInfo?.code === "auth/argument-error") {
-      throw new CustomError("Unauthorized Access!", 401);
-    } else if (err?.errorInfo?.code === "app/network-timeout") {
-      throw new CustomError("Slow  Internet Detected!", 500);
-    } else {
-      throw new CustomError(err?.errorInfo?.code || "Could not Authenticate!");
-    }
-  }
+      return {
+        ...prop.data(),
+        email: user?.email,
+        name: user?.displayName,
+        role: user?.customClaims?.role || null,
+        emailVerified: user?.emailVerified,
+        freeTrialExpiration: user?.customClaims?.expiresIn || null,
+      };
+    })
+    .catch((err) => {
+      console.log(err);
+      if (err?.errorInfo?.code === "auth/id-token-expired") {
+        throw new CustomError("Session Timed out!", 401);
+      } else if (err?.errorInfo?.code === "app/network-error") {
+        throw new CustomError("No Internet Connection", 500);
+      } else if (err?.errorInfo?.code === "auth/argument-error") {
+        throw new CustomError("Unauthorized Access!", 401);
+      } else if (err?.errorInfo?.code === "app/network-timeout") {
+        throw new CustomError("Slow  Internet Detected!", 500);
+      } else {
+        throw new CustomError(
+          err?.errorInfo?.code || "Could not Authenticate!"
+        );
+      }
+    });
 };
 
 //Generate Store Link

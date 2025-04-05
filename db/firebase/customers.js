@@ -68,11 +68,13 @@ export const addCustomerTransactions = async (data) => {
           .orders?.some(
             (order) => order.transactionId === newOrder?.transactionId
           );
+
         if (!transactionExistAlready) {
           transaction.update(customerRef, {
             orders: newOrderList,
             updated: customer_Date.getTime(),
           });
+
           return "Existing Customer order updated!";
         } else {
           return "Transaction already exist on Database!";

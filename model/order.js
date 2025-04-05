@@ -11,7 +11,7 @@ class Order {
     merchantid,
     customer,
     ref,
-    splitCode,
+    recipient,
     profit
   ) {
     this.orderId = orderid;
@@ -25,7 +25,7 @@ class Order {
     this.merchantId = merchantid; //metadata : { }
     this.customer = customer;
     this.reference = ref;
-    this.splitCode = splitCode;
+    this.recipient = recipient;
     this.actualProfitAmount = profit;
   }
 }

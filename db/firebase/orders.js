@@ -1,17 +1,23 @@
 import { getFirestore } from "firebase-admin/firestore";
 import Order from "../../model/order.js";
 import CustomError from "../../utils/error.js";
-import { newOrder } from "../whatapp/order.js";
 import { getAuth } from "firebase-admin/auth";
 import { OutOfStock } from "../whatapp/OutOfStock.js";
-import { getUserStore } from "./store.js";
+//import { getUserStore } from "./store.js";
+import { newOrder } from "../whatapp/order.js";
+import { MakeTransferToRecipient } from "../paystack/receipient.js";
 
 const getUserRole = async (uid) => {
   return await getAuth()
     .getUser(uid)
-    .then((user) => user?.customClaims?.role)
-    .catch(() => {
-      throw new CustomError("Cant get User Role", 401);
+    .then((user) => {
+      if (!user?.customClaims?.role) {
+        throw new Error("User Not Found!");
+      }
+      return user?.customClaims?.role;
+    })
+    .catch((e) => {
+      throw new CustomError(e?.message || "Cant get User Role", 401);
     });
 };
 
@@ -99,16 +105,13 @@ const updateMerchantOrder = async (data, id) => {
         throw new Error("Order Not Found!");
       }
 
-      //Update Transaction Only
-      transaction.update(orderRef, {
-        status: data?.status,
-        pdf_url: data?.pdf_url,
-        paidAt: data?.paid_at,
-      });
-
       //Track Order Sent!
       const userRole = await getUserRole(data?.metadata?.merchant.id);
+
+      //Read order limit;
       const LimitForOrder = await OrderLimit(data?.metadata?.merchant.id);
+
+      const actualAmount = data?.amount;
 
       //Conditions! to send order on whatapp;
       if (
@@ -116,13 +119,37 @@ const updateMerchantOrder = async (data, id) => {
         LimitForOrder <= 50
       ) {
         //await newOrder()
+
+        const fivePercentage = actualAmount * 0.05;
+
+        await MakeTransferToRecipient(
+          data?.metadata?.merchant?.recipient,
+          fivePercentage
+        );
       }
       if (userRole === "standard" && LimitForOrder <= 500) {
+        const percentage = actualAmount * 0.033;
+        await MakeTransferToRecipient(
+          data?.metadata?.merchant?.recipient,
+          percentage
+        );
         //await newOrder()
       }
       if (userRole === "premium") {
         //await newOrder()
+        const fivePercentage = actualAmount * 0.022;
+        await MakeTransferToRecipient(
+          data?.metadata?.merchant?.recipient,
+          fivePercentage
+        );
       }
+
+      //Update Transaction Only
+      transaction.update(orderRef, {
+        status: data?.status,
+        pdf_url: data?.pdf_url,
+        paidAt: data?.paid_at,
+      });
 
       return "Order updated!";
     }
@@ -136,6 +163,9 @@ export const createNewOrder = async (data) => {
       (acc, item) => acc + item?.actualProfitAmount * item?.quantity,
       0
     );
+
+    //Add recipent, remove split code!
+
     //Order Model
     const orderModel = new Order(
       data?.metadata?.cartId,
@@ -149,7 +179,8 @@ export const createNewOrder = async (data) => {
       data?.metadata?.merchant.id,
       data?.metadata?.user,
       data?.offline_reference,
-      data?.split_code,
+      // data?.split_code,
+      data?.merchant?.recipient, //Added recipient
       calcActualProfitAmount
     );
 

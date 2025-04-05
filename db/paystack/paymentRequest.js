@@ -1,11 +1,11 @@
 import CustomError from "../../utils/error.js";
 import { paystack, paystack_ } from "../../utils/paystack.js";
 import { getUserStore } from "../firebase/store.js";
-import { getUserDb } from "../firebase/users.js";
+//import { getUserDb } from "../firebase/users.js";
 import { Customer } from "./customer.js";
 export const paymentRequest = async (
   customerInfo,
-  { merchantId, items, cartId },
+  { merchantId, items, cartId, recipientCode }, //Set Recipient from client side
   link
 ) => {
   let config = {
@@ -27,7 +27,7 @@ export const paymentRequest = async (
     //merchant
     const merchant = await getUserStore(link);
 
-    const user = await getUserDb(merchantId);
+    //const user = await getUserDb(merchantId);
 
     //user//edi later
     const customer = await Customer(customerInfo);
@@ -41,11 +41,12 @@ export const paymentRequest = async (
       callback_url: payment_confirm_url,
       due_date: oneWeek.toISOString(),
       customer: customer?.customerCode,
-      split_code: user?.splitCode,
+      //    split_code: user?.splitCode,
       metadata: {
         cancel_action: payment_confirm_url,
         merchant: {
           id: merchantId,
+          recipient: recipientCode, //Where The Money will go!
           phone: merchant?.phone,
           name: merchant?.businessName,
         },

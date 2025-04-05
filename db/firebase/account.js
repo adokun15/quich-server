@@ -1,22 +1,18 @@
 import { getFirestore } from "firebase-admin/firestore";
-import { GetSplitCode, GetSubAccount } from "../paystack/subaccount.js";
 import CustomError from "../../utils/error.js";
+import { GetRecipientCode } from "../paystack/receipient.js";
 
 export const addAccountUserDb = async function (uid, data) {
+  //We only need the account na
   const { business_name, bank_code, account_number } = data;
+
   try {
-    // Generate SubAcccount function
-    const subaccountDetail = await GetSubAccount({
-      business_name,
+    //Create transfer Receipient
+    const receipient = await GetRecipientCode(uid, business_name, {
       bank_code,
       account_number,
+      name: "", //Get this!
     });
-
-    // Generate Split Code function
-    const splitDetail = await GetSplitCode(
-      subaccountDetail?.account_name,
-      subaccountDetail?.subaccount_code
-    );
 
     //  Store in Firebase;
     return await getFirestore()
@@ -24,14 +20,13 @@ export const addAccountUserDb = async function (uid, data) {
       .doc(`${uid}`)
       .update({
         account: {
-          subaccountId: subaccountDetail?.id,
-          bankName: subaccountDetail?.settlement_bank,
-          accountName: subaccountDetail?.account_name,
-          accountNumber: subaccountDetail?.account_number,
-          subaccountCode: subaccountDetail?.subaccount_code,
-          createdOn: subaccountDetail?.createdAt,
+          receipientId: receipient?.id,
+          receipientCode: receipient?.receipient_code,
+          bankName: receipient?.details?.bank_name,
+          accountName: receipient?.details?.account_name,
+          accountNumber: receipient?.details?.account_number,
+          createdOn: receipient?.createdAt,
         },
-        splitCode: splitDetail?.split_code,
       })
       .then(() => "Successfully Added Bank Info!");
   } catch (err) {
