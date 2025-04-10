@@ -41,7 +41,7 @@ export const DeleteRecipient = async function (receipientCode) {
 
 export const GetRecipientCode = async function (
   uid,
-  business_name,
+  { store, link },
   { name, account_number, bank_code }
 ) {
   if (!name || !account_number || !bank_code) {
@@ -61,7 +61,8 @@ export const GetRecipientCode = async function (
     currency: "NGN",
     metadata: {
       uid,
-      store_name: business_name,
+      store_name: store,
+      storelink: link,
     },
   };
 

@@ -4,7 +4,6 @@ import { paystack_ } from "../../utils/paystack.js";
 //Use {subaccount: in paymentRequest}
 export const getBanks = async function () {
   //Run Paystack for Bank
-
   const config = {
     method: "GET",
     endpoint: "/bank?country=nigeria",

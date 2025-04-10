@@ -168,28 +168,26 @@ storeRoute
 
 //Whatsapp Verification
 storeRoute.get(
-  "/:store/merchant/phone/:code",
+  "/:storeLink/phone/:code",
   AsyncError(async (req, res) => {
     //Receive and verify code
-    const store = req.params.store;
     const code = req.params.code;
 
-    const mes = await VerifyCodeFromDestinateUser(store, code);
+    const mes = await VerifyCodeFromDestinateUser(req.params.storeLink, code);
 
-    res.json({ message: "Verified" });
+    res.json(mes);
   })
 );
 
 //Send Code to User
 storeRoute.post(
-  "/:store/merchant/phone",
+  "/:storeLink/phone",
   AsyncError(async (req, res) => {
-    const store = req.params.store;
-
-    const mes = await sendCodeToDestinateUser(store, req.body?.phone);
-    console.log(mes);
-
-    res.json({ message: "Sent" });
+    const mes = await sendCodeToDestinateUser(
+      req.params.storeLink,
+      req.body?.phone
+    );
+    res.json(mes);
   })
 );
 
@@ -217,24 +215,6 @@ storeRoute
       res.json(storeMerchant);
     })
   )
-  .post(
-    AsyncError(async (req, res, next) => {
-      const storeLink = req.params.store;
-
-      const token = req.get("Authorization").split(" ")[1];
-      const decodedToken = await getAuth().verifyIdToken(token); //uid, email
-
-      if (!storeLink) {
-        throw new CustomError("Invalid store link.");
-      }
-      const Merchant = await createUserStore(
-        storeLink,
-        decodedToken?.uid,
-        req?.body
-      );
-      res.json(Merchant);
-    })
-  )
   .patch(
     AsyncError(async (req, res) => {
       const store = req.params.store;
@@ -258,6 +238,22 @@ storeRoute.get(
     const prq = req.params.paymentCode;
     const paymentInfo = await getCustomerPaymentInformation(prq);
     res.json(paymentInfo);
+  })
+);
+
+//Onboarding seller
+storeRoute.post(
+  "/",
+  AsyncError(async (req, res, next) => {
+    const { business_name, business_desc, business_category } = req?.body;
+    const token = req.get("Authorization").split(" ")[1];
+    const decodedToken = await getAuth().verifyIdToken(token); //uid, email
+    const Merchant = await createUserStore(decodedToken?.uid, {
+      business_category,
+      business_name,
+      business_desc,
+    });
+    res.json(Merchant);
   })
 );
 

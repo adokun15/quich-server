@@ -1,5 +1,8 @@
 import { getFirestore } from "firebase-admin/firestore";
+import { Customer } from "../paystack/customer.js";
 import CustomError from "../../utils/error.js";
+import { getAuth } from "firebase-admin/auth";
+import generateUniqueId from "generate-unique-id";
 
 const getAllStoreProducts = async function (link) {
   try {
@@ -34,20 +37,48 @@ const getAllStoreProducts = async function (link) {
 };
 
 //Initalize store only and not user db;
-export const createUserStore = async (link, uid, data) => {
+export const createUserStore = async (uid, data) => {
   try {
-    await getFirestore().collection("users/").doc(`${uid}`).update({ link });
+    //get email, display name from getAuth
+    const { email, display_name } = await getAuth().getUser(uid);
 
-    await getFirestore().collection("store/").doc(`${link}`).set({
-      userId: uid,
-      businessName: data?.business_name,
-      status: data?.business_status,
-      description: data?.business_desc,
-      category: data?.business_category,
-      phone: "",
+    const { customerCode } = await Customer({
+      name: display_name || "",
+      email,
     });
 
-    return { message: "Success. Merchant details saved" };
+    //Generate some Store Link
+    const linkGenerated = generateUniqueId({
+      length: 6,
+      useLetters: false,
+      excludeSymbols: ["@", "#", "$", "%", "^", "&", "*", "!"],
+    });
+
+    const linkName =
+      data?.business_name
+        ?.split(" ")
+        .map((n) => n)
+        .join("-") + `-${linkGenerated}`;
+
+    //Collect first name, last name, storelink, store name, store description, store industry (Category)
+    await getFirestore().collection("users").doc(`${uid}`).update({
+      link: linkName,
+      customer_code: customerCode,
+    });
+
+    await getFirestore().collection("store/").doc(`${linkName}`).set({
+      userId: uid,
+      businessName: data?.business_name,
+      description: data?.business_desc,
+      industry: data?.business_category,
+      phone: "",
+      status: "Store Unverified",
+    });
+
+    return {
+      message: `Success. store link generated (${linkName})`,
+      link: linkName,
+    };
   } catch (e) {
     throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }

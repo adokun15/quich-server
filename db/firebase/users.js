@@ -1,6 +1,5 @@
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
-import generateUniqueId from "generate-unique-id";
 import CustomError from "../../utils/error.js";
 
 export const EmailVerified = async (email) => {
@@ -74,14 +73,6 @@ export const verifyToken = async function (token) {
         );
       }
     });
-};
-
-//Generate Store Link
-export const GenerateStoreLink = function () {
-  return generateUniqueId({
-    length: 16,
-    excludeSymbols: ["@", "#", "$", "%", "^", "&", "*", "!"],
-  });
 };
 
 //Get user Db

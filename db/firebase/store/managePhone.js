@@ -1,12 +1,14 @@
 import { getFirestore } from "firebase-admin/firestore";
 import CustomError from "../../../utils/error.js";
-
+import { sendPhoneNumberVerificationCode } from "../../whatapp/verification.js";
 //Process Whatsapp verification
 export const sendCodeToDestinateUser = async (link, phonenumber) => {
   try {
+    //Get Link
+
     const merchantPath = getFirestore().collection("store").doc(`${link}`);
 
-    await getFirestore().runTransaction(async (transaction) => {
+    return await getFirestore().runTransaction(async (transaction) => {
       const merchantDoc = await transaction.get(merchantPath);
 
       //Does merchant exist!
@@ -42,8 +44,10 @@ export const sendCodeToDestinateUser = async (link, phonenumber) => {
           phone: phonenumber,
         },
       });
+      return {
+        message: `Verification code has been sent to +234${phonenumber}`,
+      };
     });
-    return { message: `Verification code has been sent to +234${phonenumber}` };
   } catch (e) {
     console.log(e);
     throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
@@ -65,7 +69,7 @@ export const VerifyCodeFromDestinateUser = async (link, verification_code) => {
       //Does not have Code Before
       if (!merchantDoc.data()?.code) {
         throw new CustomError(
-          "Verification code not sent Initially!. Contact support for more assistance!",
+          "Verification code not sent Initially. Contact support for more assistance!",
           500
         );
       }

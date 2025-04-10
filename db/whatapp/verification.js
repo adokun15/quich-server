@@ -1,5 +1,6 @@
 import generateUniqueId from "generate-unique-id";
 import { whatsappMessage } from "../../utils/whatsapp.js";
+import CustomError from "../../utils/error.js";
 
 export async function sendPhoneNumberVerificationCode(phonenumber) {
   const textVerificationCode = generateUniqueId({
@@ -42,8 +43,20 @@ export async function sendPhoneNumberVerificationCode(phonenumber) {
 
   return await whatsappMessage(phonenumber, extras)
     .then((data) => {
-      console.log(data);
       return textVerificationCode;
     })
-    .catch((e) => console.log(e));
+    .catch(({ error }) => {
+      /**
+        {
+          error : {
+            message: '',
+            type:  '',
+            code: 100 || '',
+            error_subcode: 33 || '',
+            fbtrace_id: ''
+            }
+        }
+       */
+      throw new CustomError(error?.message, 500);
+    });
 }

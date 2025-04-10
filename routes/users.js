@@ -1,7 +1,7 @@
 import express from "express";
 import { getBanks, VerifyBankAccount } from "../db/paystack/bankVerify.js";
 import { addAccountUserDb } from "../db/firebase/account.js";
-import { GenerateStoreLink, getUserDb } from "../db/firebase/users.js";
+import { getUserDb } from "../db/firebase/users.js";
 import { AuthorizationRouteMiddleware } from "../utils/Auth.js";
 import AsyncError from "../utils/AsyncError.js";
 import CustomError from "../utils/error.js";
@@ -82,22 +82,17 @@ userRoute
     })
   );
 
-//Split Account
+//Recipient Code Account
 userRoute.route("/account").post(
   AsyncError(async (req, res) => {
     //user account
     if (!req?.uid) {
       throw new CustomError("User Id not found!");
     }
-    const addToBank = await addAccountUserDb(req?.uid, req.body);
-    res.json({ message: addToBank });
-  })
-);
 
-userRoute.route("/link").get(
-  AsyncError(async (req, res) => {
-    const generatedLink = GenerateStoreLink();
-    res.json({ link: generatedLink });
+    const addToBank = await addAccountUserDb(req?.uid, req.body);
+
+    res.json({ message: addToBank });
   })
 );
 
