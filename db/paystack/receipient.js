@@ -19,8 +19,9 @@ export const MakeTransferToRecipient = async function (receipientCode, amount) {
 
   const info = await paystack(config, data);
 
+  console.log(info);
   //TransferCode
-  return info?.data || "Could not transfer money!";
+  return info?.data;
 };
 
 //eXAMINE lATER

@@ -72,6 +72,7 @@ export const createUserStore = async (uid, data) => {
       description: data?.business_desc,
       industry: data?.business_category,
       phone: "",
+      published: true,
       status: "Store Unverified",
     });
 

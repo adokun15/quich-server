@@ -24,10 +24,7 @@ export const EmailVerified = async (email) => {
   });
 
   return getAuth()
-    .setCustomUserClaims(currentUser.uid, {
-      role: "free-trial",
-      expiresIn: date.toISOString(),
-    })
+    .setCustomUserClaims(currentUser.uid, { role: "free" })
     .then(() => "Your Email Has been successfully Verified. Login To Continue!")
     .catch((e) => {
       console.log(e);
@@ -54,7 +51,6 @@ export const verifyToken = async function (token) {
         name: user?.displayName,
         role: user?.customClaims?.role || null,
         emailVerified: user?.emailVerified,
-        freeTrialExpiration: user?.customClaims?.expiresIn || null,
       };
     })
     .catch((err) => {

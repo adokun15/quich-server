@@ -25,6 +25,7 @@ export async function paystack(config, data) {
 
     return response;
   } catch (err) {
+    console.log(err);
     throw new Error(err?.message || "Something went wrong", 500);
   }
 }

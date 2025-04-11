@@ -12,7 +12,7 @@ class Order {
     customer,
     ref,
     recipient,
-    profit
+    merchantrole
   ) {
     this.orderId = orderid;
     this.invoiceId = invoiceid;
@@ -26,7 +26,8 @@ class Order {
     this.customer = customer;
     this.reference = ref;
     this.recipient = recipient;
-    this.actualProfitAmount = profit;
+    this.role = merchantrole;
+    //  this.actualProfitAmount = profit;
   }
 }
 

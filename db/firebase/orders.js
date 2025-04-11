@@ -105,8 +105,9 @@ const updateMerchantOrder = async (data, id) => {
         throw new Error("Order Not Found!");
       }
 
-      //Track Order Sent!
-      const userRole = await getUserRole(data?.metadata?.merchant.id);
+      //Role ---> fee
+      const userRole = OrderDoc.data()?.role;
+      let fee = 0.022;
 
       //Read order limit;
       const LimitForOrder = await OrderLimit(data?.metadata?.merchant.id);
@@ -114,38 +115,36 @@ const updateMerchantOrder = async (data, id) => {
       const actualAmount = data?.amount;
 
       //Conditions! to send order on whatapp;
-      if (
-        (userRole === "free-trial" || userRole === "basic") &&
-        LimitForOrder <= 50
-      ) {
+      if (userRole === "free" && LimitForOrder <= 50) {
         //await newOrder()
-
-        const fivePercentage = actualAmount * 0.05;
+        fee = 0.065;
 
         await MakeTransferToRecipient(
           data?.metadata?.merchant?.recipient,
-          fivePercentage
+          actualAmount * fee
         );
       }
       if (userRole === "standard" && LimitForOrder <= 500) {
-        const percentage = actualAmount * 0.033;
+        fee = 0.035;
         await MakeTransferToRecipient(
           data?.metadata?.merchant?.recipient,
-          percentage
+          actualAmount * fee
         );
         //await newOrder()
       }
       if (userRole === "premium") {
         //await newOrder()
-        const fivePercentage = actualAmount * 0.022;
+        fee = 0.022;
         await MakeTransferToRecipient(
           data?.metadata?.merchant?.recipient,
-          fivePercentage
+          actualAmount * fee
         );
       }
 
       //Update Transaction Only
       transaction.update(orderRef, {
+        fee,
+        feeAmount: actualAmount * fee,
         status: data?.status,
         pdf_url: data?.pdf_url,
         paidAt: data?.paid_at,
@@ -159,12 +158,10 @@ const updateMerchantOrder = async (data, id) => {
 
 export const createNewOrder = async (data) => {
   try {
-    const calcActualProfitAmount = data?.metadata?.products?.reduce(
-      (acc, item) => acc + item?.actualProfitAmount * item?.quantity,
-      0
-    );
+    //Using role to get fee charges
+    const merchantRoleDuringOrder = data?.metadata?.products[0]?.role;
 
-    //Add recipent, remove split code!
+    //later: seperate your fee from paystack
 
     //Order Model
     const orderModel = new Order(
@@ -179,9 +176,8 @@ export const createNewOrder = async (data) => {
       data?.metadata?.merchant.id,
       data?.metadata?.user,
       data?.offline_reference,
-      // data?.split_code,
       data?.merchant?.recipient, //Added recipient
-      calcActualProfitAmount
+      merchantRoleDuringOrder
     );
 
     //Save to Db
