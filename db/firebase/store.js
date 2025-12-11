@@ -13,14 +13,15 @@ const getAllStoreProducts = async function (link) {
         const productsDoc = await transaction.get(ref);
 
         if (productsDoc.empty) {
-          throw new CustomError("This store has no Product Available!");
+          throw new CustomError("No product available!");
         }
 
         let list = [];
+
         productsDoc.forEach((product) => {
-          if (product.data()?.published) {
-            list.push({ ...product.data(), productId: product.id });
-          }
+          // if (product.data()?.published) {
+          list.push({ ...product.data(), productId: product.id });
+          //}
         });
 
         return list;

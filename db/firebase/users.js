@@ -2,6 +2,54 @@ import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import CustomError from "../../utils/error.js";
 
+export async function VerifyUserSession(sessionCookie) {
+  if (!sessionCookie) {
+    throw new CustomError("Invalid Auth Token!", 400);
+  }
+
+  try {
+    const session = await getAuth()
+      .verifySessionCookie(sessionCookie, true)
+      .then((token) => token.uid)
+      .then((uid) => {
+        return getAuth().getUser(uid);
+      });
+
+    return {
+      userId: session?.uid,
+      emailVerified: session?.emailVerified,
+      role: session?.customClaims?.onboard, // step:
+    };
+  } catch (error) {
+    const message =
+      error?.errorInfo?.message ||
+      error?.code ||
+      error?.message ||
+      "Session verification failed!";
+    throw new CustomError(message, 400);
+  }
+}
+
+export const createSessionCookies = async (idToken) => {
+  if (!idToken) {
+    throw new CustomError("Invalid Auth Token!", 400);
+  }
+
+  // Set session expiration to 3 days;
+  const expiresIn = 60 * 60 * 24 * 3 * 1000;
+
+  try {
+    const c = await getAuth()
+      .createSessionCookie(idToken, { expiresIn })
+      .then((session) => session);
+
+    return c;
+  } catch (error) {
+    console.log(error);
+    throw new CustomError("Error: Could not create session!", 500);
+  }
+};
+
 export const EmailVerified = async (email) => {
   const currentUser = await getAuth()
     .getUserByEmail(email)
@@ -32,6 +80,7 @@ export const EmailVerified = async (email) => {
     });
 };
 
+/*
 export const verifyToken = async function (token) {
   return await getAuth()
     .verifyIdToken(token)
@@ -70,6 +119,7 @@ export const verifyToken = async function (token) {
       }
     });
 };
+*/
 
 //Get user Db
 export const getUserDb = async function (uid) {
@@ -77,7 +127,8 @@ export const getUserDb = async function (uid) {
     const user = (
       await getFirestore().collection("users/").doc(`${uid}`).get()
     ).data();
-    return { ...user };
+    return { name: "Helen" };
+    // return { ...user };
   } catch (err) {
     throw new CustomError(
       err?.message || err?.code || "Could not get User",

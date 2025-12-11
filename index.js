@@ -6,16 +6,18 @@ import webhook from "./routes/webhooks.js";
 import userRoute from "./routes/users.js";
 import storeRoute from "./routes/store.js";
 import authRoute from "./routes/auth.js";
-import admin from "firebase-admin";
+//import admin from "firebase-admin";
 import dotenv from "dotenv";
-import { globalErr } from "./utils/globalError.js";
-import { initFunc } from "./init.js";
+dotenv.config({ path: ".env.local" });
 
-dotenv.config();
+import { globalErr } from "./utils/globalError.js";
 
 const app = express();
 
+// Import `init.js` dynamically so its top-level code runs after dotenv has loaded env vars.
+const { initFunc } = await import("./init.js");
 initFunc();
+
 app.use(json());
 app.use(cors());
 
