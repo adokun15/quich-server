@@ -9,6 +9,7 @@ export function globalErr(err, req, res, next) {
   if (err?.message?.toLowerCase().includes("unavailable")) {
     error.message = "Connection Timed Out!";
   }
+  console.log(error);
 
   res.status(error.statusCode).json(error);
 }

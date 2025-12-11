@@ -41,5 +41,8 @@ app.use("/user", userRoute);
 //Error
 app.use(globalErr);
 
+//for dev deployment
 //app.listen(3030, () => console.log("listening"));
+
+//for live deployment
 export default app;
