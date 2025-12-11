@@ -28,12 +28,13 @@ export const AuthorizationRouteMiddleware = AsyncError(async function (
   res,
   next
 ) {
-  const sessionCookie = req.get("Authorization").split(" ")[1];
+  const sessionCookie = req.get("Authorization")?.split(" ")[1];
 
   if (!sessionCookie) {
     throw new CustomError("Invalid Auth Token!", 400);
   }
 
+  //console.log(sessionCookie);
   //auth/user-not-found
 
   const session = await getAuth()
