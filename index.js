@@ -41,4 +41,5 @@ app.use("/user", userRoute);
 //Error
 app.use(globalErr);
 
-app.listen(3030, () => console.log("listening"));
+//app.listen(3030, () => console.log("listening"));
+export default app;
