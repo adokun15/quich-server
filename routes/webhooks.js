@@ -9,21 +9,39 @@ const webhook = express.Router();
 const secret = `${process.env.PAYSTACK_SECRET_KEY}`;
 
 //Whatsapp verification webhook;
-webhook.get("/whatsapp", (req, res) => {
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
+function verifySignature(req) {
+  const signature = req.headers["x-hub-signature-256"];
+  if (!signature) return false;
+  const hash = crypto
+    .createHmac("sha256", process.env.META_APP_SECRET)
+    .update(req.rawBody)
+    .digest("hex");
+  return signature === `sha256=${hash}`;
+}
 
-  if (
-    mode === "subscribe" &&
-    token === process.env.WHATSAPP_VERIFICATION_TOKEN
-  ) {
-    console.log("Whatsapp Webhook verified");
-    return res.status(200).send(challenge);
-  }
+webhook
+  .route("/whatsapp")
+  .get((req, res) => {
+    const mode = req.query["hub.mode"];
+    const token = req.query["hub.verify_token"];
+    const challenge = req.query["hub.challenge"];
 
-  return res.sendStatus(403);
-});
+    if (
+      mode === "subscribe" &&
+      token === process.env.WHATSAPP_VERIFICATION_TOKEN
+    ) {
+      console.log("Whatsapp Webhook verified");
+      return res.status(200).send(challenge);
+    }
+    return res.sendStatus(403);
+  })
+  .post((req, res) => {
+    if (!verifySignature(req)) {
+      return res.sendStatus(403);
+    }
+    console.log("Valid payload:", req.body);
+    res.sendStatus(200);
+  });
 
 webhook.post(
   "/paystack",

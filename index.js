@@ -20,6 +20,13 @@ initFunc();
 
 app.use(json());
 app.use(cors());
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+);
 
 //seller private customers route
 app.use("/auth", authRoute);
