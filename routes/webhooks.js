@@ -9,7 +9,7 @@ const webhook = express.Router();
 const secret = `${process.env.PAYSTACK_SECRET_KEY}`;
 
 //Whatsapp verification webhook;
-app.get("/whatsapp", (req, res) => {
+webhook.get("/whatsapp", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
