@@ -1,3 +1,4 @@
+//Pay for Order;
 import express from "express";
 import bodyParser from "body-parser";
 import crypto from "crypto";
@@ -23,9 +24,9 @@ webhook.post(
 
     const { event, data } = req.body;
 
-    console.log(req.ip);
+//    console.log(req.ip);
 
-    console.log(event, data);
+  //  console.log(event, data);
     if (event === "paymentrequest.pending") {
       //Create new Order
       try {

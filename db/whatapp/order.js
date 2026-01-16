@@ -1,3 +1,4 @@
+/* Deprecated for now! */
 import { whatsappMessage } from "../../utils/whatsapp.js";
 
 export async function newOrder(phonenumber, name, customer, cart) {

@@ -80,8 +80,10 @@ export const EmailVerified = async (email) => {
     });
 };
 
-/*
+
+//Deprecated
 export const verifyToken = async function (token) {
+  console.log(token)
   return await getAuth()
     .verifyIdToken(token)
     .then((token) => token.uid)
@@ -93,7 +95,7 @@ export const verifyToken = async function (token) {
         .collection("users")
         .doc(`${user?.uid}`)
         .get();
-
+ 
       return {
         ...prop.data(),
         email: user?.email,
@@ -119,7 +121,7 @@ export const verifyToken = async function (token) {
       }
     });
 };
-*/
+
 
 //Get user Db
 export const getUserDb = async function (uid) {
@@ -127,7 +129,7 @@ export const getUserDb = async function (uid) {
     const user = (
       await getFirestore().collection("users/").doc(`${uid}`).get()
     ).data();
-    return { name: "Helen" };
+    return { ...user };
     // return { ...user };
   } catch (err) {
     throw new CustomError(
