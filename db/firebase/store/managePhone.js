@@ -1,6 +1,6 @@
 import { getFirestore } from "firebase-admin/firestore";
 import CustomError from "../../../utils/error.js";
-import { sendPhoneNumberVerificationCode } from "../../whatapp/verification.js";
+import { sendPhoneNumberVerificationCode } from "../../whatapp/templates/verification.js";
 //Process Whatsapp verification
 export const sendCodeToDestinateUser = async (link, phonenumber) => {
   try {
@@ -20,14 +20,13 @@ export const sendCodeToDestinateUser = async (link, phonenumber) => {
       if (merchantDoc.data().phone) {
         throw new CustomError(
           "Error. This Account has been linked to a phone number already!",
-          500
+          500,
         );
       }
 
       //Get Code sent to user...
-      const codeFromWhatApp = await sendPhoneNumberVerificationCode(
-        phonenumber
-      );
+      const codeFromWhatApp =
+        await sendPhoneNumberVerificationCode(phonenumber);
 
       //Set 10minutes expiration time
       const expiration_date = new Date();
@@ -70,7 +69,7 @@ export const VerifyCodeFromDestinateUser = async (link, verification_code) => {
       if (!merchantDoc.data()?.code) {
         throw new CustomError(
           "Verification code not sent Initially. Contact support for more assistance!",
-          500
+          500,
         );
       }
 
@@ -85,7 +84,7 @@ export const VerifyCodeFromDestinateUser = async (link, verification_code) => {
       if (now.getTime() >= expiration_date.getTime()) {
         throw new CustomError(
           "Verification code is no longer valid!. Request for new Verification code!",
-          401
+          401,
         );
       }
 

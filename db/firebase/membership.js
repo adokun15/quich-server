@@ -1,5 +1,8 @@
 import { getFirestore } from "firebase-admin/firestore";
-import { NewPaymentPlan, UpgradedPaymentPlan } from "../whatapp/payment.js";
+import {
+  NewPaymentPlan,
+  UpgradedPaymentPlan,
+} from "../whatapp/templates/payment.js";
 import { getAuth } from "firebase-admin/auth";
 
 export const addUserPaymentInfo = async (data) => {
@@ -66,7 +69,7 @@ export const addUserPaymentInfo = async (data) => {
           });
         }
         return "User plan updated!";
-      }
+      },
     );
 
     return updateUserPlan;

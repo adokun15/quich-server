@@ -1,4 +1,4 @@
-import { whatsappMessage } from "../../utils/whatsapp.js";
+import { whatsappMessage } from "../../../utils/whatsapp.js";
 
 export async function NewPaymentPlan(phonenumber, user) {
   const extras = {

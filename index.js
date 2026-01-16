@@ -44,5 +44,5 @@ app.use(globalErr);
 //for dev deployment
 app.listen(3030, () => console.log("listening"));
 
-//for live deployment
-//export default app;
+//for live deployment only; Comment during local dev!
+export default app;

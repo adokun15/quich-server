@@ -2,9 +2,9 @@ import { getFirestore } from "firebase-admin/firestore";
 import Order from "../../model/order.js";
 import CustomError from "../../utils/error.js";
 import { getAuth } from "firebase-admin/auth";
-import { OutOfStock } from "../whatapp/OutOfStock.js";
+import { OutOfStock } from "../whatapp/templates/OutOfStock.js";
 //import { getUserStore } from "./store.js";
-import { newOrder } from "../whatapp/order.js";
+import { newOrder } from "../whatapp/templates/order.js";
 import { MakeTransferToRecipient } from "../paystack/receipient.js";
 
 const getUserRole = async (uid) => {
@@ -42,7 +42,7 @@ const OrderLimit = async (uid) => {
       });
 
       return orderLength;
-    }
+    },
   );
   return LengthOfOrderInADay;
 };
@@ -84,7 +84,7 @@ const updateMerchantProducts = async (storelink, item, data, merchant) => {
         await OutOfStock(merchant?.phone, merchant?.name, item?.name);
       }
       return "Product updated!";
-    }
+    },
   );
 
   return updateProductList;
@@ -121,14 +121,14 @@ const updateMerchantOrder = async (data, id) => {
 
         await MakeTransferToRecipient(
           data?.metadata?.merchant?.recipient,
-          actualAmount * fee
+          actualAmount * fee,
         );
       }
       if (userRole === "standard" && LimitForOrder <= 500) {
         fee = 0.035;
         await MakeTransferToRecipient(
           data?.metadata?.merchant?.recipient,
-          actualAmount * fee
+          actualAmount * fee,
         );
         //await newOrder()
       }
@@ -137,7 +137,7 @@ const updateMerchantOrder = async (data, id) => {
         fee = 0.022;
         await MakeTransferToRecipient(
           data?.metadata?.merchant?.recipient,
-          actualAmount * fee
+          actualAmount * fee,
         );
       }
 
@@ -151,7 +151,7 @@ const updateMerchantOrder = async (data, id) => {
       });
 
       return "Order updated!";
-    }
+    },
   );
   return merchantOrderTransaction;
 };
@@ -177,7 +177,7 @@ export const createNewOrder = async (data) => {
       data?.metadata?.user,
       data?.offline_reference,
       data?.merchant?.recipient, //Added recipient
-      merchantRoleDuringOrder
+      merchantRoleDuringOrder,
     );
 
     //Save to Db
@@ -213,8 +213,8 @@ export const SuccessOrder = async (data, orderDocId) => {
             phone: data?.metadata?.user?.phone,
             paidAt: data?.paid_at,
           },
-          data?.metadata?.merchant
-        ) //id, qty
+          data?.metadata?.merchant,
+        ), //id, qty
     );
     return "success";
   } catch (e) {

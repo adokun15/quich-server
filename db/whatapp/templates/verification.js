@@ -1,6 +1,6 @@
 import generateUniqueId from "generate-unique-id";
-import { whatsappMessage } from "../../utils/whatsapp.js";
-import CustomError from "../../utils/error.js";
+import { whatsappMessage } from "../../../utils/whatsapp.js";
+import CustomError from "../../../utils/error.js";
 
 export async function sendPhoneNumberVerificationCode(phonenumber) {
   const textVerificationCode = generateUniqueId({
