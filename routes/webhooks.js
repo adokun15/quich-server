@@ -8,7 +8,7 @@ import { addUserPaymentInfo } from "../db/firebase/membership.js";
 const webhook = express.Router();
 const secret = `${process.env.PAYSTACK_SECRET_KEY}`;
 
-//Whatsapp verification webhook;
+//vERIFY IF THE request is from meta
 function verifySignature(req) {
   const signature = req.headers["x-hub-signature-256"];
   if (!signature) return false;
@@ -19,13 +19,13 @@ function verifySignature(req) {
   return signature === `sha256=${hash}`;
 }
 
+//Whatsapp verification webhook;
 webhook
   .route("/whatsapp")
   .get((req, res) => {
     const mode = req.query["hub.mode"];
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
-
     if (
       mode === "subscribe" &&
       token === process.env.WHATSAPP_VERIFICATION_TOKEN
@@ -36,6 +36,7 @@ webhook
     return res.sendStatus(403);
   })
   .post((req, res) => {
+    //RECEIVE ALL WEBHOOK: Flow and message!
     if (!verifySignature(req)) {
       return res.sendStatus(403);
     }

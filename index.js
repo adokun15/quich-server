@@ -20,10 +20,12 @@ initFunc();
 
 app.use(json());
 app.use(cors());
+
+// store the raw request body to use it for signature verification
 app.use(
   express.json({
-    verify: (req, res, buf) => {
-      req.rawBody = buf;
+    verify: (req, res, buf, encoding) => {
+      req.rawBody = buf?.toString(encoding || "utf8");
     },
   }),
 );
@@ -41,6 +43,7 @@ app.use("/orders", orderRoute);
 app.use("/customers", customerRoute);
 
 app.use("/webhook", webhook);
+app.use("/endpoint", endp);
 
 //seller private Account
 app.use("/user", userRoute);

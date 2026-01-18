@@ -1,6 +1,5 @@
 //Listen for changes on whatsapp and send a response!
 
-
 /*
 This route will just listen to messages sent by user to our business number.
 Then Respond by triggering other action! 
@@ -12,10 +11,9 @@ A demo: User will send hi, we will reply with
 
 //Listen for specific command: but make it easier for seller
 
-
 /**
  top layer: Ask what they want
- /ORDER
+ /ORDER [Paused]
  A. GET ORDERS [Id]:!id ? 10 Recents only : Order Details;
  B. CREATE NEW ORDER: Show Flow Form;
  C. UPDATE ORDER [Id]: Show Flow form;
@@ -27,10 +25,10 @@ A demo: User will send hi, we will reply with
  G. UPDATE A PRODUCT [id]: Show flow form
  H. DELETE A PRODUCT [id]: Show Flow Form
  
- /CUSTOMER
+ /CUSTOMER [Paused]
  I. VIEW ALL CUSTOMERS [latest | most-active]: top 50 customers 
  
- /OTHERS 
+ /OTHERS
 I. STORE SETTINGS: [ Flow Form ] : (VISIBILTY, DETAILS, LOGO, COMMUNITY LINK); 
 J. MANAGE SUBSCRIPTION: [paystack link] | ( Display paystack subscription link )
 K. ACCOUNT MANAGEMENT: [flow form ] | ( deletion, email/password change )
@@ -49,9 +47,4 @@ You join our whatsapp channel
 
 */
 
-
-
-//For THE dASHBOARD: VIEW ALL THE PRODUCTS [AND] ORDER [AND] ACCOUNT
-
-
-
+//For THE dASHBOARD: VIEW ALL THE PRODUCTS, The STORE [AND] User ACCOUNT
