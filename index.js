@@ -11,6 +11,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
 import { globalErr } from "./utils/globalError.js";
+import endpointFlowRoute from "./routes/flow.js";
 
 const app = express();
 
@@ -43,7 +44,8 @@ app.use("/orders", orderRoute);
 app.use("/customers", customerRoute);
 
 app.use("/webhook", webhook);
-app.use("/endpoint", endp);
+
+app.use("/flow", endpointFlowRoute);
 
 //seller private Account
 app.use("/user", userRoute);

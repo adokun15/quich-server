@@ -5,8 +5,16 @@ import {
   encryptResponse,
   FlowEndpointException,
 } from "../utils/encryption.js";
-import { getNextScreenForProduct } from "../db/whatapp/flow-endpoints/createProduct.js";
+import {
+  getNextScreenForCreatingNewProduct,
+  getNextScreenForProduct,
+} from "../db/whatapp/flow-endpoints/createProduct.js";
 import crypto from "crypto";
+import {
+  getNextScreenForOnboarding,
+  OnboardFlowControl,
+} from "../db/whatapp/flow-endpoints/onboard_flow.js";
+import { FlowControl } from "../utils/flowController.js";
 
 const endpointFlowRoute = express.Router();
 
@@ -41,7 +49,8 @@ const {
   META_PASSPHRASE = "",
 } = process.env;
 
-endpointFlowRoute.route("/onboard").post(async (req, res) => {
+// Return status code 432 if request signature does not match.
+endpointFlowRoute.use((req, res) => {
   //1. Key is Valid
   if (!META_GENERATED_PRIVATE_KEY) {
     //Log Error to Firebase!
@@ -50,61 +59,71 @@ endpointFlowRoute.route("/onboard").post(async (req, res) => {
     );
   }
 
-  //2. Signature reqest is valid
-
-  // Return status code 432 if request signature does not match.
   if (!isRequestSignatureValid(req)) {
     return res.status(432).send();
   }
+});
 
-  let decryptedRequest = null;
-
+endpointFlowRoute.route("/onboard").post(async (req, res) => {
   try {
-    //3. Decrypt reqest and extract data
-    decryptedRequest = decryptRequest(
-      req.body,
-      META_GENERATED_PRIVATE_KEY,
-      PASSPHRASE,
+    const onboardFlow = await FlowControl(
+      {
+        request: req,
+        private_key: META_GENERATED_PRIVATE_KEY,
+        passphrase: META_PASSPHRASE,
+      },
+      getNextScreenForOnboarding,
     );
-  } catch (err) {
-    //Log Error To Firebase!
+
+    const { status, error_status, success_data, error_data } = onboardFlow;
+
+    if (status === "success") {
+      res.status(200).send(success_data);
+    }
+
+    if (status === "error") {
+      res.status(error_status).send(error_data);
+    }
+  } catch {
+    //Log Error To Firebase / Log Text!!
     console.error(err);
     if (err instanceof FlowEndpointException) {
       return res.status(err.statusCode).send();
     }
     return res.status(500).send();
   }
+});
 
-  //4.Do something with the data
-  const { aesKeyBuffer, initialVectorBuffer, decryptedBody } = decryptedRequest;
+//Updates will be through a link:
+endpointFlowRoute.route("/product").post(async (req, res) => {
+  try {
+    const ProductCreationFlow = await FlowControl(
+      {
+        request: req,
+        private_key: META_GENERATED_PRIVATE_KEY,
+        passphrase: META_PASSPHRASE,
+      },
+      getNextScreenForCreatingNewProduct,
+    );
 
-  console.log("💬 Decrypted Request:", decryptedBody);
+    const { status, error_status, success_data, error_data } =
+      ProductCreationFlow;
 
-  // TODO: Uncomment this block and add your *flow token validation logic*.
+    if (status === "success") {
+      res.status(200).send(success_data);
+    }
 
-  // If the flow token becomes invalid, return HTTP code 427 to disable the flow and show the message in `error_msg` to the user
-  // Refer to the docs for details https://developers.facebook.com/docs/whatsapp/flows/reference/error-codes#endpoint_error_codes
-
-  //4. Send an Error Message Back to User if token is invalid;
-  /*
-  if (!isValidFlowToken(decryptedBody.flow_token)) {
-    const error_response = {
-      error_msg: `The message is no longer available`,
-    };
-    return res
-    .status(427)
-      .send(
-        encryptResponse(error_response, aesKeyBuffer, initialVectorBuffer)
-        );
-        }
-        */
-
-  //5.Process Next Screen Data **
-  const screenResponse = await getNextScreenForProduct(decryptedBody);
-  console.log("👉 Response to Encrypt:", screenResponse);
-
-  //6. Send Back Response to META
-  res.send(encryptResponse(screenResponse, aesKeyBuffer, initialVectorBuffer));
+    if (status === "error") {
+      res.status(error_status).send(error_data);
+    }
+  } catch {
+    //Log Error To Firebase / Log Text!!
+    console.error(err);
+    if (err instanceof FlowEndpointException) {
+      return res.status(err.statusCode).send();
+    }
+    return res.status(500).send();
+  }
 });
 
 /*
@@ -123,10 +142,6 @@ endpointFlowRoute
   .get((req, res) => {})
   .post((req, res) => {});
 
-endpointFlowRoute
-  .route("/product")
-  .get((req, res) => {})
-  .post((req, res) => {});
 
 */
 
