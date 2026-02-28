@@ -4,7 +4,7 @@ import {
   CheckoutOrderController,
   getAllOrdersController,
   getOrderController,
-} from "../../controllers/order.js";
+} from "../controllers/order.js";
 const orderRoute = express.Router();
 
 //Get Merchant Orders

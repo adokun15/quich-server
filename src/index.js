@@ -1,17 +1,17 @@
 import express, { json } from "express";
 import cors from "cors";
-import orderRoute from "./repository/routes/orders.js";
-import customerRoute from "./repository/routes/customers.js";
-import webhook from "./repository/routes/webhooks.js";
-import userRoute from "./repository/routes/users.js";
-import storeRoute from "./repository/routes/store.js";
-import authRoute from "./repository/routes/auth.js";
+import orderRoute from "./routes/orders.js";
+import customerRoute from "./routes/customers.js";
+import webhook from "./routes/webhooks.js";
+import userRoute from "./routes/users.js";
+import storeRoute from "./routes/store.js";
+import authRoute from "./routes/auth.js";
 //import admin from "firebase-admin";
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
 import { globalErr } from "./utils/error/globalError.js";
-import endpointFlowRoute from "./repository/routes/flow.js";
+import endpointFlowRoute from "./routes/flow.js";
 
 const app = express();
 

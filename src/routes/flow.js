@@ -4,7 +4,7 @@ import {
   decryptRequest,
   encryptResponse,
   FlowEndpointException,
-} from "../../utils/whatsapp/encryption.js";
+} from "../utils/whatsapp/encryption.js";
 import {
   getNextScreenForCreatingNewProduct,
   getNextScreenForProduct,
@@ -13,8 +13,8 @@ import {
   getNextScreenForOnboarding,
   OnboardFlowControl,
 } from "../../repository/whatapp/flow-endpoints/onboard_flow.js";
-import { FlowControl } from "../../controllers/flowController.js";
-import { isRequestSignatureValid } from "../../utils/middleware/verifyMetaRequest.js";
+import { FlowControl } from "../controllers/flowController.js";
+import { isRequestSignatureValid } from "../utils/middleware/verifyMetaRequest.js";
 
 const endpointFlowRoute = express.Router();
 

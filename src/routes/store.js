@@ -4,7 +4,7 @@ import express from "express";
 import {
   GetStoreController,
   updateStoreController,
-} from "../../controllers/store.js";
+} from "../controllers/store.js";
 
 const storeRoute = express.Router();
 

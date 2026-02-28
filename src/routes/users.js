@@ -1,10 +1,10 @@
 import express from "express";
-import AsyncError from "../../utils/error/AsyncError";
+import AsyncError from "../utils/error/AsyncError";
 import {
   deleteMerchantController,
   UpdateMerchantController,
   ViewMerchantController,
-} from "../../controllers/merchant";
+} from "../controllers/merchant";
 
 const userRoute = express.Router();
 
