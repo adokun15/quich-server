@@ -1,4 +1,3 @@
-import { getAuth } from "firebase-admin/auth";
 import AsyncError from "./AsyncError.js";
 import CustomError from "../error/error.js";
 

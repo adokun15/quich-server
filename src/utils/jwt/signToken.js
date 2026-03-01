@@ -2,4 +2,4 @@
 
 import jwt from "jsonwebtoken";
 
-export function verifyMerchantToken(req, res, next) {}
+export function CreateMerchantToken(req, res, next) {}

@@ -2,74 +2,58 @@
 const secret = `${process.env.PAYSTACK_SECRET_KEY}`;
 
 export const paystack_controller = async (req, res, next) => {
-  //Verify
-
-  //Transform
-
   //Process
 
   //Respond
 
-  /*
-    //Use Ip addres
+  //Use Ip addres
+  const { event, data } = req.body;
 
-    const hash = crypto
-      .createHmac("sha512", secret)
-      .update(JSON.stringify(req.body))
-      .digest("hex");
-  
-    //    if (hash == req.headers["x-paystack-signature"]) {
-
-    const { event, data } = req.body;
-
-    //    console.log(req.ip);
-
-    //  console.log(event, data);
-    if (event === "paymentrequest.pending") {
-      //Create new Order
-      try {
-        await createNewOrder(data);
-        return res.status(200).json({ message: "success" });
-      } catch (e) {
-        console.log(e);
-        next(e);
-      }
+  if (event === "paymentrequest.pending") {
+    //Create new Order
+    try {
+      await createNewOrder(data);
+      return res.status(200).json({ message: "success" });
+    } catch (e) {
+      console.log(e);
+      next(e);
     }
+  }
 
-    if (event === "paymentrequest.success") {
-      //update order and product
-      try {
-        await SuccessOrder(
-          data,
-          `${data?.metadata?.store}&${data?.metadata?.cartId}`,
-        );
-        return res.status(200).json({ message: "success" });
-      } catch (e) {
-        console.log(e);
-        next(e);
-      }
+  if (event === "paymentrequest.success") {
+    //update order and product
+    try {
+      await SuccessOrder(
+        data,
+        `${data?.metadata?.store}&${data?.metadata?.cartId}`,
+      );
+      return res.status(200).json({ message: "success" });
+    } catch (e) {
+      console.log(e);
+      next(e);
     }
+  }
 
-    if (event === "charge.success" && !data?.metadata?.user) {
-      //Create/update: Customer and transaction
-      try {
-        await addCustomerTransactions(data);
-        return res.status(200).json({ message: "success" });
-      } catch (e) {
-        console.log(e);
-        next(e);
-      }
+  if (event === "charge.success" && !data?.metadata?.user) {
+    //Create/update: Customer and transaction
+    try {
+      await addCustomerTransactions(data);
+      return res.status(200).json({ message: "success" });
+    } catch (e) {
+      console.log(e);
+      next(e);
     }
+  }
 
-    if (event === "charge.success" && data?.metadata?.user === "merchant") {
-      //One time payment Service
-      try {
-        await addUserPaymentInfo(data);
-        return res.status(200).json({ message: "success" });
-      } catch (e) {
-        next(e);
-      }
-    }*/
+  if (event === "charge.success" && data?.metadata?.user === "merchant") {
+    //One time payment Service
+    try {
+      await addUserPaymentInfo(data);
+      return res.status(200).json({ message: "success" });
+    } catch (e) {
+      next(e);
+    }
+  }
   //}
   return res.status(200).end();
 };
