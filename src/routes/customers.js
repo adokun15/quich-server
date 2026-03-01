@@ -1,9 +1,11 @@
 import express from "express";
-
-import { getAllCustomers } from "../db/firebase/customers.js";
-import AsyncError from "../utils/AsyncError.js";
-import CustomError from "../utils/error/error.js";
-import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
+import AsyncError from "../utils/error/AsyncError.js";
+import {
+  getAllCustomersController,
+  getSingleCustomerController,
+  updateCustomerStatus,
+} from "../controllers/customer.js";
+//import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
 
 const customerRoute = express.Router();
 

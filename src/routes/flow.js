@@ -1,5 +1,12 @@
 //Flow endpoints
 import express from "express";
+import { isRequestSignatureValid } from "../utils/middleware/verifyMetaRequest.js";
+import { FlowControl } from "../controllers/flowController.js";
+import { getNextScreenForOnboarding } from "../utils/whatsapp/outgoing/flow-endpoints/user/Signup.js";
+import { getNextScreenForCreatingNewProduct } from "../utils/whatsapp/outgoing/flow-endpoints/product/createProduct.js";
+import { FlowEndpointException } from "../utils/whatsapp/encryption.js";
+
+/*
 import {
   decryptRequest,
   encryptResponse,
@@ -15,6 +22,7 @@ import {
 } from "../../repository/whatapp/flow-endpoints/onboard_flow.js";
 import { FlowControl } from "../controllers/flowController.js";
 import { isRequestSignatureValid } from "../utils/middleware/verifyMetaRequest.js";
+*/
 
 const endpointFlowRoute = express.Router();
 
@@ -28,7 +36,6 @@ const {
 endpointFlowRoute.use((req, res) => {
   //1. Key is Valid
   if (!META_GENERATED_PRIVATE_KEY) {
-    //Log Error to Firebase!
     throw new Error(
       'Private key is empty. Please check your env variable "META_GENERATED_PRIVATE_KEY".',
     );
@@ -70,7 +77,7 @@ endpointFlowRoute.route("/onboard").post(async (req, res) => {
   }
 });
 
-//Updates will be through a link:
+//Create Folder
 endpointFlowRoute.route("/product").post(async (req, res) => {
   try {
     const ProductCreationFlow = await FlowControl(
@@ -102,8 +109,21 @@ endpointFlowRoute.route("/product").post(async (req, res) => {
   }
 });
 
+//Create Store
 endpointFlowRoute
   .route("/store")
+  .get((req, res) => {})
+  .post((req, res) => {});
+
+//Feedback
+endpointFlowRoute
+  .route("/feedback")
+  .get((req, res) => {})
+  .post((req, res) => {});
+
+//Support
+endpointFlowRoute
+  .route("/support")
   .get((req, res) => {})
   .post((req, res) => {});
 

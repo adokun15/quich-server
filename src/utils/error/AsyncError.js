@@ -9,7 +9,7 @@ export default function AsyncError(asyncFunc) {
     });
     const yourData = asyncFunc(req, res, next);
     const newPromise = Promise.race([yourData, Timeout]).catch((err) =>
-      next(err)
+      next(err),
     );
 
     return newPromise;

@@ -1,5 +1,5 @@
-import CustomError from "../../utils/error.js";
-import { paystack_ } from "../../utils/paystack.js";
+import CustomError from "../error/error.js";
+import { paystack_ } from "../paystack/paystack.js";
 
 //Use {subaccount: in paymentRequest}
 export const getBanks = async function () {

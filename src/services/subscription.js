@@ -1,11 +1,10 @@
-import { getFirestore } from "firebase-admin/firestore";
 import {
   NewPaymentPlan,
   UpgradedPaymentPlan,
-} from "../whatapp/templates/payment.js";
-import { getAuth } from "firebase-admin/auth";
+} from "../utils/whatsapp/outgoing/message/templates/payment.js";
 
 export const addUserPaymentInfo = async (data) => {
+  /*
   const uid = data?.metadata?.userId;
   const plan = data?.metadata?.plan;
 
@@ -76,6 +75,7 @@ export const addUserPaymentInfo = async (data) => {
   } catch (e) {
     throw new CustomError(e?.message || e?.code || " Something went wrong!");
   }
+*/
 };
 
 /**

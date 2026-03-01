@@ -2,8 +2,8 @@
  Decrypt whatsapp request and transform data then send back request;
  */
 
-import { verifySignature } from "../utils/middleware/verifyMetaRequest";
-import { WhatsappTextMessage } from "../utils/whatsapp/outgoing.js/message/textmessage";
+import { verifySignature } from "../utils/middleware/verifyMetaRequest.js";
+import { WhatsappTextMessage } from "../utils/whatsapp/outgoing/message/textmessage.js";
 
 //Only webhook can call this route
 // this controller is only meant to transform this request
@@ -32,12 +32,12 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
 
   console.log(req.body);
 
-  const res = await WhatsappTextMessage(
+  const message_request = await WhatsappTextMessage(
     "8129584035",
     "Hello, Quichshop is almost done!",
   );
 
-  console.log(res);
+  console.log(message_request);
 
   //  console.log("Valid payload:", req.body);
   res.sendStatus(200);

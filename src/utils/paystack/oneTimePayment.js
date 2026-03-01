@@ -1,6 +1,6 @@
-import CustomError from "../../utils/error.js";
-import { paystack } from "../../utils/paystack.js";
-//Charge
+import CustomError from "../error/error.js";
+import { paystack } from "../paystack/paystack.js";
+
 const transaction = {
   method: "POST",
   endpoint: "/transaction/initialize",
@@ -130,7 +130,7 @@ export const upgradeFromBasicToPremium = async (
   email,
   uid,
   phone,
-  name = null
+  name = null,
 ) => {
   try {
     const data = {
@@ -159,7 +159,7 @@ export const upgradeFromStandardToPremium = async (
   email,
   uid,
   phone,
-  name = null
+  name = null,
 ) => {
   try {
     const data = {

@@ -1,5 +1,5 @@
 import { text } from "express";
-import { WhatsappUrlForMessages } from "../../whatsapp";
+import { WhatsappUrlForMessages } from "../../whatsapp.js";
 
 export const WhatsappInteractiveUrlButton = async ({
   phone = null,

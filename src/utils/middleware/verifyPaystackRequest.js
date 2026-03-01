@@ -6,7 +6,7 @@ export const paystack_vs = (req, res, next) => {
       .update(JSON.stringify(req.body))
       .digest("hex");
 
-    //    if (hash == req.headers["x-paystack-signature"]) {
+    // if (hash == req.headers["x-paystack-signature"]) {}
 
     next();
   } catch (e) {

@@ -7,10 +7,13 @@
  This function will be called by the flow enpoints( /onboard, /product)
  */
 
-import { decryptRequest } from "../utils/whatsapp/encryption";
+import {
+  decryptRequest,
+  encryptResponse,
+} from "../utils/whatsapp/encryption.js";
 
 const isValidFlowToken = (body) => {
-  //dO THE Checks
+  /* dO THE Checks */
 };
 
 export async function FlowControl(

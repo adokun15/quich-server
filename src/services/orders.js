@@ -9,7 +9,7 @@
 //-- Webhook: Acknowledge Order and Rejected Order (with reason);
 //Get Orders / Get Order;
 
-import CustomError from "../../utils/error.js";
+import CustomError from "../utils/error/error";
 
 //Monitor daily order limit
 export const OrderLimit = async (uid) => {

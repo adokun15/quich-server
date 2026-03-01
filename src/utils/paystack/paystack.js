@@ -1,4 +1,4 @@
-import CustomError from "./error.js";
+import CustomError from "../error/error.js";
 
 //Post, update
 export async function paystack(config, data) {
@@ -14,7 +14,7 @@ export async function paystack(config, data) {
 
     const paystack = await fetch(
       `${process.env.PAYSTACK_URL}${config?.endpoint}`,
-      option
+      option,
     );
 
     const response = await paystack.json();
@@ -41,7 +41,7 @@ export async function paystack_(config) {
 
     const paystack = await fetch(
       `${process.env.PAYSTACK_URL}${config?.endpoint}`,
-      option
+      option,
     );
 
     const response = await paystack.json();

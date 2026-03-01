@@ -1,12 +1,13 @@
-import CustomError from "../../utils/error.js";
-import { paystack, paystack_ } from "../../utils/paystack.js";
-import { getUserStore } from "../firebase/store.js";
-import { getUserDb } from "../firebase/users.js";
+import CustomError from "../error/error.js";
+import { paystack, paystack_ } from "../paystack/paystack.js";
+//import { getUserStore } from "../firebase/store.js";
+//import { getUserDb } from "../firebase/users.js";
 import { Customer } from "./customer.js";
+
 export const paymentRequest = async (
   customerInfo,
   { merchantId, items, cartId }, //Set Recipient from client side
-  link
+  link,
 ) => {
   let config = {
     method: "POST",
@@ -33,9 +34,8 @@ export const paymentRequest = async (
       extra note: ''
      }
      */
-
     //merchant
-    const merchant = await getUserStore(link);
+    /*    const merchant = await getUserStore(link);
 
     const user = await getUserDb(merchantId);
 
@@ -75,6 +75,7 @@ export const paymentRequest = async (
     const paymentRequestProcess = await paystack(config, data);
 
     return paymentRequestProcess?.data?.request_code;
+  */
   } catch (e) {
     throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }

@@ -1,4 +1,4 @@
-import AsyncError from "./AsyncError.js";
+import AsyncError from "../error/AsyncError.js";
 import CustomError from "../error/error.js";
 
 //Verify  token

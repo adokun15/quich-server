@@ -1,5 +1,5 @@
-import CustomError from "../../utils/error.js";
-import { paystack } from "../../utils/paystack.js";
+import CustomError from "../error/error.js";
+import { paystack } from "../paystack/paystack.js";
 
 //INITAIE KYC
 export const VerifyIdentity = async function (query) {

@@ -1,10 +1,11 @@
 import express from "express";
-import AsyncError from "../utils/error/AsyncError";
+import AsyncError from "../utils/error/AsyncError.js";
+
 import {
   deleteMerchantController,
   UpdateMerchantController,
   ViewMerchantController,
-} from "../controllers/merchant";
+} from "../controllers/merchant.js";
 
 const userRoute = express.Router();
 
@@ -17,4 +18,5 @@ userRoute
   .get(AsyncError(ViewMerchantController))
   .patch(AsyncError(UpdateMerchantController))
   .delete(AsyncError(deleteMerchantController));
+
 export default userRoute;

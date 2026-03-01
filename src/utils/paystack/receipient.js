@@ -1,4 +1,4 @@
-import { paystack } from "../../utils/paystack.js";
+import { paystack } from "./paystack.js";
 
 //Send money Asap
 export const MakeTransferToRecipient = async function (receipientCode, amount) {
@@ -43,7 +43,7 @@ export const DeleteRecipient = async function (receipientCode) {
 export const GetRecipientCode = async function (
   uid,
   { store, link },
-  { name, account_number, bank_code }
+  { name, account_number, bank_code },
 ) {
   if (!name || !account_number || !bank_code) {
     throw new CustomError("Invalid Request!", 400);

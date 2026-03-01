@@ -1,6 +1,6 @@
 //Utility Function to Send text to user;
 
-import { WhatsappUrlForMessages } from "../../whatsapp";
+import { WhatsappUrlForMessages } from "../../whatsapp.js";
 
 export const WhatsappTextMessage = async (
   phone,

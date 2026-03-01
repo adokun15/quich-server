@@ -5,7 +5,7 @@
 //View: Joined Table: Store, Merchant, products;
 //For new request: Track visitor;
 
-import CustomError from "../../utils/error.js";
+import CustomError from "../utils/error/error";
 
 /*
 const getAllStoreProducts = async function (link) {
@@ -48,6 +48,7 @@ export const createMerchantStore = async (uid, data) => {
 };
 
 export const getUserStore = async (link, uid = "") => {
+  /*
   const merchantDocPath = getFirestore().collection("store/").doc(`${link}`);
   try {
     const getMerchant = getFirestore().runTransaction(async (transaction) => {
@@ -75,15 +76,18 @@ export const getUserStore = async (link, uid = "") => {
   } catch (e) {
     throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }
+*/
 };
 
 export const updateUserStore = async (link, data) => {
+  /*
   try {
     await getFirestore().collection("store/").doc(`${link}`).update(data);
     return { message: "Merchant details Updated!" };
   } catch (e) {
     throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }
+    */
 };
 
 export default getAllStoreProducts;
