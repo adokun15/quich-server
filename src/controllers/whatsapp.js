@@ -30,7 +30,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
     return res.sendStatus(403);
   }*/
 
-  console.log(req.body);
+  const { object, entry } = req.body;
 
   const message_request = await WhatsappTextMessage(
     "8129584035",

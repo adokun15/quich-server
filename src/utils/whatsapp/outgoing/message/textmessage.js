@@ -13,7 +13,7 @@ export const WhatsappTextMessage = async (
     to: `+234${phone}`,
     type: "text",
     text: {
-      body: text,
+      body: text_message,
       preview_url: enable_preview,
     },
   };
