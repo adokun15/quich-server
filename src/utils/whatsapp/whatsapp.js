@@ -16,7 +16,7 @@ export const WhatsappUrlForMessages = async (payload) => {
 
     const res = await api_endpoint.json();
 
-    return { status: "success" };
+    return { status: "success", res };
   } catch (e) {
     console.log(e);
     //Return an instance of Error;

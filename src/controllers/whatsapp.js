@@ -3,6 +3,7 @@
  */
 
 import { verifySignature } from "../utils/middleware/verifyMetaRequest";
+import { WhatsappTextMessage } from "../utils/whatsapp/outgoing.js/message/textmessage";
 
 //Only webhook can call this route
 // this controller is only meant to transform this request
@@ -22,13 +23,45 @@ export const whatsapp_verify_controller = async (req, res, next) => {
   return res.sendStatus(403);
 };
 
+//Process incoming Request
 export const whatsapp_webhook_controller = async (req, res, next) => {
   //RECEIVE ALL WEBHOOK: Flow and message!
   if (!verifySignature(req)) {
     return res.sendStatus(403);
   }
-  console.log("Valid payload:", req.body);
+
+  console.log(req.body);
+
+  const res = await WhatsappTextMessage(
+    "8129584035",
+    "Hello, Quichshop is almost done!",
+  );
+
+  console.log(res);
+
+  //  console.log("Valid payload:", req.body);
   res.sendStatus(200);
+  /* From User Message*/
+  //Transform Request
+
+  //Get Intent
+
+  //Save to Db if necessary
+
+  //Send BACK REPLY
+
+  /* From User Flow*/
+  //Transform Request
+
+  //Save to Db if necessary
+
+  //Send BACK REPLY
+  //
+
+  /* From WHATSAPP */
+  //Transform request
+
+  //Send Reply | Save to Db?
 };
 
 /**
