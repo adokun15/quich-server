@@ -51,6 +51,8 @@ app.use("/user", userRoute);
 app.use(globalErr);
 
 //for dev deployment
+//if (process.env.NODE_ENV === "development") {
+//}
 app.listen(3030, () => console.log("listening"));
 
 //for live deployment only; Comment during local dev!

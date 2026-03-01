@@ -14,6 +14,7 @@ export const getSingleCustomerController = async (req, res, next) => {
   //Orders & Customer Details
   const merchantId = req?.uid;
 
+  res.json({ customers: "opening" });
   if (!merchantId) {
     throw new CustomError("Unauthorized Access to Customers Data!", 403);
   }
