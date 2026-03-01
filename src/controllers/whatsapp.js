@@ -26,9 +26,9 @@ export const whatsapp_verify_controller = async (req, res, next) => {
 //Process incoming Request
 export const whatsapp_webhook_controller = async (req, res, next) => {
   //RECEIVE ALL WEBHOOK: Flow and message!
-  if (!verifySignature(req)) {
+  /* if (!verifySignature(req)) {
     return res.sendStatus(403);
-  }
+  }*/
 
   console.log(req.body);
 
