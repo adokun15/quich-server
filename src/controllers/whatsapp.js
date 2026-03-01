@@ -26,18 +26,26 @@ export const whatsapp_verify_controller = async (req, res, next) => {
 //Process incoming Request
 export const whatsapp_webhook_controller = async (req, res, next) => {
   //RECEIVE ALL WEBHOOK: Flow and message!
-  /* if (!verifySignature(req)) {
-    return res.sendStatus(403);
-  }*/
+  return res.sendStatus(403);
 
+  /*
+{
+    messaging_product: 'whatsapp',
+    contacts: [ [Object] ],
+    messages: [ [Object] ]
+  }
+*/
+
+  /*
   const { object, entry } = req.body;
 
   const message_request = await WhatsappTextMessage(
     "8129584035",
     "Hello, Quichshop is almost done!",
   );
+*/
 
-  console.log(message_request);
+  //console.log(message_request);
 
   //  console.log("Valid payload:", req.body);
   res.sendStatus(200);
