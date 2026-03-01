@@ -19,15 +19,6 @@ const app = express();
 app.use(json());
 app.use(cors());
 
-// store the raw request body to use it for signature verification
-app.use(
-  express.json({
-    verify: (req, res, buf, encoding) => {
-      req.rawBody = buf?.toString(encoding || "utf8");
-    },
-  }),
-);
-
 //Browser authorization
 app.use("/auth", authRoute);
 

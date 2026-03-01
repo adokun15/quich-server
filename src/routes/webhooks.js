@@ -9,6 +9,15 @@ import { paystack_vs } from "../utils/middleware/verifyPaystackRequest.js";
 
 const webhook = express.Router();
 
+// store the raw request body to use it for signature verification
+app.use(
+  express.json({
+    verify: (req, res, buf, encoding) => {
+      req.rawBody = buf?.toString(encoding || "utf8");
+    },
+  }),
+);
+
 //Whatsapp webhook; aDD A
 webhook
   .route("/whatsapp")

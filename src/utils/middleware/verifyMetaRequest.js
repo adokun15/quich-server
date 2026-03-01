@@ -1,13 +1,15 @@
 import crypto from "crypto";
 
-//vERIFY whatsapp message webhook is valid;
+//VERIFY whatsapp message webhook is valid;
 export function verifySignature(req) {
   const signature = req.headers["x-hub-signature-256"];
   if (!signature) return false;
+
   const hash = crypto
     .createHmac("sha256", process.env.META_APP_SECRET)
     .update(req.rawBody)
     .digest("hex");
+
   return signature === `sha256=${hash}`;
 }
 

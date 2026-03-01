@@ -4,6 +4,13 @@
 
 import { verifySignature } from "../utils/middleware/verifyMetaRequest.js";
 import { WhatsappTextMessage } from "../utils/whatsapp/outgoing/message/textmessage.js";
+import {
+  executeFlowPerfoamanceStatus,
+  executeInteractiveResult,
+  executeTextIntent,
+  executeUserErrorMessage,
+  whatsapp_message_webhook_processsor,
+} from "../services/whatsapp_webhook_handler.js";
 
 //Only webhook can call this route
 // this controller is only meant to transform this request
@@ -26,50 +33,71 @@ export const whatsapp_verify_controller = async (req, res, next) => {
 //Process incoming Request
 export const whatsapp_webhook_controller = async (req, res, next) => {
   //RECEIVE ALL WEBHOOK: Flow and message!
-  return res.sendStatus(403);
 
-  /*
-{
-    messaging_product: 'whatsapp',
-    contacts: [ [Object] ],
-    messages: [ [Object] ]
+  //1.Send Back a Response : Acknowledge request!
+  res.status(200).send("Webhook_Received");
+
+  //2. Verify Request
+  const verified = verifySignature(req);
+
+  if (!verified) {
+    res.status(403).send("INVALID_REQUEST!");
+    return;
   }
-*/
 
-  /*
-  const { object, entry } = req.body;
+  //3. Process & Transform Message
 
-  const message_request = await WhatsappTextMessage(
-    "8129584035",
-    "Hello, Quichshop is almost done!",
-  );
-*/
+  //--------Incoming Message-------
+  if (
+    req?.body?.object === "whatsapp_business_account" &&
+    req?.body?.entry[0].changes[0]?.field === "messages" &&
+    !req?.body?.entry[0]?.changes[0]?.value?.statuses
+  ) {
+    /*
+    This Could Mean alot of things; 
+   */
 
-  //console.log(message_request);
+    console.log("It works Bro!");
 
-  //  console.log("Valid payload:", req.body);
-  res.sendStatus(200);
-  /* From User Message*/
-  //Transform Request
+    //What did the user send?: { type, transformed details}
+    /*
+    const { type, message_type, payload } = whatsapp_message_webhook_processsor(
+      req?.body,
+    );
 
-  //Get Intent
+    //Text
+    if (message_type === "text") {
+      //What does the user want? { intent, ...data }
+      const { intent, isIntentKnown } = GetUserIntent({ type, payload });
 
-  //Save to Db if necessary
+      //What is next action or question? If it has an intent: 'do a switch to process it request';
+      await executeTextIntent(intent, isIntentKnown, phone);
+    }
 
-  //Send BACK REPLY
+    //Interactive: (Flow, reply button, list buttons)
+    if (message_type === "interactive") {
+      await executeInteractiveResult(payload);
+    }
+  */
+  }
 
-  /* From User Flow*/
-  //Transform Request
-
-  //Save to Db if necessary
-
-  //Send BACK REPLY
-  //
-
-  /* From WHATSAPP */
-  //Transform request
-
-  //Send Reply | Save to Db?
+  //----Flow Perfoamance & Status--------
+  /*if () {
+    //Process any flow message
+    await executeFlowPerfoamanceStatus(req?.body);
+  }
+  
+  //--- Failed to send Error for 'a phone' (FCM)/(EMAIL) -- send a email;
+  if () {
+    //Process any flow message
+    await executeUserErrorMessage(req?.body);
+  }
+  
+  //Phone Number Change
+  if () {
+    //Process any flow message
+    await alertUserPhoneNumberChange(req?.body);
+  }*/
 };
 
 /**
@@ -83,175 +111,6 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
  */
 /*
 
-
-/*
-//
-
-fLOW MESSAGE ESSAGE
-{
-  "messages": [{
-    "context": {
-      "from": "16315558151",
-      "id": "gBGGEiRVVgBPAgm7FUgc73noXjo"
-    },
-    "from": "<USER_ACCOUNT_NUMBER>",
-    "id": "<MESSAGE_ID>",
-    "type": "interactive",
-    "interactive": {
-      "type": "nfm_reply",
-      "nfm_reply": {
-        "name": "flow",
-        "body": "Sent",
-        "response_json": "{\"flow_token\": \"<FLOW_TOKEN>\", \"optional_param1\": \"<value1>\", \"optional_param2\": \"<value2>\"}"
-      }
-    },
-    "timestamp": "<MESSAGE_SEND_TIMESTAMP>"
-  }]
-}
-
-Perfoamance and status webhook
-{
-  "entry": [
-      {
-        "id": "644600416743275",
-        "time": 1684969340,
-        "changes": [
-          {
-            "value": {
-              "event": "FLOW_STATUS_CHANGE",
-              "message": "Flow Webhook 3 has been created with DRAFT status",
-              "flow_id": "6627390910605886",
-              "new_status": "DRAFT"
-              "warning": "Your current Flow version will freeze in 21 days. You won't be able to send the Flow after it expires. Please migrate to the recommended version as soon as possible. https://developers.facebook.com/docs/whatsapp/flows/changelogs#currently-supported-versions" 
-            },
-            "field": "flows"
-          }
-        ]
-      }
-    ],
-    "object": "whatsapp_business_account"
-}
-{
-  "entry": [
-    {
-      "id": "106181168862417",
-      "time": 1674160476,
-      "changes": [
-        {
-          "value": {
-            "event": "CLIENT_ERROR_RATE",
-            "message": "The flow client request error rate has reached the 5% threshold in the last 60 minutes. A higher error rate will make it harder for users to complete the flow, resulting in drop-offs.",
-            "flow_id": "691244242662581",
-            "error_rate": 14.28,
-            "threshold": 10,
-            "alert_state": "ACTIVATED",
-            "errors": [
-              {
-                "error_type": "INVALID_SCREEN_TRANSITION",
-                "error_rate": 66.66,
-                "error_count": 2
-              },
-              {
-                "error_type": "PUBLIC_KEY_MISSING",
-                "error_rate": 33.33,
-                "error_count": 1
-              },
-            ],
-          },
-          "field": "flows"
-        }
-      ]
-    }
-  ],
-  "object": "whatsapp_business_account"
-}
-//eNPPOINGT
-{
-  "entry": [
-    {
-      "id": "106181168862417",
-      "time": 1674160476,
-      "changes": [
-        {
-          "value": {
-            "event": "ENDPOINT_ERROR_RATE",
-            "message": "The flow endpoint request error rate has reached the 10% threshold in the last 30 minutes. A higher error rate will make it harder for users to complete the flow, resulting in drop-offs.",
-            "flow_id": "691244242662581",
-            "error_rate": 14.28,
-            "threshold": 10,
-            "alert_state": "ACTIVATED",
-            "errors": [
-              {
-                "error_type": "CAPABILITY_ERROR",
-                "error_rate": 66.66,
-                "error_count": 2
-              },
-              {
-                "error_type": "TIMEOUT",
-                "error_rate": 33.33,
-                "error_count": 1
-              },
-            ],
-          },
-          "field": "flows"
-        }
-      ]
-    }
-  ],
-  "object": "whatsapp_business_account"
-}
-
-//Availaiblity
-{
-  "entry": [
-    {
-      "id": "106181168862417",
-      "time": 1674160476,
-      "changes": [
-        {
-          "value": {
-            "event": "ENDPOINT_AVAILABILITY",
-            "message": "The flow endpoint availability has breached the 90% threshold in the last 10 minutes. Users will be unable to open or use the flow.",
-            "flow_id": "12345678",
-            "alert_state: "ACTIVATED",
-            "availability": 75,
-            "threshold" : 90,
-          },
-          "field": "flows"
-        }
-
-      ]
-    }
-  ],
-  "object": "whatsapp_business_account"
-}
-
-//LATENCY
-{
-  "entry": [
-    {
-      "id": "106181168862417",
-      "time": 1674160476,
-      "changes": [
-        {
-          "value": {
-            "event": "ENDPOINT_LATENCY",
-            "message": "Flow endpoint latency has reached the p90 threshold in the last 30 minutes. High latency will increase the loading time between screens in the flow, impacting user experience.",
-            "flow_id": "691244242662581",
-            "p90_latency": 8000,
-            "p50_latency": 500,
-            "requests_count": 34,
-            "threshold": 7000,
-            "alert_state": "ACTIVATED",
-          },
-          "field": "flows"
-        }
-      ]
-    }
-  ],
-  "object": "whatsapp_business_account"
-}
-*/
 
 /*
 userRoute.route("/payment/:type").post(
