@@ -5,42 +5,23 @@
 //View: Joined Table: Store, Merchant, products;
 //For new request: Track visitor;
 
-import CustomError from "../utils/error/error";
+import pool from "../utils/database/db.js";
+import CustomError from "../utils/error/error.js";
 
-/*
 const getAllStoreProducts = async function (link) {
   try {
-    const ref = getFirestore().collection(`store/${link}/products`);
-    //Run tansaction
-    const products = await getFirestore().runTransaction(
-      async (transaction) => {
-        const productsDoc = await transaction.get(ref);
-
-        if (productsDoc.empty) {
-          throw new CustomError("No product available!");
-        }
-
-        let list = [];
-
-        productsDoc.forEach((product) => {
-          // if (product.data()?.published) {
-          list.push({ ...product.data(), productId: product.id });
-          //}
-        });
-
-        return list;
-      }
+    const res = await pool.query(
+      "SELECT * from customers Where customer_id = $1",
+      [link],
     );
 
-    return products;
+    console.log(res);
+    return { time_of_request: res?.rows };
   } catch (e) {
-    throw new CustomError(
-      e?.message || e?.code || "SOMETHING WENT WRONG!",
-      500
-    );
+    console.log(e);
+    throw CustomError(e);
   }
 };
-*/
 
 export const createMerchantStore = async (uid, data) => {
   //Collect final payload from whatsapp flow;

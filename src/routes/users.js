@@ -6,6 +6,10 @@ import {
   UpdateMerchantController,
   ViewMerchantController,
 } from "../controllers/merchant.js";
+import {
+  addUserPaymentInfo,
+  getUserBillingInfo,
+} from "../services/subscription.js";
 
 const userRoute = express.Router();
 
@@ -19,4 +23,8 @@ userRoute
   .patch(AsyncError(UpdateMerchantController))
   .delete(AsyncError(deleteMerchantController));
 
+userRoute
+  .route("/billing")
+  .get(AsyncError(getUserBillingInfo))
+  .post(AsyncError(addUserPaymentInfo));
 export default userRoute;

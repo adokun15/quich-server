@@ -3,6 +3,7 @@ import AsyncError from "../utils/error/AsyncError.js";
 import express from "express";
 import {
   GetStoreController,
+  GetStoreProductsController,
   updateStoreController,
 } from "../controllers/store.js";
 
@@ -10,10 +11,11 @@ const storeRoute = express.Router();
 
 /**
  This Route does limit this; 
-
  -Allow anyone view a merchant store;
  -Allow user update their store;
  */
+
+storeRoute.get("/:storeSlug/products", AsyncError(GetStoreProductsController));
 
 //Fetch store base on user type;
 storeRoute

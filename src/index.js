@@ -13,6 +13,7 @@ dotenv.config({ path: ".env.local" });
 
 import { globalErr } from "./utils/error/globalError.js";
 import endpointFlowRoute from "./routes/flow.js";
+import productRoute from "./routes/products.js";
 
 const app = express();
 
@@ -22,8 +23,9 @@ app.use(cors());
 //Browser authorization
 app.use("/auth", authRoute);
 
-//buyer public route
 app.use("/store", storeRoute);
+
+app.use("/products", productRoute);
 
 //seller private orders route
 app.use("/orders", orderRoute);

@@ -1,8 +1,4 @@
-import {
-  NewPaymentPlan,
-  UpgradedPaymentPlan,
-} from "../utils/whatsapp/outgoing/message/templates/payment.js";
-
+export const getUserBillingInfo = async (data) => {};
 export const addUserPaymentInfo = async (data) => {
   /*
   const uid = data?.metadata?.userId;

@@ -7,7 +7,8 @@ import {
   getAllProductsController,
   getProductController,
   UpdateProductController,
-} from "../../controllers/products.js";
+} from "../controllers/products.js";
+
 const productRoute = express.Router();
 
 //Only merchant has access to this;
@@ -32,4 +33,4 @@ productRoute
 //Read only by merchant on their browser; Must be authorized
 productRoute.route("/").get(AsyncError(getAllProductsController));
 
-export default orderRoute;
+export default productRoute;

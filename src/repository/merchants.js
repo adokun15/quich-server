@@ -1,4 +1,10 @@
-export const getMerchantFromDb = (id) => {};
+export const getMerchantFromDb = (id) => {
+    /*
+      {
+    
+      }
+    */
+};
 
 export const CreateMerchantforDb = () => {};
 
