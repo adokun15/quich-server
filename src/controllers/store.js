@@ -6,7 +6,7 @@ export const GetStoreController = async (req, res) => {
   const temp_model = {
     store_id: "demo-store-id",
     store_profile: null,
-    store_bio: "Fruit mart at your doorstep!",
+    store_bio: "Fruit mart at your doorstep, and this is going to be one those long ass text again",
     store_slug: "bland",
     store_video_ad: "",
     store_category: "SuperMarket & Retails",
@@ -33,19 +33,19 @@ export const GetStoreProductsController = async (req, res) => {
         {
           product_id: "product_id_1",
           product_name: "PineApple",
-          product_img: [],
+          product_img: null,
           amount: 1000,
         },
         {
           product_id: "product_id_2",
           product_name: "Apple",
-          product_img: [],
+          product_img: null,
           amount: 300,
         },
         {
           product_id: "product_id_3",
           product_name: "Banana",
-          product_img: [],
+          product_img: null,
           amount: 500,
         },
       ],
