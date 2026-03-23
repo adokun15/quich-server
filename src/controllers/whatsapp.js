@@ -11,6 +11,7 @@ import {
   executeUserErrorMessage,
   whatsapp_message_webhook_processsor,
 } from "../services/whatsapp_webhook_handler.js";
+import { witai_getIntent } from "../utils/wit_ai/getIntent.js";
 
 //Only webhook can call this route
 // this controller is only meant to transform this request
@@ -47,70 +48,49 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
 
   //3. Process & Transform Message
 
+  //What did the Whatsapp send, then transform 'whatsapp' object;
+  const { type, message_type, payload } = whatsapp_message_webhook_processsor(
+    req?.body,
+  );
+
   //--------Incoming Message-------
-  if (
-    req?.body?.object === "whatsapp_business_account" &&
-    req?.body?.entry[0].changes[0]?.field === "messages" &&
-    !req?.body?.entry[0]?.changes[0]?.value?.statuses
-  ) {
-    /*
-    This Could Mean alot of things; 
-   */
-
-    console.log("It works Bro!");
-
-    //What did the user send?: { type, transformed details}
-    /*
-    const { type, message_type, payload } = whatsapp_message_webhook_processsor(
-      req?.body,
-    );
-
-    //Text
+  if (type === "message") {
+    //Text: Usally first step
     if (message_type === "text") {
       //What does the user want? { intent, ...data }
-      const { intent, isIntentKnown } = GetUserIntent({ type, payload });
+      const { intents, entities } = witai_getIntent({ message: "" });
 
-      //What is next action or question? If it has an intent: 'do a switch to process it request';
-      await executeTextIntent(intent, isIntentKnown, phone);
+      //What is next action or question?
+      await executeTextIntent(intents, entities, phone);
     }
 
     //Interactive: (Flow, reply button, list buttons)
     if (message_type === "interactive") {
       await executeInteractiveResult(payload);
     }
-  */
+
+    //Media message
+    //if (message_type === "media") {}
+
+    //Location message
+    //if (message_type === "location") {}
   }
 
   //----Flow Perfoamance & Status--------
-  /*if () {
-    //Process any flow message
+  if (type === "flow_perfoamance") {
     await executeFlowPerfoamanceStatus(req?.body);
   }
-  
+
   //--- Failed to send Error for 'a phone' (FCM)/(EMAIL) -- send a email;
-  if () {
-    //Process any flow message
+  if (type === "user_error") {
     await executeUserErrorMessage(req?.body);
   }
-  
+
   //Phone Number Change
-  if () {
-    //Process any flow message
+  if (type === "phone_number_change") {
     await alertUserPhoneNumberChange(req?.body);
-  }*/
+  }
 };
-
-/**
- signup
- create product; Add Product Image
- Customer_blacklist_toggle
- create/delete_store_flow;
- create/delete_store_flow;
- acknowledge_reject_orderCreation_flow
- subscriptions/waybill invoice
- */
-/*
-
 
 /*
 userRoute.route("/payment/:type").post(

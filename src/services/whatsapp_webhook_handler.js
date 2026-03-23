@@ -1,5 +1,4 @@
 //For THE dASHBOARD: VIEW ALL THE PRODUCTS, The STORE [AND] User ACCOUNT
-
 export const alertUserPhoneNumberChange = async () => {
   //--Change UserPhone NUmber
   //--Send A mail to User;
@@ -14,45 +13,63 @@ export const executeFlowPerfoamanceStatus = async () => {
 };
 
 export const executeInteractiveResult = async () => {
-  //Get Last Intent Data FROM DB: ` INTENT_NAME_STEP | JSON`
-  //Send Back a Response!
-  //Store conversation info;
-  // ---Probably do other thing: Db invocation | Other Action
-};
-
-export const executeTextIntent = async (new_intent, isIntentKnown, phone) => {
-  //Get Last Intent Data FROM DB: ` INTENT_NAME_STEP`
   /*
-  IF INTENT IS UNKNOWN {
-    //cHECK LAST INTENT IF AVAILABLE 
-
-    //dUE WHICH PART WAS UNCLEAR
-
-    //SEND DEFAULT MESSAGE;
-   }
-  */
-  //Send Back a hearty Response!
-  //Store Intent Info;
-  //Probably do other thing: Db invocation | Other Action
+    step 1; 
+     --Get Last Intent Data FROM DB: ` INTENT_NAME_STEP | JSON`
+     
+    step 2:
+    - Access last convo state;
+  
+    step 3:
+    -Send Back a  Response!
+    -Probably do other thing: Db invocation | Other Action
+    
+    step 4:
+    - Save current convo state;
+ */
 };
 
-export const GetUserIntent = ({ type, payload }) => {
-  //Check In
-  //Trying To Guess What the User Want?
+//Get Last Intent Data FROM DB: ` INTENT_NAME_STEP`
+export const executeTextIntent = async (new_intent, isIntentKnown, phone) => {
+  /*
+    step 1; 
+     - Based on confidence, depend whether to send a confirmation or direct message;
+     
+    step 2:
+    - Access last convo state;
+  
+    step 3:
+    -Send Back a  Response!
+    -Probably do other thing: Db invocation | Other Action
+    
+    step 4:
+    - Save current convo state;
+ */
 };
 
-//This is what our whatsapp-webhook-controller will call;
+// TRRNSFORM WHATSAPP OBJECT
 export const whatsapp_message_webhook_processsor = (req) => {
-  /* 
-   This function will be long:
-   use to detect what kind of
-  responds we get and TRANSFORM IT */
+  let temp = { type: "", message_type: "", payload: "" };
 
-  return {
-    type: "",
-    message_type: "",
-    payload: {},
-  };
+  //Detect: Message
+  if (
+    req?.body?.object === "whatsapp_business_account" &&
+    req?.entry[0].changes[0]?.field === "messages" &&
+    !req?.entry[0]?.changes[0]?.value?.statuses
+  ) {
+    //Detect: message type
+    return {
+      type: "message",
+      message_type: "",
+      payload: {},
+    };
+  }
+
+  //Detect: Flow perfoamance;
+
+  //Failed to send error
+
+  //Phone number change!
 };
 
 //Listen for changes on whatsapp and send a response!
