@@ -30,46 +30,188 @@ export const executeInteractiveResult = async () => {
 };
 
 //Get Last Intent Data FROM DB: ` INTENT_NAME_STEP`
-export const executeTextIntent = async (new_intent, isIntentKnown, phone) => {
-  /*
-    step 1; 
-     - Based on confidence, depend whether to send a confirmation or direct message;
-     
-    step 2:
-    - Access last convo state;
-  
-    step 3:
-    -Send Back a  Response!
-    -Probably do other thing: Db invocation | Other Action
-    
-    step 4:
-    - Save current convo state;
- */
+export const executeIntent = async (intent, data) => {
+  switch (intent) {
+    //- Based on confidence, depend whether to send a confirmation or direct message;
+    case "create_account":
+
+    case "delete_account":
+
+    case "account_summary":
+
+    case "edit_account":
+
+    //Store
+    case "create_store":
+
+    case "store_settings":
+
+    case "store_summary":
+
+    case "community":
+
+    case "store_video":
+
+    //Orders
+    case "view_order":
+
+    case "view_orders":
+
+    case "add_order":
+
+    case "cancel_order":
+
+    case "mark_order_complete":
+
+    //Products
+    case "create_product":
+
+    case "remove_product":
+
+    case "remove_product_from_category":
+
+    case "add_product_to_category":
+
+    case "edit_product":
+
+    case "add_product_image":
+
+    //case "view_product_stats":
+
+    //Customers
+    case "all_customers":
+
+    case "recent_customers":
+
+    case "active_customers":
+
+    case "add_customer_to_blacklist":
+
+    case "remove_customer_from_blacklist":
+
+    case "customer_orders":
+
+    case "customer_info":
+
+    //Category
+    case "create_category":
+
+    case "update_category":
+
+    case "view_category":
+
+    case "remove_category":
+
+    //Subscription
+    case "pause_subscription":
+
+    case "help_subscription":
+
+    case "plans_for_subscription":
+
+    case "resume_subscription":
+
+    case "start_subscription":
+
+    case "subscription_status":
+
+    case "change_subscription":
+
+    //Support
+    case "about":
+
+    case "contact":
+
+    case "connect_socials":
+
+    case "give_feedback":
+
+    case "feature_request":
+
+    case "privacy_policy":
+
+    case "company_terms":
+
+    default:
+      await DontUnderStandIntent(phone);
+  }
 };
 
 // TRRNSFORM WHATSAPP OBJECT
-export const whatsapp_message_webhook_processsor = (req) => {
-  let temp = { type: "", message_type: "", payload: "" };
+export const whatsapp_message_webhook_processsor = (body) => {
+  let temp = {};
 
-  //Detect: Message
+  //Incoming messages
   if (
-    req?.body?.object === "whatsapp_business_account" &&
-    req?.entry[0].changes[0]?.field === "messages" &&
-    !req?.entry[0]?.changes[0]?.value?.statuses
+    body?.object === "whatsapp_business_account" &&
+    body?.entry[0].changes[0]?.field === "messages" &&
+    !body?.entry[0]?.changes[0]?.value?.statuses
   ) {
-    //Detect: message type
-    return {
-      type: "message",
-      message_type: "",
-      payload: {},
-    };
-  }
+    temp.name = body?.entry[0].changes[0]?.value?.contacts[0]?.profile?.name;
+    temp.phone =
+      body?.entry[0].changes[0]?.value?.metadata?.display_phone_number;
 
+    //Text Message
+    if (body?.entry[0].changes[0]?.value?.messages[0]?.type === "text") {
+      temp.type = "message";
+      temp.message_type = body?.entry[0].changes[0]?.value?.messages[0]?.type;
+      temp.payload = body?.entry[0].changes[0]?.value?.messages[0]?.text?.body;
+    }
+
+    //Interactive message;
+    if (body?.entry[0].changes[0]?.value?.messages[0]?.type === "interactive") {
+      //Flow
+      if (
+        body?.entry[0].changes[0]?.value?.messages[0]?.interactive?.type ===
+        "nfm_reply"
+      ) {
+        const res =
+          body?.entry[0].changes[0]?.value?.messages[0]?.interactive?.nfm_reply
+            ?.response_json;
+
+        temp.type = "message";
+        temp.message_type =
+          body?.entry[0].changes[0]?.value?.messages[0]?.interactive?.type;
+        temp.payload = res;
+      }
+      //Reply Message;
+      const replyType =
+        body?.entry[0].changes[0]?.value?.messages[0]?.interactive?.type;
+
+      if (replyType === "list_reply") {
+        temp.type = "message";
+        temp.message_type = replyType;
+        temp.payload = {
+          id: body?.entry[0].changes[0]?.value?.messages[0]?.interactive
+            ?.list_reply?.id,
+          title:
+            body?.entry[0].changes[0]?.value?.messages[0]?.interactive
+              ?.list_reply?.title,
+          description:
+            body?.entry[0].changes[0]?.value?.messages[0]?.interactive
+              ?.list_reply?.description || "",
+        };
+      }
+
+      if (replyType === "button_reply") {
+        temp.type = "message";
+        temp.message_type = replyType;
+        temp.payload = {
+          id: body?.entry[0].changes[0]?.value?.messages[0]?.interactive
+            ?.button_reply?.id,
+          title:
+            body?.entry[0].changes[0]?.value?.messages[0]?.interactive
+              ?.button_reply?.title,
+        };
+      }
+    }
+  }
   //Detect: Flow perfoamance;
 
   //Failed to send error
 
   //Phone number change!
+  return temp;
 };
 
 //Listen for changes on whatsapp and send a response!

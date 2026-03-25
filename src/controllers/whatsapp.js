@@ -7,11 +7,17 @@ import { WhatsappTextMessage } from "../utils/whatsapp/outgoing/message/textmess
 import {
   executeFlowPerfoamanceStatus,
   executeInteractiveResult,
-  executeTextIntent,
   executeUserErrorMessage,
   whatsapp_message_webhook_processsor,
 } from "../services/whatsapp_webhook_handler.js";
 import { witai_getIntent } from "../utils/wit_ai/getIntent.js";
+import {
+  //  completeConvoState,
+  getUserConvoState,
+  mapEntities,
+  UpdateUserConvoState,
+} from "../utils/helper.js";
+import { intents } from "../utils/wit_ai/Intents.js";
 
 //Only webhook can call this route
 // this controller is only meant to transform this request
@@ -36,37 +42,94 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
   //RECEIVE ALL WEBHOOK: Flow and message!
 
   //1.Send Back a Response : Acknowledge request!
-  res.status(200).send("Webhook_Received");
+  res.status(200).json({ message: "Webhook_Received" });
 
   //2. Verify Request
-  const verified = verifySignature(req);
+  //const verified = verifySignature(req);
 
-  if (!verified) {
-    res.status(403).send("INVALID_REQUEST!");
-    return;
-  }
+  // if (!verified) {
+  // res.status(403).send("INVALID_REQUEST!");
+  // return;
+  // }
 
   //3. Process & Transform Message
-
   //What did the Whatsapp send, then transform 'whatsapp' object;
-  const { type, message_type, payload } = whatsapp_message_webhook_processsor(
-    req?.body,
-  );
+  const { type, message_type, payload, name, phone } =
+    whatsapp_message_webhook_processsor(req?.body);
+  const b = whatsapp_message_webhook_processsor(req?.body);
 
+  console.log(b);
   //--------Incoming Message-------
   if (type === "message") {
     //Text: Usally first step
     if (message_type === "text") {
-      //What does the user want? { intent, ...data }
-      const { intents, entities } = witai_getIntent({ message: "" });
+      //    console.log(b);
 
-      //What is next action or question?
-      await executeTextIntent(intents, entities, phone);
+      //1. Check user context;
+      const ctx = await getUserConvoState(phone);
+
+      console.log(ctx);
+
+      /////// curerent step: log out (03:10)
+
+      //----MID-FLOW CONVO--------
+      //2.  Check if user is in a waiting step; Mid Flow
+      if (ctx.step) {
+        await handleConvoState(payload, ctx);
+        return;
+      }
+
+      // ----- INITIAL FREE TEXT -------
+      const { intents: intent, entities,  } = await witai_getIntent({
+        message: payload,
+      });
+
+      
+
+      //3. Check if intent exists in our wit_ai or the locally stored ones
+      if (!intent || !intents[intent]) {
+        //Reply "I dont understand" to users;
+       console.log("Man i dont understand, Like what do you want?")
+      }
+      
+        /*    
+          //4. Extract field
+          const required_intents = intents[intent];
+          //const required_intents = [];
+          
+          const extractedEntities = mapEntities(entities); //{ "product_name": "Mango" }
+          
+          const missing = required_intents.filter(
+            (field) => extractedEntities[field],
+            );
+            
+            //5. Update convo state
+            if (missing.length > 0) {
+              await UpdateUserConvoState(phone, {
+                step: missing[0],
+                intent: intent,
+                data: extractedEntities,
+                missing,
+          });
+          
+          
+          //6. Tell User what info you need again;
+          //Please Provide the info;
+          return;
+          }
+          */
     }
 
-    //Interactive: (Flow, reply button, list buttons)
-    if (message_type === "interactive") {
-      await executeInteractiveResult(payload);
+    //Interactive:
+    // --- (Flow Response) ---
+    if (message_type === "nfm_reply") {
+      console.log(b);
+      // await executeInteractiveResult(payload);
+    }
+
+    //  (reply button, list buttons)
+    if (message_type === "button_reply" || message_type === "list_reply") {
+      console.log(b);
     }
 
     //Media message
@@ -76,11 +139,12 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
     //if (message_type === "location") {}
   }
 
-  //----Flow Perfoamance & Status--------
-  if (type === "flow_perfoamance") {
-    await executeFlowPerfoamanceStatus(req?.body);
-  }
-
+  /*
+    //----Flow Perfoamance & Status--------
+    if (type === "flow_perfoamance") {
+      await executeFlowPerfoamanceStatus(req?.body);
+      }
+      
   //--- Failed to send Error for 'a phone' (FCM)/(EMAIL) -- send a email;
   if (type === "user_error") {
     await executeUserErrorMessage(req?.body);
@@ -90,6 +154,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
   if (type === "phone_number_change") {
     await alertUserPhoneNumberChange(req?.body);
   }
+*/
 };
 
 /*

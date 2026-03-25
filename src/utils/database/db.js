@@ -4,7 +4,7 @@ import { Pool } from "pg";
 const pool = new Pool({
   user: "postgres", // your postgres username
   host: "localhost", // usually localhost
-  database: "postgres", // your database name
+  database: "quich", // your database name
   password: "amos2005", // the password you set during install
   port: 5432, // default PostgreSQL port
 });
