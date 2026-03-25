@@ -1,6 +1,6 @@
-//transaction: instead 
-export const CreateSubscriptionforMerchant = async() => {
-    try {
+//transaction: instead
+export const CreateSubscriptionforMerchant = async () => {
+  try {
     const res = await pool.query(
       `
       INSERT INTO subcription(
@@ -20,25 +20,15 @@ export const CreateSubscriptionforMerchant = async() => {
       `,
       query,
     );
-    
-    //success 
-    return { };
-  } catch (e) {;
+
+    //success
+    return {};
+  } catch (e) {
     throw CustomError(e);
   }
- 
 };
 
 //Index
-export const GetSubscriptionDetailForMerchant = (query) => {
-
-};
-
-//Webhooks calls;
-export const DisableSubscriptionforMerchant = () => {
- 
-};
-
-export const EnableSubscriptionforMerchant = () => {};
+export const GetSubscriptionDetailForMerchant = (query) => {};
 
 export const UpdateSubscriptionforMerchant = () => {};

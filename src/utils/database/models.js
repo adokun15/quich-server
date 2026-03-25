@@ -26,9 +26,12 @@ const create_merchant_table = async () => {
         -- Table
         CREATE TABLE IF NOT EXISTS merchants (
             id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-            phone TEXT UNIQUE NOT NULL,
+            phone VARCHAR(11) UNIQUE NOT NULL,
             avatar_url TEXT,
             name TEXT,
+            email TEXT,
+            email_verified BOOLEAN DEFAULT FALSE,
+            subcribed_to_broadcast BOOLEAN DEFAULT TRUE,
             updated_at TIMESTAMPTZ DEFAULT NOW(),
             created_at TIMESTAMPTZ DEFAULT NOW()
             )   
@@ -69,7 +72,7 @@ END$$;
         merchant_id UUID NOT NULL REFERENCES merchants ON DELETE CASCADE,
         category store_category_type NOT NULL DEFAULT 'Others',
         bio TEXT,
-        profile TEXT,
+        logo TEXT,
         video_profile TEXT,
         name TEXT NOT NULL,
         address TEXT,
@@ -84,7 +87,7 @@ END$$;
         
         --Triggers (update at!)
         DROP TRIGGER IF EXISTS trg_stores_updated_at ON stores;
-        
+
          CREATE TRIGGER trg_stores_updated_at
          BEFORE UPDATE ON stores
          FOR EACH ROW
@@ -106,6 +109,7 @@ const create_categories_table = () => {
          created_at TIMESTAMPTZ DEFAULT NOW()
         )   
           
+        --Function: cannot be more than 50!
         --Triggers (update at!)
         DROP TRIGGER IF EXISTS trg_category_updated_at ON category;
 
@@ -134,7 +138,9 @@ const create_products_table = () => {
         updated_at TIMESTAMPTZ DEFAULT NOW(),
         created_at TIMESTAMPTZ DEFAULT NOW()
         )   
-          
+        
+        --Function to add / image dynamically
+        
         --Triggers (update at!)
         DROP TRIGGER IF EXISTS trg_products_updated_at ON products;
 
@@ -162,7 +168,8 @@ END$$;
         id SERIAL PRIMARY KEY,
         merchant_id UUID NOT NULL REFERENCES merchants ON DELETE CASCADE,
         customer_id UUID  NOT NULL REFERENCES customer_store(customer_id) ON SET NULL,
-        total_amount INTEGER NOT NULL,
+        store_id UUID REFERENCES stores ON SET NULL,
+        total_amount NUMERIC(15, 2) NOT NULL,
         cart_items jsonb NOT NULL,
         note TEXT,
         address TEXT,
@@ -218,7 +225,7 @@ const create_customer_store_table = () => {
        store_id UUID NOT NULL REFERENCES stores ON DELETE CASCADE,
        name TEXT,
        tag TEXT,
-       blacklist BOOLEAN DEFAULT FALSE,
+       blacklisted BOOLEAN DEFAULT FALSE,
        email text,
        PRIMARY KEY (store_id, customer_id),
        updated_at TIMESTAMPTZ DEFAULT NOW(),
