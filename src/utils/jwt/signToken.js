@@ -3,10 +3,10 @@
 import jwt from "jsonwebtoken";
 
 //From Whatsapp: 45mins
-export function CreateMerchantToken(payload) {
+export function CreateMerchantToken(payload, expires_at) {
   //Create Token;
   const jwtSignedToken = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
-    expiresIn: "1h",
+    expiresIn: expires_at || "1h",
     audience: "whatsapp",
   });
 

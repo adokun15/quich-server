@@ -250,7 +250,45 @@ const create_customer_store_table = () => {
        `;
   } catch (e) {}
 };
+//-------------Authentication- -----------
+const create_login_tokens_table = async () => {
+  try {
+    await pool.query(`
+    --Table 
+    CREATE TABLE IF NOT EXISTS login_tokens (
+       id SERIAL PRIMARY KEY,
+       identifier TEXT NOT NULL, ---Phone / merchant_id
+       used BOOLEAN DEFAULT FALSE,
+       token TEXT NON NULL,  
+       expires_at TIMESTAMPTZ 
+    );   
 
+    --INDEX
+    CREATE INDEX IF NOT EXISTS idx_login_tokens_token ON login_tokens(token);
+        
+`);
+  } catch (e) {}
+};
+const create_otp_code_table = async () => {
+  try {
+    await pool.query(`
+    --Table 
+    CREATE TABLE IF NOT EXISTS otp_codes (
+       id SERIAL PRIMARY KEY,
+       identifier TEXT NOT NULL, --phone
+       hashed_code VARCHAR(30) NON NULL, --- length OF hash code!  
+       used BOOLEAN DEFAULT FALSE,
+       expires_at TIMESTAMPTZ
+    );   
+
+    --INDEX
+    CREATE INDEX IF NOT EXISTS idx_login_tokens_token ON login_tokens(token);
+        
+`);
+  } catch (e) {}
+};
+
+//---------------------------------------
 const create_subcription_table = () => {};
 const create_usage_log_table = () => {};
 const create_whatsapp_state_table = () => {};
