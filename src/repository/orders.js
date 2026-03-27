@@ -1,15 +1,36 @@
+import pool from "../utils/database/db.js";
 import CustomError from "../utils/error/error.js";
 
-export const CreateOrderforDb = async (query) => {
-  try {
-    const query_text = ` 
-    INSERT INTO orders (merchant_id,
-     customer_id, total_amount, cart_items)
-    VALUES ($1, $2, $3, $4)
-    RETURNING id;
-    `;
+/*
+Create Order
+Update Customer : TOTAL ORDER,  
 
-    const res = await pool.query(query_text, query);
+*/
+export const CreateOrderforDb = async ({ order_query, customer_query }) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const res = await client.query(
+      ` 
+      INSERT INTO orders (merchant_id,
+      customer_id, total_amount, cart_items)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id;
+      `,
+      order_query,
+    );
+
+    await pool.query(
+      ` 
+        INSERT INTO customer_store (customer_id, total_orders, total_order_amount)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id;
+        `,
+      customer_query,
+    );
+
+    await client.query("COMMIT");
+
     return res.rows[0];
   } catch (e) {
     console.log(e);

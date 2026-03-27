@@ -227,6 +227,8 @@ const create_customer_store_table = () => {
        store_id UUID NOT NULL REFERENCES stores ON DELETE CASCADE,
        name TEXT,
        tag TEXT,
+       total_orders INTEGER DEFAULT 0
+       total_orders_amount NUMERIC(15, 2) DEFAULT 0.00
        blacklisted BOOLEAN DEFAULT FALSE,
        email text,
        PRIMARY KEY (store_id, customer_id),

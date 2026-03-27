@@ -36,17 +36,19 @@ export const getSingleCustomerFromDb = async ({ storeId, customerId }) => {
     SELECT 
     cs.*, 
     buyer.phone as phone 
+    (
+      SELECT COALESCE(jsonb_agg(o.*), '[]')
+      FROM (
+        SELECT * FROM orders
+        where customer_id = cs.customer_id
+        ORDER BY created_at DESC
+        LIMIT 10 
+      ) o
+    ) AS orders
     FROM customer_store cs
     JOIN customers buyer
     on  cs.customer_id = buyer.id 
     where cs.store_id = $1 AND cs.customer_id = $2
-    UNION
-    ------- add recent last 10 orders ----
-    SELECT o.* as orders_info
-    FROM orders as o
-    where o.customer_id = $2
-    orderby o.created_at DESC
-    limit 10
     `;
 
     const res = await pool.query(query_text_customers, [storeId, customerId]);
