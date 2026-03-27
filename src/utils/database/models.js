@@ -126,11 +126,13 @@ const create_products_table = () => {
         
         --Table Construct
         CREATE TABLE IF NOT EXISTS products (  
-        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        id SERIAL PRIMARY KEY,
+        store_id UUID NOT NULl REFERENCES stores ON DELETE CASCADE,
         merchant_id UUID NOT NULL REFERENCES merchants ON DELETE CASCADE,
         category_id UUID REFERENCES category ON SET NULL,
         name TEXT NOT NULL,
         price NUMERIC(15, 2) NOT NULL,
+        isVisible BOOLEAN NOT NULL DEFAULT FALSE
         images TEXT[],
         description TEXT,
         quantity INTEGER,
@@ -231,7 +233,10 @@ const create_customer_store_table = () => {
        updated_at TIMESTAMPTZ DEFAULT NOW(),
        created_at TIMESTAMPTZ DEFAULT NOW()
       )   
-          
+           --INDEX
+        CREATE INDEX IF NOT EXISTS idx_customer_store_store_id ON customer_store(store_id)
+        CREATE INDEX IF NOT EXISTS idx_customer_store_customer_id ON customer_store(customer_id)
+
        
         --Triggers (update at!)
         DROP TRIGGER IF EXISTS trg_customer_store_updated_at ON customer_store;

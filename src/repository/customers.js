@@ -1,4 +1,5 @@
-import pool from "../utils/database/db";
+import pool from "../utils/database/db.js";
+import CustomError from "../utils/error/error.js";
 
 export const CreateCustomerforDb = async (query) => {
   try {
@@ -8,17 +9,18 @@ export const CreateCustomerforDb = async (query) => {
         INSERT INTO customers (phone) 
         VALUES ($1)
         ON CONFLICT (phone)
-        DO UPDATE SET phone = EXCLUDED.Phone
+        DO UPDATE SET phone = EXCLUDED.phone
         RETURNING id
       ) 
         
       INSERT INTO customer_store (customer_id, store_id, merchant_id, name)
         SELECT id, $2, $3, $4 FROM inserted_customer
-      ON CONFLICT (customer_id, store_id) DO NOTHING;
-    `;
+      ON CONFLICT (customer_id, store_id) DO NOTHING
+      RETURNING *;
+      `;
 
     const res = await pool.query(query_text, query);
-    return res;
+    return res.rows[0];
   } catch (e) {
     console.log(e);
     throw CustomError(e);
@@ -26,55 +28,84 @@ export const CreateCustomerforDb = async (query) => {
 };
 
 //Incomplete: add Orders Table
-export const getSingleCustomerFromDb = async (query) => {
+export const getSingleCustomerFromDb = async ({ storeId, customerId }) => {
   try {
     //
     const query_text_customers = ` 
-    SELECT cs.*, 
+    ------- CUSTOMER Info! ----
+    SELECT 
+    cs.*, 
     buyer.phone as phone 
-    FROM customers buyer
-    left join customer_store cs
+    FROM customer_store cs
+    JOIN customers buyer
     on  cs.customer_id = buyer.id 
-    where cs.store_id = $1 AND cs.customer_id = $2;
+    where cs.store_id = $1 AND cs.customer_id = $2
+    UNION
+    ------- add recent last 10 orders ----
+    SELECT o.* as orders_info
+    FROM orders as o
+    where o.customer_id = $2
+    orderby o.created_at DESC
+    limit 10
     `;
 
-    const res = await pool.query(query_text_customers, query);
-    return res;
+    const res = await pool.query(query_text_customers, [storeId, customerId]);
+    return res.rows[0];
   } catch (e) {
     console.log(e);
     throw CustomError(e);
   }
 };
 
-export const getCustomersFromDb = async (query) => {
+export const getCustomersFromDb = async ({
+  storeId,
+  search,
+  sortBy = "created_at",
+  order = "DESC",
+  offset = 0,
+  limit = 30,
+}) => {
+  const allowedSort = ["created_at", "name"];
+  const allowedOrder = ["ASC", "DESC"];
+
+  if (!allowedOrder.includes(order)) {
+    throw new CustomError("Invalid Order");
+  }
+
+  if (!allowedSort.includes(sortBy)) {
+    throw new CustomError("Invalid Sort Field");
+  }
+
   try {
-    //
     const query_text = ` 
-   SELECT buyer.phone, 
+   SELECT buyer.phone, cs.* 
    from customer_store cs
-   left join 
-   customer buyer 
+   left join customers buyer 
    on cs.customer_id = buyer.id
    where cs.store_id = $1
-   where 
+   AND (
    cs.email ILIKE $2 || "%" 
    OR 
-   cs.name ILIKE $3 || "%" 
+   cs.name ILIKE $2 || "%" 
    OR
-   cs.tag ILIKE $4 || "%" 
---order by p.created_at or name  desc
-   order by $5 $6
-   offset $7
- --limit 30 || 50 || 100
-   limit $8 `;
-    const res = await pool.query(query_text, query);
-    return res;
+   cs.tag ILIKE $2 || "%"
+  ) 
+   order by ${sortBy} ${order}
+   offset $3
+   limit $4 `;
+    const res = await pool.query(query_text, [
+      storeId,
+      search || "",
+      offset,
+      limit,
+    ]);
+    return res.rows;
   } catch (e) {
     throw CustomError(e);
   }
 };
 
-export const UpdateCustomerFromDb = async (field, query) => {
+export const UpdateCustomerFromDb = async ({ field, query }) => {
   const allowedField = ["email", "tag", "blacklisted", "name"];
   if (!allowedField.includes(field.toLowerCase())) {
     throw Error("Invalid field!");
@@ -82,22 +113,24 @@ export const UpdateCustomerFromDb = async (field, query) => {
 
   try {
     //
-    const query_text = ` UPDATE customers_store
+    const query_text = ` 
+    UPDATE customer_store
     SET ${field} = $1;
-    WHERE merchant_id = $2   
+    WHERE merchant_id = $2 AND customer_id = $3 AND store_id = $4  
     returning *;
      `;
     const res = await pool.query(query_text, query);
-    return res;
+    return res.rows[0];
   } catch (e) {
     throw CustomError(e);
   }
 };
 export const DeleteCustomerFromStore = async (query) => {
   try {
-    const query_text = ` DELETE FROM customer_store where merchant_id = $1`;
+    const query_text = ` DELETE FROM customer_store 
+    where merchant_id = $1 AND customer_id = $2 AND store_id = $3`;
     const res = await pool.query(query_text, query);
-    return res;
+    return res.rows[0];
   } catch (e) {
     throw CustomError(e);
   }

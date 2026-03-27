@@ -1,21 +1,31 @@
-export const CreateOrderforDb = async () => {
+import CustomError from "../utils/error/error.js";
+
+export const CreateOrderforDb = async (query) => {
   try {
-    //
     const query_text = ` 
-    INSERT INTO orders (merchant_id, customer_id, total_amount, cart_items)
+    INSERT INTO orders (merchant_id,
+     customer_id, total_amount, cart_items)
     VALUES ($1, $2, $3, $4)
     RETURNING id;
     `;
 
     const res = await pool.query(query_text, query);
-    return res;
+    return res.rows[0];
   } catch (e) {
     console.log(e);
     throw CustomError(e);
   }
 };
 
-export const getOrdersFromDb = async (query) => {
+export const getOrdersFromDb = async ({ query, sortField, sortOrder }) => {
+  const allowedSort = {
+    created_at: "o.created_at",
+    total_amount: "o.total_amount",
+  };
+
+  const sortField = allowedSort[sortField] || "o.created_at";
+  const orderby = sortOrder === "asc" ? "ASC" : "DESC";
+
   try {
     //By MERCHANT ID OR BY CUSTOMER ID
     const query_text = ` 
@@ -29,25 +39,29 @@ export const getOrdersFromDb = async (query) => {
     o.created_at AS order_creation,
     c.phone AS customer_phone,
     cs.name AS customer_name,
-    cs.tag AS customer_tag,
+    cs.tag AS customer_tag
     FROM orders o 
     LEFT JOIN customer_store cs
     on cs.customer_id = o.customer_id
     LEFT JOIN customer c
     on  c.id = o.customer_id
     --Merchant orders or Customers Order
-    WHERE merchant_id = $1 OR customer_id = $1
-    where o.id ILIKE $2 || "%" 
+    WHERE 
+    (merchant_id = $1 OR customer_id = $1)
+    AND (
+    OR o.id::TEXT ILIKE $2 || "%" 
     OR cs.name ILIKE $2 || "%"
     OR c.phone ILIKE $2 || "%"
     OR o.status = $3
-    -- CREATED_AT | AMOUNT
-    order by $4 desc
-    offset $5
-    limit $6
+  )
+   
+  -- CREATED_AT | AMOUNT
+    order by ${sortField} ${orderby}
+    offset $4
+    limit $5
      `;
     const res = await pool.query(query_text, query);
-    return res;
+    return res.rows;
   } catch (e) {
     console.log(e);
     throw CustomError(e);
@@ -64,8 +78,8 @@ export const getOrderDetailsFromDb = async (query) => {
       c.phone AS customer_phone,
       cs.name AS customer_name,
       cs.tag AS customer_tag,
-      cs.created_at AS member_since,
-    FROM orders
+      cs.created_at AS member_since
+    FROM orders o
     LEFT JOIN customer_store cs
     on cs.customer_id = o.customer_id
     LEFT JOIN customer c
@@ -73,14 +87,14 @@ export const getOrderDetailsFromDb = async (query) => {
     WHERE id = $1 
     `;
     const res = await pool.query(query_text, query);
-    return res;
+    return res.rows[0];
   } catch (e) {
     console.log(e);
     throw CustomError(e);
   }
 };
 
-export const UpdateOrderForDb = async (query) => {
+export const UpdateOrderForDb = async ({ field, query }) => {
   //Add Address
   const allowedField = ["note", "address", "status"];
 
@@ -90,12 +104,12 @@ export const UpdateOrderForDb = async (query) => {
 
   try {
     const query_text = ` UPDATE orders
-    SET ${field} = $1;
+    SET ${field} = $1
     WHERE id = $2 AND merchant_id = $3
     returning *;
     `;
     const res = await pool.query(query_text, query);
-    return res;
+    return res.rows[0];
   } catch (e) {
     throw CustomError(e);
   }
@@ -103,7 +117,7 @@ export const UpdateOrderForDb = async (query) => {
 
 export const DeleteOrderFromDb = async (query) => {
   try {
-    const query_text = ` DELETE FROM orders where merchant_id = $2 AND id = $1`;
+    const query_text = ` DELETE FROM orders where merchant_id = $2 AND id = $1 returning id;`;
     const res = await pool.query(query_text, query);
     return res;
   } catch (e) {
