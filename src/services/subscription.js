@@ -1,4 +1,183 @@
-export const getUserBillingInfo = async (data) => {};
+//Fetch subscription
+
+import {
+  CreateInvoice,
+  CreateInvoiceforMerchant,
+  CreatePaymentforMerchant,
+  CreateSubscriptionforMerchant,
+  GetInvoicesDetailForMerchant,
+  GetSingleInvoiceDetailForMerchant,
+  GetSubscriptionDetailForMerchant,
+  UpdateInvoiceforMerchant,
+  UpdateSubscriptionforMerchant,
+} from "../repository/subscription";
+import CustomError from "../utils/error/error";
+import {
+  disableSubscriptionFromPaystack,
+  FetchSubscriptionFromPaystack,
+} from "../utils/paystack/Subscription";
+import {
+  sendBillingInvoiceNotice,
+  sendBillingInvoiceStatus,
+} from "../utils/whatsapp/outgoing/message/templates/billing_invoice";
+
+export const getSubcriptionInfo = async ({
+  merchant_id = "",
+  subcription_id = "",
+}) => {
+  try {
+    const subcription = await GetSubscriptionDetailForMerchant(
+      merchant_id || subcription_id,
+    );
+    return subcription;
+  } catch (e) {
+    throw CustomerError(e);
+  }
+};
+
+//Fetch invoices
+export const getInvoices = async ({ subcription_code = "" }) => {
+  try {
+    const invoices = await GetInvoicesDetailForMerchant(subcription_code, {});
+
+    if (invoices?.length !== 0) {
+      throw CustomError("No Invoices!");
+    }
+
+    return invoices;
+  } catch (e) {
+    throw CustomError(e);
+  }
+};
+
+//Fetch 1 invoices
+export const getSingleInvoice = async ({
+  subcription_code = "",
+  invoice_code,
+}) => {
+  try {
+    const data = await GetSingleInvoiceDetailForMerchant({
+      subscription_code,
+      invoice_code,
+    });
+    if (!data) {
+      throw new CustomError(e);
+    }
+    return data;
+  } catch (e) {
+    throw new CustomError(e);
+  }
+};
+
+//Generate new invoice ahead
+export const GenerateBillingInvoice = async ({
+  invoice_info,
+  merchant_phone,
+}) => {
+  try {
+    //Extract Info
+    const data = await CreateInvoice(invoice_info);
+
+    //Send Remainder to User Whatsapp;
+    await sendBillingInvoiceNotice(merchant_phone, data);
+  } catch (e) {
+    throw new CustomError(e);
+  }
+};
+
+//Create Subscription
+export const GenerateSubscription = async ({ merchant_id, sub_code }) => {
+  try {
+    const { subcription } = await getSubcriptionInfo(merchant_id);
+
+    const deactivatesubs = async (sub) => {
+      //Update is_current to false
+      await UpdateSubscription({
+        details: { is_current: false },
+        code: sub?.subscription_code,
+      });
+
+      //Manually disable all other subscriptions;
+      await disableSubscriptionFromPaystack({
+        sub_code: sub?.subscription_code,
+        email_token: sub?.email_token,
+      });
+    };
+
+    if (subcription?.length > 0) {
+      subcription.forEach(deactivatesubs);
+    }
+
+    //Create new subscription and set is_current to true
+    await CreateSubscriptionforMerchant(data);
+  } catch (e) {
+    throw new CustomError(e);
+  }
+};
+
+//Manage billing invoice status
+export const MarkBillingInvoiceStatus = async ({
+  invoice_id,
+  invoice_info,
+}) => {
+  try {
+    const data = await UpdateInvoiceforMerchant(
+      {
+        status: invoice_info?.status,
+        paid_at: invoice_info?.paid_at || null,
+      },
+      invoice_id,
+    );
+
+    //Send Remainder to User Whatsapp;
+    await sendBillingInvoiceStatus(merchant_phone, data);
+  } catch (e) {
+    throw new CustomError(e);
+  }
+};
+
+//Manage User Subscription; id or code
+export const UpdateSubscription = async ({ details, code }) => {
+  try {
+    const data = await UpdateSubscriptionforMerchant(details, code);
+    return data;
+  } catch (e) {
+    throw new CustomError(e);
+  }
+};
+
+//Create New Payment data only when money is available
+export const ConfirmSubscriptionPayment = async ({ payment_details }) => {
+  try {
+    await CreatePaymentforMerchant(payment_details);
+  } catch (e) {
+    throw new CustomError(e);
+  }
+};
+
+//------ sync subscription with paystack --- Before Expensive actions do this! ------------
+export const SyncSubscriptions = async (sub_code) => {
+  try {
+    const paystackSub = await FetchSubscriptionFromPaystack({
+      sub_code: sub.subscription_code,
+    });
+
+    if (!paystackSub) return;
+
+    await UpdateSubscription({
+      details: {
+        status: paystackSub?.status,
+        next_payment_date: paystackSub?.next_payment_date,
+      },
+      code: sub_code,
+    });
+  } catch (e) {
+    throw new CustomError(e);
+  }
+};
+
+//------ CHECKS AND LIMITS FOR USAGE!------------
+
 export const addUserPaymentInfo = async (data) => {
   /*
   const uid = data?.metadata?.userId;

@@ -22,5 +22,6 @@ authRoute
 /* Rate limit middleware: 3req / 5min */
 authRoute.route("/request-otp").get(AsyncError(RequestOtpController));
 
+/** */
 authRoute.route("/verify-otp").get(AsyncError(VerifyOtpController));
 export default authRoute;

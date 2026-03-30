@@ -35,13 +35,13 @@ export const UpdateMerchantFromDb = async ({ field, query }) => {
   }
 };
 
-export const getMerchantFromDb = async (query) => {
+export const getMerchantFromDb = async (identifier) => {
   try {
     const query_text = `     
     select * from merchants 
     where phone = $1 OR merchant_id = $1 OR email = $1        
     `;
-    const res = await pool.query(query_text, query);
+    const res = await pool.query(query_text, identifier);
 
     if (!res.rows.length === 0) {
       throw CustomError("Merchant not Found", 404);
@@ -49,7 +49,7 @@ export const getMerchantFromDb = async (query) => {
 
     return res.rows[0];
   } catch (e) {
-    throw CustomError(e);
+    throw CustomError(e?.message);
   }
 };
 

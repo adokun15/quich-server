@@ -17,9 +17,8 @@ const create_update_at_trigger = async () => {
   }
 };
 
-//Complete before going to school tomorrow: Check chatgpt and complete blunders
+//-------------Store and Merchant -----------
 
-//Create Tables
 const create_merchant_table = async () => {
   try {
     await pool.query(`
@@ -250,6 +249,7 @@ const create_customer_store_table = () => {
        `;
   } catch (e) {}
 };
+
 //-------------Authentication- -----------
 const create_login_tokens_table = async () => {
   try {
@@ -289,6 +289,116 @@ const create_otp_code_table = async () => {
 };
 
 //---------------------------------------
-const create_subcription_table = () => {};
+
+/// ---------- Subscription, Invoice and Payment (CANNOT BE DELETE BY MER) ------
+
+/*
+Automatically Create 'Subscription Table' immdeiately after 'Creating Merchant'
+*/
+
+const create_subscription_table = async () => {
+  try {
+    await pool.query(`
+       --ENUM
+       CREATE TYPE subscription_status AS ENUMS ('active', 'non_renew', 'inactive', 'trial');
+
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        
+        --
+        subscription_code TEXT,
+        plan_code VARCHAR(50), --- 'trial | PLN_CODE'
+    
+        currency VARCHAR(3),
+        amount INTEGER,
+       
+        status subscription_status DEFAULT "active",
+       
+        --USER iDENTIFIER
+        merchant_id UUID REFERENCES merchants ON SET NULL,
+        customer_code TEXT,    
+        email_token TEXT,
+
+        --dATES 
+        start_date TIMESTAMPTZ,
+        end_date TIMESTAMPTZ,
+        next_payment_date TIMESTAMPTZ,
+
+        updated_at TIMESTAMPTZ DEFAULT NOW(),
+        created_at TIMESTAMPTZ DEFAULT NOW()
+        );  
+
+      
+         DROP TRIGGER IF EXISTS trg_subscriptions_updated_at ON subscriptions;
+
+         CREATE TRIGGER trg_subscriptions_updated_at
+         BEFORE UPDATE ON subscription_invoices
+         FOR EACH ROW
+         EXECUTE FUNCTION update_updated_at_column();
+    `);
+  } catch (e) {
+    //THROW dB Error
+  }
+};
+
+const create_subscription_invoice_table = async () => {
+  try {
+    await pool.query(`
+       --ENUM
+       CREATE TYPE payment_status AS ENUMS ('pending', 'failed', 'paid');
+
+      CREATE TABLE IF NOT EXISTS subscription_invoices (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        
+        invoice_code TEXT NOT NULL UNIQUE,
+        subscription_code TEXT REFERENCES subscriptions ON SET NULL,
+          
+        period_start TIMESTAMPTZ NOT NULL,  
+        period_end TIMESTAMPTZ NOT NULL,  
+        
+        amount INTEGER NOT NULL,
+        currency VARCHAR(3) NOT NULL,
+       
+        status payment_status NOT NULL DEFAULT 'pending',
+        
+        paid_at TIMESTAMPTZ,
+        
+        updated_at TIMESTAMPTZ DEFAULT NOW(),
+        created_at TIMESTAMPTZ DEFAULT NOW()
+        );  
+
+         DROP TRIGGER IF EXISTS trg_subscription_invoices_updated_at ON subscription_invoices;
+
+         CREATE TRIGGER trg_subscription_invoices_updated_at
+         BEFORE UPDATE ON subscription_invoices
+         FOR EACH ROW
+         EXECUTE FUNCTION update_updated_at_column();
+        
+        `);
+  } catch (e) {
+    //THROW dB Error
+  }
+};
+
+const create_subscription_payment_table = async () => {
+  try {
+    await pool.query(`
+          CREATE TABLE IF NOT EXISTS subscription_payments (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),   
+            invoice_code TEXT,
+            reference TEXT NOT NULL UNIQUE,
+            amount INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            paid_at TIMESTAMPTZ NOT NULL,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );  
+
+        CREATE INDEX idx_payment_reference ON subscription_payments(reference)
+    `);
+  } catch (e) {
+    //THROW dB Error
+  }
+};
+
 const create_usage_log_table = () => {};
 const create_whatsapp_state_table = () => {};
