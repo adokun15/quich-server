@@ -1,18 +1,12 @@
-/*
-This file will be used for: 
-- Updating user last sent active message;
-- Retrieve the info of the user on whatsapp
-*/
-
 import pool from "../utils/database/db.js";
 import CustomError from "../utils/error/error.js";
 
 //Create last intent: access by one person
-export async function ManageLastSentMessages(query) {
+export async function CreateConversationState(query) {
   try {
     await pool.query(
       `
-      INSERT INTO whatsapp_intent_state(phone, step, intent, data, missing)
+      INSERT INTO conversation_state(phone, step, intent, data, missing)
       VALUES ($1, $2, $3, $4, $5) 
       `,
       query,
@@ -26,7 +20,7 @@ export async function ManageLastSentMessages(query) {
 }
 
 //get last intent:
-export async function GetLastIntentState(query) {
+export async function GetConversationState(query) {
   try {
     const res = await pool.query(
       `
@@ -42,12 +36,28 @@ export async function GetLastIntentState(query) {
   }
 }
 
-//Cron Job: Clears every 6 hours
+export async function UpdateConversationState(query) {
+  try {
+    const res = await pool.query(
+      `
+      select * from whatsapp_state where phone = $1 
+      `,
+      query,
+    );
+
+    //success
+    return res?.rows[0];
+  } catch (e) {
+    throw new CustomError(e?.message);
+  }
+}
+
+//Cron Job: Clears every 1 hours
 export async function ClearWhatsappMessages(query) {
   try {
     const res = await pool.query(
       `
-     DELETE from whatsapp_intent_state WHERE phone = $1       
+     DELETE from conversation_state WHERE phone = $1 AND        
       `,
       query,
     );

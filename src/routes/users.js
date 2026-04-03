@@ -7,9 +7,9 @@ import {
   ViewMerchantController,
 } from "../controllers/merchant.js";
 import {
-  addUserPaymentInfo,
-  getUserBillingInfo,
-} from "../services/subscription.js";
+  getUserBillingController,
+  PaySubscriptionController,
+} from "../controllers/subscription.js";
 
 const userRoute = express.Router();
 
@@ -25,6 +25,6 @@ userRoute
 
 userRoute
   .route("/billing")
-  .get(AsyncError(getUserBillingInfo))
-  .post(AsyncError(addUserPaymentInfo));
+  .get(AsyncError(getUserBillingController))
+  .post(AsyncError(PaySubscriptionController));
 export default userRoute;

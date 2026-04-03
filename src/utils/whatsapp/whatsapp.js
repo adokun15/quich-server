@@ -1,4 +1,6 @@
-export const WhatsappUrlForMessages = async (payload) => {
+import CustomError from "../error/error.js";
+
+export const WhatsappUrlForMessages = async ({ payload }) => {
   const option = {
     method: "POST",
     headers: {
@@ -37,15 +39,16 @@ export const WhatsappUrlForMessages = async (payload) => {
       fbtrace_id: 'AxTIABiR98IO_Up7CZDca5d'
     }
   */
+    if (res?.error) {
+      throw new CustomError(res?.error?.message);
+    }
     return { status: "success", res };
   } catch (e) {
-    console.log(e);
-    //Return an instance of Error;
-    return { status: "failed", message: "Failed to send!" };
+    return { status: "failed", message: e?.message || "Failed to send!" };
   }
 };
 
-export const WhatsappUrlForTemplate = async (payload) => {
+export const WhatsappUrlForTemplate = async ({ payload }) => {
   const option = {
     method: "POST",
     headers: {

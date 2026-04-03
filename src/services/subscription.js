@@ -2,7 +2,6 @@
 
 import {
   CreateInvoice,
-  CreateInvoiceforMerchant,
   CreatePaymentforMerchant,
   CreateSubscriptionforMerchant,
   GetInvoicesDetailForMerchant,
@@ -10,16 +9,16 @@ import {
   GetSubscriptionDetailForMerchant,
   UpdateInvoiceforMerchant,
   UpdateSubscriptionforMerchant,
-} from "../repository/subscription";
-import CustomError from "../utils/error/error";
+} from "../repository/subscription.js";
+import CustomError from "../utils/error/error.js";
 import {
   disableSubscriptionFromPaystack,
   FetchSubscriptionFromPaystack,
-} from "../utils/paystack/Subscription";
+} from "../utils/paystack/Subscription.js";
 import {
   sendBillingInvoiceNotice,
   sendBillingInvoiceStatus,
-} from "../utils/whatsapp/outgoing/message/templates/billing_invoice";
+} from "../utils/whatsapp/outgoing/message/templates/billing_invoice.js";
 
 export const getSubcriptionInfo = async ({
   merchant_id = "",
@@ -29,9 +28,11 @@ export const getSubcriptionInfo = async ({
     const subcription = await GetSubscriptionDetailForMerchant(
       merchant_id || subcription_id,
     );
-    return subcription;
+
+    //later filter the 'latest active'
+    return subcription[0];
   } catch (e) {
-    throw CustomerError(e);
+    throw CustomError(e);
   }
 };
 

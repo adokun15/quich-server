@@ -1,5 +1,6 @@
 import { whatsappMessage } from "../../../utils/whatsapp.js";
 
+//Subscribe to a plan
 export async function NewPaymentPlan(phonenumber, user) {
   const extras = {
     type: "template",

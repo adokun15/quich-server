@@ -1,6 +1,7 @@
 /* Deprecated for now! */
 
-export async function newOrder(phonenumber, name, customer, cart) {
+//Decrease 10 credits;
+export async function sendNewOrder(phonenumber, name, customer, cart) {
   const { customer_name, customer_phone } = customer;
 
   const { items, totalAmt, orderId } = cart;

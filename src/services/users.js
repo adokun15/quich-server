@@ -1,4 +1,4 @@
-import CustomError from "../utils/error/error";
+import CustomError from "../utils/error/error.js";
 
 //cREATE TOKEN;
 export function createMerchantToken() {

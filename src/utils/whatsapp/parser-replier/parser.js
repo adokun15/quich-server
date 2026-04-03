@@ -1,18 +1,150 @@
+//Parsing User Text;
+const INTENTS_CONFIG = [
+  {
+    key: "add_product",
+    action: "create",
+    target: "product",
+  },
+  {
+    key: "view_products",
+    action: "view",
+    target: "product",
+  },
+  {
+    key: "create_account",
+    action: "create",
+    target: "account",
+  },
+  {
+    key: "create_store",
+    action: "create",
+    target: "store",
+  },
+  {
+    key: "view_store",
+    action: "view",
+    target: "store",
+  },
+  {
+    key: "access_store",
+    action: "login",
+    target: "store",
+  },
+
+  //Others
+  {
+    key: "view_menu",
+    action: "view",
+    target: "menu",
+  },
+  {
+    key: "manage_product",
+    action: "update",
+    target: "product",
+  },
+];
+
+const SYNONYMS = {
+  //aCTION
+  view: ["display", "see", "show", "select"],
+  create: ["add", "create", "put", "insert", "build"],
+  update: ["delete", "update", "remove", "change"],
+
+  //Target
+  menu: ["menu", "main", "menus", "guide", "navigation"],
+  account: ["account", "signup"],
+  store: ["shop", "store", "market", "marketplace"],
+  products: ["item", "items", "goods", "products", "product"],
+};
+
+//const PREFIXES = ['i want to', 'abeg', 'please', 'let me']
+
+const expandIntent = (action, target) => {
+  const actionWords = SYNONYMS[action] || [action];
+  const targetWords = SYNONYMS[target] || [target];
+
+  const phrases = [];
+
+  actionWords.forEach((a) => {
+    targetWords.forEach((t) => {
+      phrases.push(`${a} ${t}`);
+    });
+  });
+  return phrases;
+};
+
+const INTENTS = INTENTS_CONFIG.map((intent) => ({
+  ...intent,
+  phrases: expandIntent(intent.action, intent.target),
+}));
+
+//Function to clear emoji and irrevalent text;
+function normalizeText(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, "")
+    .trim();
+}
+
+function scoreIntent(message, intents) {
+  const text = normalizeText(message);
+
+  let score = 0;
+
+  intents?.phrases.forEach((phrase) => {
+    if (text.includes(phrase)) {
+      score += 3;
+    }
+  });
+
+  const words = text.split(" ");
+
+  words.forEach((word) => {
+    intents?.phrases.forEach((phrase) => {
+      if (text.includes(phrase)) {
+        score += 1;
+      }
+    });
+  });
+  return score;
+}
+
+export function detectIntent(message) {
+  let bestIntent = null;
+  let bestScore = 0;
+
+  for (const intent of INTENTS) {
+    const score = scoreIntent(message, intent);
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestIntent = intent;
+    }
+  }
+
+  return { intent: bestIntent, score: bestScore };
+}
+
+export function IntentConfirmationText(intent, article = "your") {
+  return `Do you want to ${intent?.action} ${article} ${intent?.target}`;
+}
+
 //For THE dASHBOARD: VIEW ALL THE PRODUCTS, The STORE [AND] User ACCOUNT
-export const alertUserPhoneNumberChange = async () => {
-  //--Change UserPhone NUmber
-  //--Send A mail to User;
-};
 
-export const executeUserErrorMessage = async () => {
-  //Send Error to their Emails instead!
-};
+//export const alertUserPhoneNumberChange = async () => {
+//--Change UserPhone NUmber
+//--Send A mail to User;
+//};
 
-export const executeFlowPerfoamanceStatus = async () => {
-  //Just Send The Message to my Whatsapp;
-};
+//export const executeUserErrorMessage = async () => {
+//Send Error to their Emails instead!
+//};
 
-export const executeInteractiveResult = async () => {
+//export const executeFlowPerfoamanceStatus = async () => {
+//Just Send The Message to my Whatsapp;
+//};
+
+/*export const executeInteractiveResult = async () => {
   /*
     step 1; 
      --Get Last Intent Data FROM DB: ` INTENT_NAME_STEP | JSON`
@@ -26,11 +158,11 @@ export const executeInteractiveResult = async () => {
     
     step 4:
     - Save current convo state;
- */
-};
+ 
+};*/
 
 //Get Last Intent Data FROM DB: ` INTENT_NAME_STEP`
-export const executeIntent = async (intent, data) => {
+/*export const executeIntent = async (intent, data) => {
   switch (intent) {
     //- Based on confidence, depend whether to send a confirmation or direct message;
     case "create_account":
@@ -136,85 +268,7 @@ export const executeIntent = async (intent, data) => {
       await DontUnderStandIntent(phone);
   }
 };
-
-// TRRNSFORM WHATSAPP OBJECT
-export const whatsapp_message_webhook_processsor = (body) => {
-  let temp = {};
-
-  //Incoming messages
-  if (
-    body?.object === "whatsapp_business_account" &&
-    body?.entry[0].changes[0]?.field === "messages" &&
-    !body?.entry[0]?.changes[0]?.value?.statuses
-  ) {
-    temp.name = body?.entry[0].changes[0]?.value?.contacts[0]?.profile?.name;
-    temp.phone =
-      body?.entry[0].changes[0]?.value?.metadata?.display_phone_number;
-
-    //Text Message
-    if (body?.entry[0].changes[0]?.value?.messages[0]?.type === "text") {
-      temp.type = "message";
-      temp.message_type = body?.entry[0].changes[0]?.value?.messages[0]?.type;
-      temp.payload = body?.entry[0].changes[0]?.value?.messages[0]?.text?.body;
-    }
-
-    //Interactive message;
-    if (body?.entry[0].changes[0]?.value?.messages[0]?.type === "interactive") {
-      //Flow
-      if (
-        body?.entry[0].changes[0]?.value?.messages[0]?.interactive?.type ===
-        "nfm_reply"
-      ) {
-        const res =
-          body?.entry[0].changes[0]?.value?.messages[0]?.interactive?.nfm_reply
-            ?.response_json;
-
-        temp.type = "message";
-        temp.message_type =
-          body?.entry[0].changes[0]?.value?.messages[0]?.interactive?.type;
-        temp.payload = res;
-      }
-      //Reply Message;
-      const replyType =
-        body?.entry[0].changes[0]?.value?.messages[0]?.interactive?.type;
-
-      if (replyType === "list_reply") {
-        temp.type = "message";
-        temp.message_type = replyType;
-        temp.payload = {
-          id: body?.entry[0].changes[0]?.value?.messages[0]?.interactive
-            ?.list_reply?.id,
-          title:
-            body?.entry[0].changes[0]?.value?.messages[0]?.interactive
-              ?.list_reply?.title,
-          description:
-            body?.entry[0].changes[0]?.value?.messages[0]?.interactive
-              ?.list_reply?.description || "",
-        };
-      }
-
-      if (replyType === "button_reply") {
-        temp.type = "message";
-        temp.message_type = replyType;
-        temp.payload = {
-          id: body?.entry[0].changes[0]?.value?.messages[0]?.interactive
-            ?.button_reply?.id,
-          title:
-            body?.entry[0].changes[0]?.value?.messages[0]?.interactive
-              ?.button_reply?.title,
-        };
-      }
-    }
-  }
-  //Detect: Flow perfoamance;
-
-  //Failed to send error
-
-  //Phone number change!
-  return temp;
-};
-
-//Listen for changes on whatsapp and send a response!
+*/
 
 /*
 This route will just listen to messages sent by user to our business number.

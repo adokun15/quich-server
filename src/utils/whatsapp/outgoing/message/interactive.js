@@ -95,23 +95,20 @@ export const WhatsappInteractiveListButton = async ({
   sections_list = [],
 }) => {
   /*
-    let sections = []
-    for (const section of sections_list) {
-        let rows = [];
-
-       for (const row of r){
-        rows.push({
-            id: row?.row_id,
-            title: row?.row_title,
-            description: row?.row_description,
-           })
-           }
-           
-           sections.push({
-        title: section?.section?.title,
-        rows
-      })
-    }
+    "sections": [
+        {
+          "title": "<SECTION_TITLE_TEXT>",
+          "rows": [
+            {
+              "id": "<ROW_ID>",
+              "title": "<ROW_TITLE_TEXT>",
+              "description": "<ROW_DESCRIPTION_TEXT>"
+            }
+            <!-- Additional rows would go here -->
+          ]
+        }
+        <!-- Additional sections would go here -->
+      ]
 */
 
   let interactive = {

@@ -1,4 +1,4 @@
-import pool from "../utils/database/db";
+import pool from "../utils/database/db.js";
 //transactions
 export const CreateSubscriptionforMerchant = async ({
   subscription_code = null,
@@ -121,10 +121,9 @@ export const CreateInvoice = async ({
         created_at
         )
       VALUES ( $1, $2, $3, $4, $5, $6, $7)
-
       --ON CONFLICT (invoice_id)
      -- DO UPDATE SET status = EXCLUDED.status;
-      RETURNING *;
+      RETURNING *;n     
     `,
       [
         invoice_code,

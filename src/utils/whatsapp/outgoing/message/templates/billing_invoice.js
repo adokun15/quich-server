@@ -1,5 +1,5 @@
-import { whatsappMessage } from "../../../utils/whatsapp.js";
-import CustomError from "../../../utils/error.js";
+import CustomError from "../../../../error/error.js";
+import { WhatsappUrlForTemplate } from "../../../whatsapp.js";
 
 //3 NOTIFICATIONS
 //Subscription expiring cards
@@ -40,7 +40,7 @@ export async function sendBillingInvoiceNotice(phonenumber, data) {
     },
   };
 
-  return await whatsappMessage(phonenumber, extras)
+  return await WhatsappUrlForTemplate(phonenumber, extras)
     .then((data) => {
       return textVerificationCode;
     })

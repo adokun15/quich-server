@@ -1,5 +1,6 @@
 import { whatsappMessage } from "../../../utils/whatsapp.js";
 
+//Decrease 10 credits
 export async function OutOfStock(phonenumber, name, productName) {
   const extras = {
     type: "template",
