@@ -67,17 +67,19 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
   res.status(200).json({ message: "Webhook_Received" });
 
   //2. Verify Request
-  //const verified = verifySignature(req);
+  const verified = verifySignature(req);
 
-  // if (!verified) {
-  // res.status(403).send("INVALID_REQUEST!");
-  // return;
-  // }
+  if (!verified) {
+    res.status(403).send("INVALID_REQUEST!");
+    return;
+  }
 
   //3. Process & Transform Message
   //What did the Whatsapp send, then transform 'whatsapp' object;
   const { type, message_type, payload, name, phone } =
     whatsapp_message_webhook_processsor(req?.body);
+
+  //4. Idempotency
 
   //--------Incoming Message-------
   if (type === "message") {
@@ -92,11 +94,11 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
         if (!state?.flow) {
           const { intent, score } = detectIntent(payload);
           if (score === 0) {
-            await SendNoScoreMenuToUser();
+            await SendNoScoreMenuToUser(); // Still dont understand you
           }
 
           if (!intent || score < 2) {
-            await SendLowScoreMenuToUser();
+            await SendLowScoreMenuToUser(); // WE dont understand you mate
           }
 
           //Ask for confirmation here!

@@ -1,5 +1,7 @@
-import { GetLastIntentState } from "../repository/whatsapp_state.js";
-import { executeIntent } from "../services/whatsapp_webhook_handler.js";
+import {
+  GetConversationState,
+  UpdateConversationState,
+} from "../repository/whatsapp_state.js";
 
 //Create State;
 export const conversationCreateState = (date) => {};
@@ -9,6 +11,7 @@ export const conversationDeleteAllState = (date) => {};
 
 //Update convo state
 export const UpdateUserConvoState = async (phone, data) => {
+  const updateddata = await UpdateConversationState(phone, {});
   //dB update
 };
 
@@ -16,7 +19,7 @@ export const UpdateUserConvoState = async (phone, data) => {
 export const getUserConvoState = async (phone) => {
   //Try and validate the input again
   try {
-    const intent = await GetLastIntentState([phone]);
+    const intent = await GetConversationState([phone]);
 
     return intent;
   } catch (e) {

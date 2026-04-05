@@ -1,11 +1,11 @@
 import {
   GetConversationState,
   UpdateConversationState,
-} from "../../../repository/whatsapp_state";
-import { getUserConvoState } from "../../../services/conversation_state";
-import { WhatsappInteractiveUrlButton } from "../outgoing/message/interactive";
-import { WhatsappTextMessage } from "../outgoing/message/textmessage";
-import { IntentConfirmationText } from "./parser";
+} from "../../../repository/whatsapp_state.js";
+import { getUserConvoState } from "../../../services/conversation_state.js";
+import { WhatsappInteractiveUrlButton } from "../outgoing/message/interactive.js";
+import { WhatsappTextMessage } from "../outgoing/message/textmessage.js";
+import { IntentConfirmationText } from "./parser.js";
 import {
   DeleteSingleProductFlow,
   handleProductLimit,
@@ -15,15 +15,15 @@ import {
   startAddProductFlow,
   startViewProductFlow,
   updateSingleProductFlow,
-} from "./product";
+} from "./product.js";
 import {
   AccessYourStoreFlow,
   DisplayStoreFlow,
   StartStoreCreationFlow,
   StoreCreationSubmission,
-} from "./store";
-import { upgradeSubscriptionFlow } from "./subscription";
-import { SendHelpToNewUser } from "./support";
+} from "./store.js";
+import { upgradeSubscriptionFlow } from "./subscription.js";
+import { SendHelpToNewUser } from "./support.js";
 
 export const conversationStateExpired = (date) => {
   return new Date() > new Date(date);

@@ -1,11 +1,11 @@
-import { getUserConvoState } from "../../../services/conversation_state";
-import { getSubcriptionInfo } from "../../../services/subscription";
-import { getMerchantInfo } from "../../../services/users";
+import { getUserConvoState } from "../../../services/conversation_state.js";
+import { getSubcriptionInfo } from "../../../services/subscription.js";
+import { getMerchantInfo } from "../../../services/users.js";
 import {
   WhatsappInteractiveListButton,
   WhatsappInteractiveReplyButton,
-} from "../outgoing/message/interactive";
-import { sendProductFlowForm } from "../outgoing/message/templates/sendProduct";
+} from "../outgoing/message/interactive.js";
+import { sendProductFlowForm } from "../outgoing/message/templates/sendProduct.js";
 
 const TRIAL_PRODUCT_LIMIT = 10;
 const BASIC_PRODUCT_LIMIT = 30;
@@ -96,8 +96,8 @@ export const updateSingleProductFlow = async (phone, query) => {
 
   const product_id = product_query - 1;
 
-  const product = data.find((p) => (p.product?.product_id = product_id));
-
+  //const product = data.find((p) => (p.product?.product_id = product_id));
+  const product = {};
   if (!product) {
     return "Not Found";
   }

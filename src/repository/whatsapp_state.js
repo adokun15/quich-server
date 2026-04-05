@@ -37,16 +37,24 @@ export async function GetConversationState(query) {
 }
 
 export async function UpdateConversationState(query) {
+  //Just the ["key = $1", "key =  $2"]
+  const setClause = Object.keys(updates)
+    .map((key, i) => `"${key}" = $${i + 1}`)
+    .join(", ");
+
+  //Just the [value1, value2]
+  const values = Object.values(updates);
+
+  //Just the [value1, value2, id]
+  //Add Id As the Last value
+  values.push(id);
   try {
     const res = await pool.query(
       `
-      select * from whatsapp_state where phone = $1 
-      `,
-      query,
+        UPDATE whatsapp_state SET ${setClause} where id = ${values.length};
+        `,
+      values,
     );
-
-    //success
-    return res?.rows[0];
   } catch (e) {
     throw new CustomError(e?.message);
   }

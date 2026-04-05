@@ -5,7 +5,9 @@ import CustomError from "../error/error.js";
 export const AuthorizationRouteMiddleware = AsyncError(
   async function (req, res, next) {
     const authHeader = req.headers.authorization;
+
     if (!authHeader) return res.status(401).end();
+
     const token = authHeader.split(" ")[1];
 
     try {

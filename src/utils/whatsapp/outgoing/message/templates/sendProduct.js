@@ -1,10 +1,10 @@
-import { whatsappMessage } from "../../../utils/whatsapp.js";
+import { WhatsappUrlForTemplate } from "../../../whatsapp.js";
 
 export async function sendProductFlowForm(phonenumber) {
   const extras = {
     type: "template",
     template: {
-      name: "payment_success_upgrade",
+      name: "",
       language: {
         code: "en",
       },
@@ -30,7 +30,7 @@ export async function sendProductFlowForm(phonenumber) {
     },
   };
 
-  return await whatsappMessage(phonenumber, extras)
+  return await WhatsappUrlForTemplate(phonenumber, extras)
     .then((data) => console.log(data))
     .catch((e) => console.log(e));
 }
