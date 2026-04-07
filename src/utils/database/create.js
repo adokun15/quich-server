@@ -21,7 +21,7 @@ const dbRoute = express.Router();
 
 dbRoute.route("/").post(
   AsyncError(async (req, res) => {
-    // await create_orders_table(); //Next Is Store But the enum is not complete yet
+    // await create_categories_table(); //Next Is Store But the enum is not complete yet
     res.json({ message: "done?" });
   }),
 );

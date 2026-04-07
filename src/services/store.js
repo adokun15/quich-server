@@ -5,70 +5,99 @@
 //View: Joined Table: Store, Merchant, products;
 //For new request: Track visitor;
 
-import pool from "../utils/database/db.js";
+import {
+  CreateMerchantforDb,
+  getMerchantFromDb,
+} from "../repository/merchants.js";
+import { getProducts } from "../repository/products.js";
+import {
+  CreateMerchantStoreDB,
+  GetMerchantStoreDetail,
+  UpdateMerchantStoreDB,
+} from "../repository/stores.js";
+import DatabaseError from "../utils/error/DatabaseError.js";
 import CustomError from "../utils/error/error.js";
+import { getMerchantInfo } from "./users.js";
 
-const getAllStoreProducts = async function (link) {
+//Store front products
+export const getAllStoreProducts = async function ({ store_id, filter }) {
   try {
-    const res = await pool.query(
-      "SELECT * from customers Where customer_id = $1",
-      [link],
-    );
-
-    console.log(res);
-    return { time_of_request: res?.rows };
+    const products = await getProducts({
+      ...filter,
+      store_id,
+    });
+    return products;
   } catch (e) {
     console.log(e);
     throw CustomError(e);
   }
 };
 
-export const createMerchantStore = async (uid, data) => {
+//Create Store With data collected from store
+export const createMerchantStore = async ({ phone, data }) => {
   //Collect final payload from whatsapp flow;
-  //Create a store for a merchant;
+  try {
+    //Get merchant id by phone;
+    const merchant = await getMerchantInfo(phone);
+
+    if (!merchant) {
+      throw DatabaseError("Merchant not found");
+    }
+
+    //Create a store for a merchant;
+    const res = await CreateMerchantStoreDB([
+      merchant.merchant_id,
+      data.category,
+      data.name,
+      data.slug,
+    ]);
+
+    return res;
+  } catch {
+    throw CustomError("Merchant not found");
+  }
 };
 
-export const getUserStore = async (link, uid = "") => {
-  /*
-  const merchantDocPath = getFirestore().collection("store/").doc(`${link}`);
+//Store Front Access
+export const getUserStore = async ({
+  merchant_id = null,
+  store_id_slug = "",
+}) => {
   try {
-    const getMerchant = getFirestore().runTransaction(async (transaction) => {
-      const merchantDoc = await transaction.get(merchantDocPath);
+    const storeData = await GetMerchantStoreDetail(store_id_slug);
 
-      if (!merchantDoc.exists) {
-        throw new CustomError(
-          "THIS STORE DOES NOT EXIST. CHECK THE LINK AND TRY AGAIN!",
-        );
-      }
+    if (!storeData) {
+      throw new CustomError(
+        "THIS STORE DOES NOT EXIST. CHECK THE LINK AND TRY AGAIN!",
+      );
+    }
 
-      if (
-        merchantDoc.exists &&
-        !merchantDoc?.data()?.published &&
-        merchantDoc?.data()?.userId !== uid
+    // Please fix this : add publish toggle;
+
+    /*      if (
+        storeData &&
+        !storeData.published &&
+        storeData.merchant?.id !== merchant_id
       ) {
         throw new CustomError(
           "THIS STORE IS CURRENTLY OFFLINE. COME BACK LATER!",
         );
       }
+      */
 
-      return merchantDoc.data();
-    });
-    return getMerchant;
+    return storeData;
   } catch (e) {
     throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }
-*/
 };
 
-export const updateUserStore = async (link, data) => {
-  /*
+export const updateUserStore = async (store_id, updates) => {
   try {
-    await getFirestore().collection("store/").doc(`${link}`).update(data);
-    return { message: "Merchant details Updated!" };
+    const data = await UpdateMerchantStoreDB({ updates, store_id }); //fIX THIS
+    return { message: "Store Updated!", data };
   } catch (e) {
     throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }
-    */
 };
 
 export default getAllStoreProducts;

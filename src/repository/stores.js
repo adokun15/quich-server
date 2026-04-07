@@ -1,12 +1,13 @@
 //Clients!
-import pool from "../utils/database/db";
+import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
+import pool from "../utils/database/db.js";
 
-export const CreateMerchantStore = async (query) => {
+export const CreateMerchantStoreDB = async (query) => {
   try {
     const res = await pool.query(
       `
-      INSERT INTO stores(merchant_id, category, name, slug, bio, logo)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO stores(merchant_id, category, name, slug)
+      VALUES ($1, $2, $3, )
       RETURNING *;
        `,
       query,
@@ -40,7 +41,9 @@ export const GetMerchantStoreDetail = async (query) => {
   }
 };
 
-export const UpdateMerchantStore = async (query) => {
+export const UpdateMerchantStoreDB = async ({ updates, store_id }) => {
+  const field = Object.keys(updates);
+
   const allowedField = [
     "category",
     "slug",
@@ -55,29 +58,23 @@ export const UpdateMerchantStore = async (query) => {
     throw Error("Invalid field!");
   }
 
-  //const client = await pool.connect();
+  const { id, setClause, values } = ClauseExtractor({ updates, id: store_id });
 
   try {
-    //await client.query("BEGIN");
-
     const query_text = `      
     UPDATE stores
-    SET ${field} = $1
-    WHERE id = $2 
+    SET ${setClause}
+    WHERE id = $${id} 
     returning *;
     `;
 
-    const res = await pool.query(query_text, query);
+    const res = await pool.query(query_text, values);
 
-    //await client.query("COMMIT");
-
-    return { store: res.rows[0] };
+    return res.rows[0];
   } catch (e) {
-    //await client.query("ROLLBACK");
     console.log(e);
     throw CustomError(e);
   }
-  //client.release();
 };
 
 //Transaction;

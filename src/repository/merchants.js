@@ -1,3 +1,7 @@
+import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
+import pool from "../utils/database/db.js";
+import DatabaseError from "../utils/error/DatabaseError.js";
+
 export const CreateMerchantforDb = async (query) => {
   try {
     const query_text = ` 
@@ -14,21 +18,26 @@ export const CreateMerchantforDb = async (query) => {
   }
 };
 
-export const UpdateMerchantFromDb = async ({ field, query }) => {
-  const allowedField = ["email", "name", "phone"];
+export const UpdateMerchantFromDb = async ({ updates, merchant_id }) => {
+  const { id, setClause, values } = ClauseExtractor({
+    updates,
+    id: merchant_id,
+  });
 
-  if (!allowedField.includes(field.toLowerCase())) {
+  const allowedField = ["id", "email", "name", "phone"];
+
+  if (!allowedField.includes(values.toLowerCase())) {
     throw Error("Invalid field!");
   }
 
   try {
     const query_text = `      
     UPDATE merchants
-    SET ${field} = $1
-    WHERE id = $2 
+    SET ${setClause}
+    WHERE id = $${id} 
     returning *;
     `;
-    const res = await pool.query(query_text, query);
+    const res = await pool.query(query_text, values);
     return res.rows[0];
   } catch (e) {
     throw CustomError(e);
@@ -53,12 +62,24 @@ export const getMerchantFromDb = async (identifier) => {
   }
 };
 
+//After 1 year & automatically delete
 export const DeleteMerchantFromDb = async (id) => {
+  const pquery = await pool.connect();
+
   try {
-    const query_text = `DELETE FROM merchants WHERE id = $1`;
-    const res = await pool.query(query_text, [id]);
-    return res.rows[0];
+    await pquery.query("BEGIN");
+
+    //sET TO FALSE TO PREVENT USER FROM CREATING A FREE TRIAL ACCOUNT ONCE FREE TRAIL IS REMOVED THEN WE CAN DELETE MERCHANT
+    const query_text_merchant = `UPDATE SET active = false WHERE merchants $1 RETURNING *`;
+    const query_text_store = `DELETE FROM stores WHERE merchant_id = $1`;
+
+    const res_merchant = await pool.query(query_text_merchant, [id]);
+    await pool.query(query_text_store, [id]);
+
+    await pquery.query("COMMIT");
+    return res_merchant.rows[0];
   } catch (e) {
-    throw CustomError(e);
+    await pquery.query("ROLLBACK");
+    throw DatabaseError(e);
   }
 };

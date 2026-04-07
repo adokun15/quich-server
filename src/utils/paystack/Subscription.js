@@ -22,6 +22,27 @@ export const disableSubscriptionFromPaystack = async ({
   }
 };
 
+export const enableSubscriptionFromPaystack = async ({
+  sub_code,
+  email_token,
+}) => {
+  let config = {
+    method: "POST",
+    endpoint: "/subscription/enable",
+  };
+
+  try {
+    const data = {
+      sub_code,
+      token: email_token,
+    };
+    const sub = await paystack(config, data);
+    return sub?.status;
+  } catch (e) {
+    throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
+  }
+};
+
 export const FetchSubscriptionFromPaystack = async ({ sub_code }) => {
   let config = {
     method: "GET",

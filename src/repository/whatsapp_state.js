@@ -1,32 +1,39 @@
+import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
 import pool from "../utils/database/db.js";
 import CustomError from "../utils/error/error.js";
 
 //Create last intent: access by one person
-export async function CreateConversationState(query) {
+export async function CreateConversationStateRepository({
+  merchant_id,
+  phone,
+  step = null,
+  flow = null,
+  data = null,
+}) {
   try {
-    await pool.query(
+    const res = await pool.query(
       `
-      INSERT INTO conversation_state(phone, step, intent, data, missing)
-      VALUES ($1, $2, $3, $4, $5) 
+      INSERT INTO conversation_state(merchant_id, phone, step, flow, data)
+      VALUES ($1, $2, $3, $4) 
+      returning *;
       `,
-      query,
+      [merchant_id, phone, step, flow, data],
     );
 
     //success
-    return {};
+    return res.rows[0];
   } catch (e) {
     throw CustomError(e);
   }
 }
 
-//get last intent:
-export async function GetConversationState(query) {
+export async function GetConversationState({ identifier }) {
   try {
     const res = await pool.query(
       `
-      select * from whatsapp_state where phone = $1 
+      select * from conversation_state where phone = $1 OR merchant_id = $1 
       `,
-      query,
+      [identifier],
     );
 
     //success
@@ -36,25 +43,36 @@ export async function GetConversationState(query) {
   }
 }
 
-export async function UpdateConversationState(query) {
-  //Just the ["key = $1", "key =  $2"]
-  const setClause = Object.keys(updates)
-    .map((key, i) => `"${key}" = $${i + 1}`)
-    .join(", ");
-
-  //Just the [value1, value2]
-  const values = Object.values(updates);
-
-  //Just the [value1, value2, id]
-  //Add Id As the Last value
-  values.push(id);
+export async function UpdateConversationState({ new_data, identifier }) {
+  const { values, setClause, id } = ClauseExtractor({
+    updates: new_data,
+    id: identifier,
+  });
   try {
     const res = await pool.query(
       `
-        UPDATE whatsapp_state SET ${setClause} where id = ${values.length};
-        `,
+      UPDATE conversation_state_state 
+      SET ${setClause} where phone = $${id} OR merchant_id = $${id}
+      returning *
+      `,
       values,
     );
+    return res.rows[0];
+  } catch (e) {
+    throw new CustomError(e?.message);
+  }
+}
+
+export async function DeleteUserConvoStateFromDb({ identifier }) {
+  try {
+    const res = await pool.query(
+      `
+      DELETE from conversation_state WHERE phone = $1 OR merchant_id = $1
+      returning *;        
+      `,
+      [identifier],
+    );
+    return res.rows[0];
   } catch (e) {
     throw new CustomError(e?.message);
   }

@@ -1,17 +1,24 @@
-import pool from "../utils/database/db";
-import CustomError from "../utils/error/error";
+import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
+import pool from "../utils/database/db.js";
+import CustomError from "../utils/error/error.js";
 
 //Direct access to dbs
-export const CreateProduct = async (query) => {
+export const CreateProduct = async ({
+  store_id,
+  price,
+  name,
+  quantity,
+  desc,
+}) => {
   try {
     const res = await pool.query(
       `
     INSERT INTO products 
-    (merchant_id, name, price, quantity, description, images)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    (store_id, name, price, quantity, description)
+    VALUES ($1, $2, $3, $4, $5,)
     RETURNING *;
     `,
-      query,
+      [store_id, name, price, quantity, desc],
     );
     return { product: res.rows[0] };
   } catch (e) {
@@ -24,25 +31,18 @@ All Update must be like this to be dynamic and also add a whitelist for incoming
 */
 
 //updates: { name: "product_an", some_field: "field_ name"}
-export const updateProduct = async ({ id, updates }) => {
-  //Just the ["key = $1", "key =  $2"]
-  const setClause = Object.keys(updates)
-    .map((key, i) => `"${key}" = $${i + 1}`)
-    .join(", ");
-
-  //Just the [value1, value2]
-  const values = Object.values(updates);
-
-  //Just the [value1, value2, id]
-  //Add Id As the Last value
-  values.push(id);
+export const updateProduct = async ({ product_id, updates, store_id }) => {
+  const { setClause, values } = ClauseExtractor({ updates });
+  const q = [...values, product_id, store_id];
   try {
     const res = await pool.query(
       `
-        UPDATE products SET ${setClause} where id = ${values.length};
+        UPDATE products SET ${setClause} where id = $${q.length - 1} AND store_id = $${q.length} 
+        RETURNING *;
         `,
-      values,
+      q,
     );
+    return res.rows[0];
   } catch (e) {
     throw new CustomError(e);
   }
@@ -81,7 +81,7 @@ export const getProducts = async ({
   }
 };
 
-export const getSingleProduct = async (query) => {
+export const getSingleProduct = async ({ store_id, product_id }) => {
   try {
     const res = await pool.query(
       `
@@ -90,7 +90,7 @@ export const getSingleProduct = async (query) => {
    on p.category_id = c.id
    where p.merchant_id = $1 AND p.id = $2
      `,
-      [store_id, `${search}%`, offset, limit],
+      [store_id, product_id],
     );
     return { product: res.rows[0] };
   } catch (e) {
@@ -98,14 +98,14 @@ export const getSingleProduct = async (query) => {
   }
 };
 
-export const DeleteProduct = async (query) => {
+export const DeleteProduct = async ({ product_id, store_id }) => {
   try {
     const res = await pool.query(
       `
       DELETE FROM products WHERE id = $1 AND merchant_id = $2
       RETURNING *
      `,
-      query,
+      [product_id, store_id],
     );
     return { deleted_product: res.rows[0] };
   } catch (e) {

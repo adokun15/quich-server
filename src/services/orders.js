@@ -1,6 +1,5 @@
 //Order Business Logic
 
-//Check Order Limit;
 //Check merchant tier for automatic order: Free|business|premium;
 
 //Create Order: Checkout ( Rate Limited | Ip-Check);
@@ -9,32 +8,111 @@
 //-- Webhook: Acknowledge Order and Rejected Order (with reason);
 //Get Orders / Get Order;
 
-import CustomError from "../utils/error/error";
+import { CreateCustomerforDb } from "../repository/customers.js";
+import {
+  CreateOrderRepository,
+  DeleteOrderFromDb,
+  getOrderDetailsFromDb,
+  getOrdersFromDb,
+  UpdateOrderForDb,
+} from "../repository/orders.js";
+import CustomError from "../utils/error/error.js";
+import { CreateCustomerForStore } from "./customers.js";
+import { getMerchantInfo } from "./users.js";
 
-//Monitor daily order limit
-export const OrderLimit = async (uid) => {
-  /*
-      const ordersDoc = await transaction.get(ordersRef);
+//Monitor daily order limit by a customer in a day; 10 to prevent spam
+export const OrderLimit = async (uid) => {};
 
-      let orderLength = 0;
+//Create by customer;
+export const createOrderService = async ({
+  cart,
+  customer,
+  total_amount,
+  store_id,
+  merchant_id,
+}) => {
+  //Auth: Device id, ips address and rate limit 1request/5mins
 
-      ordersDoc.docs.forEach((order) => {
-        const orderDate = new Date(order.data()?.paidAt);
+  try {
+    //Find Customer
+    const customerRes = await CreateCustomerForStore({
+      phone: customer?.phone,
+      name: customer?.name,
+      store_id,
+      merchant_id,
+    });
 
-        if (orderDate?.getDate() === todayDate.getDate()) {
-          orderLength = orderLength + 1;
-        }
-      });
-      
-      return orderLength;
+    //Create Order
+    const res = await CreateOrderRepository({
+      cart_items: JSON.stringify(cart),
+      customer_id: customerRes?.id,
+      total_amount,
+      store_id,
+    });
 
-      */
+    //Check if Merchant_balnace is enough to send a notication
+    const merchantData = await getMerchantInfo(merchant_id);
+    if (merchantData && merchantData?.credits >= 10) {
+      //Send notication to user
+      //Dedect 10 credit score: For Order Notification;
+    }
+
+    return res; //OrderId;
+  } catch (e) {
+    throw new CustomError(e?.message);
+  }
 };
 
-//Create by customer
-export const createOrder = () => {
-  //Auth: Device id, ips address and rate limit 1request/5mins
-  /*
+//Updated by webhook/merchant
+export const updateCustomerOrder = async ({ updates, order_id }) => {
+  //webhook: Acknowledge/reject;
+  //merchant: add optional address;
+  try {
+    const updated_order = await UpdateOrderForDb({ updates, order_id });
+    return { updated_order };
+  } catch (e) {
+    throw new CustomError(e?.message);
+  }
+};
+
+//get a queried list of orders;
+
+//Get Order bys customers  / Stores
+export const getOrders = async ({ store_id, filters }) => {
+  //Accessable by merchants only;
+
+  //Set Filter From CONTROLLERS;
+  try {
+    const orders = await getOrdersFromDb({ store_id, ...filters });
+    return orders;
+  } catch (e) {
+    throw new CustomError(e?.message);
+  }
+};
+
+//accessible by anyone:
+export const getSingleOrder = async ({ order_id }) => {
+  //Auth: Device id, ips address and rate limit 1request/1sec
+  try {
+    const order = await getOrderDetailsFromDb({ order_id });
+    return order;
+  } catch (e) {
+    throw new CustomError(e?.message);
+  }
+};
+
+//Deletion by merchant:
+export const DeleteSingleOrder = async ({ store_id, order_id }) => {
+  //Auth: Device id, ips address and rate limit 1request/1sec
+  try {
+    const orderId = await DeleteOrderFromDb({ store_id, order_id });
+    return orderId;
+  } catch (e) {
+    throw new CustomError(e?.message);
+  }
+};
+
+/*
     (
       data?.metadata?.cartId,
       data?.metadata?.products,
@@ -51,20 +129,3 @@ export const createOrder = () => {
       data?.merchant?.recipient, //Added recipient
       merchantRoleDuringOrder,
     )*/
-};
-
-//Updated by webhook/merchant
-const updateCustomerOrder = async () => {
-  //webhook: Acknowledge/reject;
-  //merchant: add optional address;
-};
-
-//get a queried list of orders;
-export const getOrders = async (store_id) => {
-  //Accessable by merchants only;
-};
-
-//accessible by anyone:
-export const getSingleOrder = async (store_id) => {
-  //Auth: Device id, ips address and rate limit 1request/1sec
-};

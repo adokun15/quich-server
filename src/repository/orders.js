@@ -1,3 +1,4 @@
+import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
 import pool from "../utils/database/db.js";
 import CustomError from "../utils/error/error.js";
 
@@ -6,39 +7,72 @@ Create Order
 Update Customer : TOTAL ORDER,  
 
 */
-export const CreateOrderforDb = async ({ order_query, customer_query }) => {
+export const CreateOrderRepository = async ({
+  customer_id,
+  total_amount,
+  cart_items,
+  store_id,
+}) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const res = await client.query(
+
+    //Create Order
+    const orderRes = await client.query(
       ` 
-      INSERT INTO orders (merchant_id,
+      INSERT INTO orders (store_id,
       customer_id, total_amount, cart_items)
       VALUES ($1, $2, $3, $4)
       RETURNING id;
       `,
-      order_query,
+      [store_id, customer_id, total_amount, cart_items],
     );
 
-    await pool.query(
+    const orderId = orderRes.rows[0].id;
+
+    //Update customer stats (per store)
+    await client.query(
       ` 
-        INSERT INTO customer_store (customer_id, total_orders, total_order_amount)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO customer_store (
+        customer_id, 
+        store_id,
+        total_orders, 
+        total_order_amount
+        )
+        -- Create store customer if user is new
+        VALUES ($1, $2, 1, $3)
+        -- update store customer if user already exist
+        ON CONFLICT(customer_id, store_id)
+        -- then update data if it already exist
+        DO UPDATE SET 
+          total_orders = customer_store.total_orders + 1,
+          total_order_amount = customer_store.total_order_amount + EXCLUDED.total_order_amount,
         RETURNING id;
         `,
-      customer_query,
+      [customer_id, store_id, total_amount],
     );
 
     await client.query("COMMIT");
 
-    return res.rows[0];
+    return orderId || "";
   } catch (e) {
-    console.log(e);
+    await client.query("ROLLBACK");
     throw CustomError(e);
+  } finally {
+    client.release();
   }
 };
 
-export const getOrdersFromDb = async ({ query, sortField, sortOrder }) => {
+export const getOrdersFromDb = async ({
+  store_id,
+  search = "",
+  customer_id = null,
+  order_status = null,
+  offset = 0,
+  limit = 30, //Default For Store Fetches only;
+  sortField, //
+  sortOrder,
+}) => {
   const allowedSort = {
     created_at: "o.created_at",
     total_amount: "o.total_amount",
@@ -48,7 +82,7 @@ export const getOrdersFromDb = async ({ query, sortField, sortOrder }) => {
   const orderby = sortOrder === "asc" ? "ASC" : "DESC";
 
   try {
-    //By MERCHANT ID OR BY CUSTOMER ID
+    //By Store ID OR BY CUSTOMER ID
     const query_text = ` 
     --cs.created_at AS member_since
     SELECT      
@@ -68,7 +102,7 @@ export const getOrdersFromDb = async ({ query, sortField, sortOrder }) => {
     on  c.id = o.customer_id
     --Merchant orders or Customers Order
     WHERE 
-    (merchant_id = $1 OR customer_id = $1)
+    (store_id = $1 OR (customer_id = $6 AND store_id = $1))
     AND (
     OR o.id::TEXT ILIKE $2 || "%" 
     OR cs.name ILIKE $2 || "%"
@@ -81,7 +115,14 @@ export const getOrdersFromDb = async ({ query, sortField, sortOrder }) => {
     offset $4
     limit $5
      `;
-    const res = await pool.query(query_text, query);
+    const res = await pool.query(query_text, [
+      store_id,
+      search,
+      order_status,
+      offset,
+      limit,
+      customer_id, //If null leave
+    ]);
     return res.rows;
   } catch (e) {
     console.log(e);
@@ -89,7 +130,7 @@ export const getOrdersFromDb = async ({ query, sortField, sortOrder }) => {
   }
 };
 
-export const getOrderDetailsFromDb = async (query) => {
+export const getOrderDetailsFromDb = async ({ order_id }) => {
   try {
     //By MERCHANT ID OR BY CUSTOMER ID
     const query_text = ` 
@@ -107,7 +148,7 @@ export const getOrderDetailsFromDb = async (query) => {
     on  c.id = o.customer_id
     WHERE id = $1 
     `;
-    const res = await pool.query(query_text, query);
+    const res = await pool.query(query_text, [order_id]);
     return res.rows[0];
   } catch (e) {
     console.log(e);
@@ -115,32 +156,37 @@ export const getOrderDetailsFromDb = async (query) => {
   }
 };
 
-export const UpdateOrderForDb = async ({ field, query }) => {
+export const UpdateOrderForDb = async ({ updates, store_id, order_id }) => {
+  const { id, setClause, values, fields } = ClauseExtractor({
+    updates,
+    id: order_id,
+  });
+
   //Add Address
   const allowedField = ["note", "address", "status"];
 
-  if (!allowedField.includes(field.toLowerCase())) {
+  if (!allowedField.includes(fields.toLowerCase())) {
     throw Error("Invalid field!");
   }
 
   try {
     const query_text = ` UPDATE orders
-    SET ${field} = $1
-    WHERE id = $2 AND merchant_id = $3
+    SET ${setClause}
+    WHERE id = $${id} 
     returning *;
     `;
-    const res = await pool.query(query_text, query);
+    const res = await pool.query(query_text, values);
     return res.rows[0];
   } catch (e) {
     throw CustomError(e);
   }
 };
 
-export const DeleteOrderFromDb = async (query) => {
+export const DeleteOrderFromDb = async ({ store_id, order_id }) => {
   try {
-    const query_text = ` DELETE FROM orders where merchant_id = $2 AND id = $1 returning id;`;
-    const res = await pool.query(query_text, query);
-    return res;
+    const query_text = ` DELETE FROM orders where store_id = $2 AND id = $1 returning id;`;
+    const res = await pool.query(query_text, [order_id, store_id]);
+    return res.rows[0];
   } catch (e) {
     throw CustomError(e);
   }

@@ -63,7 +63,7 @@ export const GetSubscriptionDetailForMerchant = async (query) => {
     const res = await pool.query(
       `
         SELECT * FROM subscriptions
-        WHERE merchant_id = $1;
+        WHERE merchant_id = $1 AND ORDER BY created_at;
         `,
       query,
     );
@@ -123,7 +123,7 @@ export const CreateInvoice = async ({
       VALUES ( $1, $2, $3, $4, $5, $6, $7)
       --ON CONFLICT (invoice_id)
      -- DO UPDATE SET status = EXCLUDED.status;
-      RETURNING *;n     
+      RETURNING *;    
     `,
       [
         invoice_code,

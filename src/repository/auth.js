@@ -1,5 +1,4 @@
 //Auth Table
-
 import pool from "../utils/database/db";
 import CustomError from "../utils/error/error";
 

@@ -1,7 +1,13 @@
+import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
 import pool from "../utils/database/db.js";
 import CustomError from "../utils/error/error.js";
 
-export const CreateCustomerforDb = async (query) => {
+export const CreateCustomerforDb = async ({
+  phone,
+  store_id,
+  merchant_id,
+  name = null,
+}) => {
   try {
     //
     const query_text = ` 
@@ -19,7 +25,12 @@ export const CreateCustomerforDb = async (query) => {
       RETURNING *;
       `;
 
-    const res = await pool.query(query_text, query);
+    const res = await pool.query(query_text, [
+      phone,
+      store_id,
+      merchant_id,
+      name,
+    ]);
     return res.rows[0];
   } catch (e) {
     console.log(e);
@@ -107,31 +118,41 @@ export const getCustomersFromDb = async ({
   }
 };
 
-export const UpdateCustomerFromDb = async ({ field, query }) => {
+export const UpdateCustomerFromDb = async ({
+  updates,
+  customer_id,
+  store_id,
+}) => {
+  const { setClause, values } = ClauseExtractor({ updates });
+
   const allowedField = ["email", "tag", "blacklisted", "name"];
   if (!allowedField.includes(field.toLowerCase())) {
     throw Error("Invalid field!");
   }
 
   try {
-    //
+    const para_query = [...values, customer_id, store_id];
     const query_text = ` 
     UPDATE customer_store
-    SET ${field} = $1;
-    WHERE merchant_id = $2 AND customer_id = $3 AND store_id = $4  
+    SET ${setClause}
+    WHERE customer_id = $${values.length - 1} AND store_id = $${values.length}  
     returning *;
      `;
-    const res = await pool.query(query_text, query);
+
+    const res = await pool.query(query_text, para_query);
     return res.rows[0];
   } catch (e) {
     throw CustomError(e);
   }
 };
-export const DeleteCustomerFromStore = async (query) => {
+
+export const DeleteCustomerDb = async ({ customer_id, store_id }) => {
   try {
     const query_text = ` DELETE FROM customer_store 
-    where merchant_id = $1 AND customer_id = $2 AND store_id = $3`;
-    const res = await pool.query(query_text, query);
+    where customer_id = $1 AND store_id = $2
+    returning *;
+    `;
+    const res = await pool.query(query_text, [customer_id, store_id]);
     return res.rows[0];
   } catch (e) {
     throw CustomError(e);

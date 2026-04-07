@@ -69,6 +69,9 @@ BEGIN
   END IF;
 END$$;
 
+
+----- ADD PUBLISH FIELD -------
+
 --Table Construct
     CREATE TABLE IF NOT EXISTS stores (  
         id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -118,9 +121,11 @@ export const create_categories_table = async () => {
          id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
          store_id UUID  NOT NULL REFERENCES stores ON DELETE CASCADE,
          name TEXT NOT NULL,
+         slug TEXT NOT NULL,
          isVisible BOOLEAN NOT NULL DEFAULT TRUE,    
          updated_at TIMESTAMPTZ DEFAULT NOW(),
-         created_at TIMESTAMPTZ DEFAULT NOW()
+         created_at TIMESTAMPTZ DEFAULT NOW(),
+         UNIQUE(store_id, slug)
         );   
           
         
@@ -460,16 +465,19 @@ export const create_usage_log_table = async () => {
       'view_products',
       'view_customers',
       'view_orders',
+
+      'send_order',
+      'out_of_stock',
       )  
       CREATE TABLE IF NOT EXISTS usage_log (
-      id SERIAL PRIMARY KEY,
-      merchant_id UUID REFERENCES merchants ON DELETE SET NULL,
-      action_type usage_action_type NOT NULL,
-      action_statement text,
-      credit_used INTEGER DEFAULT 1,
-      created_at TIMESTAMP DEFAULT NOW(),
-      );  
-    `);
+        id SERIAL PRIMARY KEY,
+        merchant_id UUID REFERENCES merchants ON DELETE SET NULL,
+        action_type usage_action_type NOT NULL DEFAULT 'none',
+        action_statement text,
+        credit_used INTEGER DEFAULT 1,
+        created_at TIMESTAMP DEFAULT NOW(),
+        );  
+        `);
     console.log(res);
   } catch (e) {
     console.log(e);
@@ -480,15 +488,27 @@ export const create_usage_log_table = async () => {
 export const create_whatsapp_state_table = async () => {
   try {
     const res = await pool.query(`  
-      CREATE TABLE IF NOT EXISTS conversation_state (
-        merchant_id UUID PRIMARY KEY REFERENCES merchants ON DELETE CASCADE, 
-        current_intent TEXT,
-        step TEXT,
-        data JSONB,
-        updated_at TIMESTAMP      
-      );  
-  
-    `);
+          CREATE TABLE IF NOT EXISTS conversation_state (
+            merchant_id UUID PRIMARY KEY REFERENCES merchants ON DELETE CASCADE, 
+            phone VARCHAR(11) UNIQUE NOT NULL, 
+            flow TEXT,
+            step TEXT,
+            data JSONB,
+            updated_at TIMESTAMP DEFAULT NOW(),
+            created_at TIMESTAMP DEFAULT NOW()      
+            );  
+        
+          CREATE INDEX idx_conversation_state_phone ON conversation_state(phone);  
+    
+          --Trigger
+         DROP TRIGGER IF EXISTS trg_conversation_state_updated_at ON conversation_state;
+
+         CREATE TRIGGER trg_conversation_state_updated_at
+         BEFORE UPDATE ON conversation_state
+         FOR EACH ROW
+         EXECUTE FUNCTION update_updated_at_column();
+          
+          `);
     console.log(res);
   } catch (e) {
     console.log(e);

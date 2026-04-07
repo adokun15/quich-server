@@ -35,9 +35,9 @@ import {
   SendHelpToNewUser,
 } from "../utils/whatsapp/parser-replier/support.js";
 import {
-  CreateConversationState,
-  UpdateConversationState,
-} from "../repository/whatsapp_state.js";
+  conversationCreateState,
+  UpdateUserConvoState,
+} from "../services/conversation_state.js";
 import { detectIntent } from "../utils/whatsapp/parser-replier/parser.js";
 
 //Only webhook can call this route
@@ -121,7 +121,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
           await SendContinueConversation();
 
           //update Flow; waiting_confirmation_expiredSession, data : { flow: add_product | main_menu , step: sdad, data; 2342}
-          await UpdateConversationState();
+          await UpdateUserConvoState();
 
           //Expand time to 20sec
         }
@@ -139,7 +139,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
         await SendMenuToUser();
 
         //Create State, change to active
-        await CreateConversationState();
+        await conversationCreateState();
       } else {
         //Ask if they need help, want to create an account, support
         await SendHelpToNewUser();

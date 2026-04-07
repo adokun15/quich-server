@@ -10,6 +10,7 @@ import {
   UpdateInvoiceforMerchant,
   UpdateSubscriptionforMerchant,
 } from "../repository/subscription.js";
+import DatabaseError from "../utils/error/DatabaseError.js";
 import CustomError from "../utils/error/error.js";
 import {
   disableSubscriptionFromPaystack,
@@ -141,6 +142,25 @@ export const MarkBillingInvoiceStatus = async ({
 export const UpdateSubscription = async ({ details, code }) => {
   try {
     const data = await UpdateSubscriptionforMerchant(details, code);
+    return data;
+  } catch (e) {
+    throw new CustomError(e);
+  }
+};
+
+//Disable User Subcription;
+export const CancelSubscription = async (merchant_id) => {
+  try {
+    const subscription = await getSubcriptionInfo(merchant_id);
+
+    if (subscription.error) {
+      throw DatabaseError(subscription.error?.message);
+    }
+
+    const data = await disableSubscriptionFromPaystack({
+      sub_code: subscription?.subscription_code,
+      email_token: subscription?.email_token,
+    });
     return data;
   } catch (e) {
     throw new CustomError(e);
