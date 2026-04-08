@@ -13,15 +13,15 @@ const authRoute = express.Router();
 //Verify once
 authRoute.route("/").get(AsyncError(authController));
 
-//Whatsapp!
+//Whatsapp
 authRoute
   .route("/verify-whatsapp-token")
   .get(AsyncError(VerifyLoginTokenController));
 
 //Browser!
-/* Rate limit middleware: 3req / 5min */
+/* Rate limit middleware: 5req / 2mins */
 authRoute.route("/request-otp").get(AsyncError(RequestOtpController));
 
-/** */
+/* Rate limit middleware: 10req / min - IP address */
 authRoute.route("/verify-otp").get(AsyncError(VerifyOtpController));
 export default authRoute;
