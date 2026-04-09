@@ -6,35 +6,28 @@ import {
   getCustomersFromDb,
   getSingleCustomerFromDb,
   UpdateCustomerFromDb,
-} from "../repository/customers";
-import CustomError from "../utils/error/error";
+} from "../repository/customers.js";
+import CustomError from "../utils/error/error.js";
 
 //Customer business Logic
 
 //Create Customer: only when an order is made;
-export async function CreateCustomerForStore({
-  phone,
-  merchant_id,
-  store_id,
-  name,
-}) {
-  try {
-    const customer = await CreateCustomerforDb({
-      phone,
-      merchant_id,
-      store_id,
-      name,
-    });
-    return customer;
-  } catch (e) {
-    throw new CustomError(e?.mssage);
-  }
+export async function CreateCustomerForStore({ phone, store_id, name }) {
+  const customer = await CreateCustomerforDb({
+    phone,
+    store_id,
+    name,
+  });
+  return customer;
 }
 
 //getMultipleUsers;
 export async function getAllCustomers({ store_id, filter }) {
   try {
-    const customers = await getCustomersFromDb({ ...filter, store_id });
+    const customers = await getCustomersFromDb({
+      ...filter,
+      storeId: store_id,
+    });
     return customers;
   } catch (e) {
     throw new CustomError(e?.mssage);

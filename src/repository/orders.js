@@ -31,13 +31,13 @@ export const CreateOrderRepository = async ({
     const orderId = orderRes.rows[0].id;
 
     //Update customer stats (per store)
-    await client.query(
+    const customer = await client.query(
       ` 
         INSERT INTO customer_store (
         customer_id, 
         store_id,
         total_orders, 
-        total_order_amount
+        total_orders_amount
         )
         -- Create store customer if user is new
         VALUES ($1, $2, 1, $3)
@@ -46,16 +46,17 @@ export const CreateOrderRepository = async ({
         -- then update data if it already exist
         DO UPDATE SET 
           total_orders = customer_store.total_orders + 1,
-          total_order_amount = customer_store.total_order_amount + EXCLUDED.total_order_amount,
-        RETURNING id;
+          total_orders_amount = customer_store.total_orders_amount + EXCLUDED.total_orders_amount
+        RETURNING *;
         `,
       [customer_id, store_id, total_amount],
     );
 
     await client.query("COMMIT");
 
-    return orderId || "";
+    return { orderId, customer: customer.rows[0] };
   } catch (e) {
+    console.log(e);
     await client.query("ROLLBACK");
     throw new CustomError(e);
   } finally {
@@ -78,7 +79,7 @@ export const getOrdersFromDb = async ({
     total_amount: "o.total_amount",
   };
 
-  const sortField = allowedSort[sortField] || "o.created_at";
+  const sortBy = allowedSort[sortField] || "o.created_at";
   const orderby = sortOrder === "asc" ? "ASC" : "DESC";
 
   try {
@@ -87,6 +88,7 @@ export const getOrdersFromDb = async ({
     --cs.created_at AS member_since
     SELECT      
     o.id AS order_id,
+   -- COUNT(o.*) AS total_orders,
     o.total_amount,
     --sum(o.total_amount) AS total_order_amount,
     --len(r) AS total_orders_made,
@@ -98,20 +100,20 @@ export const getOrdersFromDb = async ({
     FROM orders o 
     LEFT JOIN customer_store cs
     on cs.customer_id = o.customer_id
-    LEFT JOIN customer c
+    LEFT JOIN customers c
     on  c.id = o.customer_id
     --Merchant orders or Customers Order
     WHERE 
-    (store_id = $1 OR (customer_id = $6 AND store_id = $1))
+    (o.store_id = $1 OR (cs.customer_id = $6 AND cs.store_id = $1))
     AND (
-    OR o.id::TEXT ILIKE $2 || "%" 
-    OR cs.name ILIKE $2 || "%"
-    OR c.phone ILIKE $2 || "%"
+    o.id::TEXT ILIKE $2 || '%' 
+    OR cs.name ILIKE $2 || '%'
+    OR c.phone ILIKE $2 || '%'
     OR o.status = $3
   )
    
   -- CREATED_AT | AMOUNT
-    order by ${sortField} ${orderby}
+    order by ${sortBy} ${orderby}
     offset $4
     limit $5
      `;
@@ -123,7 +125,7 @@ export const getOrdersFromDb = async ({
       limit,
       customer_id, //If null leave
     ]);
-    return res.rows;
+    return { orders: res.rows };
   } catch (e) {
     console.log(e);
     throw new CustomError(e);

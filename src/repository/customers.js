@@ -2,12 +2,7 @@ import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
 import pool from "../utils/database/db.js";
 import CustomError from "../utils/error/error.js";
 
-export const CreateCustomerforDb = async ({
-  phone,
-  store_id,
-  merchant_id,
-  name = null,
-}) => {
+export const CreateCustomerforDb = async ({ phone, store_id, name = null }) => {
   try {
     //
     const query_text = ` 
@@ -19,21 +14,23 @@ export const CreateCustomerforDb = async ({
         RETURNING id
       ) 
         
-      INSERT INTO customer_store (customer_id, store_id, merchant_id, name)
-        SELECT id, $2, $3, $4 FROM inserted_customer
-      ON CONFLICT (customer_id, store_id) DO NOTHING
+      INSERT INTO customer_store (customer_id, store_id, name)
+        SELECT id, $2, $3 FROM inserted_customer
+      ON CONFLICT (customer_id, store_id) 
+      DO UPDATE SET  
+        name = EXCLUDED.name 
       RETURNING *;
       `;
 
-    const res = await pool.query(query_text, [
-      phone,
-      store_id,
-      merchant_id,
-      name,
-    ]);
+    const res = await pool.query(query_text, [phone, store_id, name]);
+    console.log("From Cusgtomer Table", res.rows[0]);
     return res.rows[0];
   } catch (e) {
-    console.log(e);
+    console.log("from customer", e);
+    console.log("from customer", e?.code);
+    /*
+    42703: ROW HAS NO FIELD: 'field_name'
+    */
     throw new CustomError(e);
   }
 };
@@ -73,12 +70,12 @@ export const getSingleCustomerFromDb = async ({ storeId, customerId }) => {
 export const getCustomersFromDb = async ({
   storeId,
   search,
-  sortBy = "created_at",
+  sortBy = "cs.created_at",
   order = "DESC",
   offset = 0,
   limit = 30,
 }) => {
-  const allowedSort = ["created_at", "name"];
+  const allowedSort = ["cs.created_at", "cs.name"];
   const allowedOrder = ["ASC", "DESC"];
 
   if (!allowedOrder.includes(order)) {
@@ -89,19 +86,21 @@ export const getCustomersFromDb = async ({
     throw new CustomError("Invalid Sort Field");
   }
 
+  console.log(storeId);
   try {
     const query_text = ` 
-   SELECT buyer.phone, cs.* 
+   SELECT 
+   buyer.phone, cs.* 
    from customer_store cs
    left join customers buyer 
    on cs.customer_id = buyer.id
    where cs.store_id = $1
    AND (
-   cs.email ILIKE $2 || "%" 
+   cs.email ILIKE $2 || '%' 
    OR 
-   cs.name ILIKE $2 || "%" 
+   cs.name ILIKE $2 || '%' 
    OR
-   cs.tag ILIKE $2 || "%"
+   cs.tag ILIKE $2 || '%'
   ) 
    order by ${sortBy} ${order}
    offset $3
@@ -112,8 +111,10 @@ export const getCustomersFromDb = async ({
       offset,
       limit,
     ]);
+    console.log(res.rows);
     return res.rows;
   } catch (e) {
+    console.log(e);
     throw new CustomError(e);
   }
 };

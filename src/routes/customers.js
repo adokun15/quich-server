@@ -5,6 +5,7 @@ import {
   getSingleCustomerController,
   updateCustomerStatus,
 } from "../controllers/customer.js";
+import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
 //import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
 
 const customerRoute = express.Router();
@@ -23,9 +24,21 @@ const customerRoute = express.Router();
   can only be deleted(are hidden) when the store is deleted
 */
 
-customerRoute.get("/", AsyncError(getAllCustomersController));
+customerRoute.get(
+  "/",
+  AuthorizationRouteMiddleware,
+  AsyncError(getAllCustomersController),
+);
 
-customerRoute.get("/:customer_id", AsyncError(getSingleCustomerController));
+customerRoute.get(
+  "/:customer_id",
+  AuthorizationRouteMiddleware,
+  AsyncError(getSingleCustomerController),
+);
 
-customerRoute.post("/:customer_id", AsyncError(updateCustomerStatus));
+customerRoute.post(
+  "/:customer_id",
+  AuthorizationRouteMiddleware,
+  AsyncError(updateCustomerStatus),
+);
 export default customerRoute;

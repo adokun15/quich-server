@@ -27,35 +27,42 @@ export const OrderLimit = async (uid) => {};
 export const createOrderService = async ({
   cart,
   customer,
-  total_amount,
+  // total_amount,
   store_id,
-  merchant_id,
+  // merchant_id,
 }) => {
   //Auth: Device id, ips address and rate limit 1request/5mins
 
   try {
+    //Check on the Db If  qty > available_quantity;
+
     //Find Customer
     const customerRes = await CreateCustomerForStore({
       phone: customer?.phone,
       name: customer?.name,
       store_id,
-      merchant_id,
+      //    merchant_id,
     });
+
+    console.log("Customer :", customerRes);
 
     //Create Order
     const res = await CreateOrderRepository({
       cart_items: JSON.stringify(cart),
-      customer_id: customerRes?.id,
-      total_amount,
+      customer_id: customerRes?.customer_id,
+      total_amount: cart?.reduce((acc, cur) => acc + cur?.total, 0),
       store_id,
     });
 
+    console.log("Order :", res);
+
     //Check if Merchant_balnace is enough to send a notication
-    const merchantData = await getMerchantInfo(merchant_id);
-    if (merchantData && merchantData?.credits >= 10) {
-      //Send notication to user
-      //Dedect 10 credit score: For Order Notification;
-    }
+    //const merchantData = await getMerchantInfo(merchant_id);
+
+    // if (merchantData && merchantData?.credits >= 10) {
+    //Send notication to user
+    //Dedect 10 credit score: For Order Notification;
+    //}
 
     return res; //OrderId;
   } catch (e) {

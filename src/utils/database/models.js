@@ -224,7 +224,7 @@ export const create_customers_table = async () => {
         phone VARCHAR(11) NOT NULL UNIQUE,
         isBanned BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMPTZ DEFAULT NOW(),
-        update_at TIMESTAMPTZ DEFAULT NOW()
+        updated_at TIMESTAMPTZ DEFAULT NOW()
         );   
 
         --INDEX ON PHONE
