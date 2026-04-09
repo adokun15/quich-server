@@ -5,8 +5,8 @@ import {
   getSingleCategory,
   updateCategory,
   UpdateProductsToCategoryRepository,
-} from "../repository/categories";
-import CustomError from "../utils/error/error";
+} from "../repository/categories.js";
+import CustomError from "../utils/error/error.js";
 
 //Manage Category
 export const getSingleCategoryService = async ({ category_id, store_id }) => {
@@ -38,9 +38,13 @@ export const DeleteSingleCategoryService = async ({
     throw new CustomError(e?.message);
   }
 };
-export const updateSingleCategoryService = ({ category_id, updates }) => {
+export const updateSingleCategoryService = async ({
+  store_id,
+  category_id,
+  updates,
+}) => {
   try {
-    const updated_data = updateCategory({ updates, category_id });
+    const updated_data = await updateCategory({ updates, category_id });
     return updated_data;
   } catch (e) {
     throw new CustomError(e?.message);
@@ -84,7 +88,8 @@ export const BatchRemoveProductToCategoryService = async ({
 //create category
 export const CreateCategoryService = async ({ name, store_id }) => {
   try {
-    const slug = typeof name === "string" && name?.toLowerCase()?.trim();
+    const slug =
+      typeof name === "string" && name?.split(" ").join("_").toLowerCase();
 
     const createData = await CreateCategoryRepository({
       store_id,

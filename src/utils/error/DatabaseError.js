@@ -7,3 +7,7 @@ class DatabaseError extends Error {
 }
 
 export default DatabaseError;
+/*
+ 23505 - already exist; unique constraint
+
+*/

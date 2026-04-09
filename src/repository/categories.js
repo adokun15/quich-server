@@ -1,6 +1,6 @@
-import { ClauseExtractor } from "../utils/database/ClauseExtractor";
-import pool from "../utils/database/db";
-import CustomError from "../utils/error/error";
+import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
+import pool from "../utils/database/db.js";
+import CustomError from "../utils/error/error.js";
 
 //Product
 export const UpdateProductsToCategoryRepository = async ({
@@ -45,7 +45,7 @@ export const CreateCategoryRepository = async ({
 };
 
 //Transactional:
-export const updateCategory = async ({ updates, category_id }) => {
+export const updateCategory = async ({ updates, category_id, store_id }) => {
   const allowedField = ["name", "isVisible"];
 
   const { fields, setClause, values } = ClauseExtractor({
@@ -78,22 +78,30 @@ export const updateCategory = async ({ updates, category_id }) => {
 //Query
 export const getCategoriesFromDb = async ({
   store_id,
-  category_name,
-  invisible,
-  sortBy = "created_at",
+  category_name = null,
+  isvisible = null,
+  sortBy = "c.created_at",
   sortOrder = "DESC",
 }) => {
   try {
+    console.log(store_id);
     const res = await pool.query(
       `
       select *
-      from category  
-      where store_id = $1
-      AND (name ILIKE $2 OR invisible = $3)
+      from category c
+      where 
+      c.store_id = $1
+      AND (
+  ($2::TEXT IS NULL OR c.name ILIKE $2 || '%')
+)
+AND (
+  ($3::BOOLEAN IS NULL OR c.isvisible = $3)
+)
       --order by created_at or name desc
-      order by ${sortBy} ${sortOrder}   
-      `,
-      [store_id, `${category_name}%`, invisible],
+      order by ${sortBy} ${sortOrder};   
+    
+       `,
+      [store_id, category_name, isvisible],
     );
 
     return { categories: res.rows };

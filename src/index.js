@@ -15,6 +15,7 @@ import { globalErr } from "./utils/error/globalError.js";
 import endpointFlowRoute from "./routes/flow.js";
 import productRoute from "./routes/products.js";
 import dbRoute from "./utils/database/create.js";
+import categoryRoute from "./routes/category.js";
 
 const app = express();
 
@@ -25,6 +26,8 @@ app.use(cors());
 app.use("/auth", authRoute);
 
 app.use("/store", storeRoute);
+
+app.use("/category", categoryRoute);
 
 app.use("/products", productRoute);
 
@@ -38,7 +41,6 @@ app.use("/webhook", webhook);
 
 app.use("/flow", endpointFlowRoute);
 
-//seller private Account
 app.use("/user", userRoute);
 
 //Temporary: remove soonn
