@@ -1,8 +1,14 @@
-import getAllStoreProducts, { updateUserStore } from "../services/store.js";
+import getAllStoreProducts, {
+  getUserStore,
+  updateUserStore,
+} from "../services/store.js";
+import CustomError from "../utils/error/error.js";
 
-export const GetStoreController = async (req, res) => {
+export const GetStoreController = async (req, res, next) => {
   const storeLink = req.params.storeSlug;
 
+  //validate store_id
+  /*
   const temp_model = {
     store_id: "demo-store-id",
     store_profile: null,
@@ -19,39 +25,34 @@ export const GetStoreController = async (req, res) => {
       name: "Ohida!",
     },
   };
+ */
+  try {
+    if (!storeLink) {
+      throw new CustomError("Invalid Slug!");
+    }
 
-  res.json({ data: temp_model, status: true });
+    const store = await getUserStore({ store_id_slug: storeLink });
+    res.json({ data: store, status: true });
+  } catch (e) {
+    next(e);
+  }
 };
 
-export const GetStoreProductsController = async (req, res) => {
-  const storeLink = req.params.storeSlug;
+export const GetStoreProductsController = async (req, res, next) => {
+  const store_id = req.params.storeId;
 
-  res.json({
-    data: {
-      store_slug: storeLink,
-      products: [
-        {
-          product_id: "product_id_1",
-          product_name: "PineApple",
-          product_img: null,
-          amount: 1000,
-        },
-        {
-          product_id: "product_id_2",
-          product_name: "Apple",
-          product_img: null,
-          amount: 300,
-        },
-        {
-          product_id: "product_id_3",
-          product_name: "Banana",
-          product_img: null,
-          amount: 500,
-        },
-      ],
-    },
-    status: true,
-  });
+  try {
+    //validate filter and store_id
+
+    const store_product = await getAllStoreProducts({ store_id });
+
+    res.json({
+      data: store_product?.products,
+      status: true,
+    });
+  } catch (e) {
+    next(e);
+  }
 };
 
 export const updateStoreController = async (req, res) => {

@@ -57,7 +57,7 @@ export const CreateOrderRepository = async ({
     return orderId || "";
   } catch (e) {
     await client.query("ROLLBACK");
-    throw CustomError(e);
+    throw new CustomError(e);
   } finally {
     client.release();
   }
@@ -126,7 +126,7 @@ export const getOrdersFromDb = async ({
     return res.rows;
   } catch (e) {
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -152,7 +152,7 @@ export const getOrderDetailsFromDb = async ({ order_id }) => {
     return res.rows[0];
   } catch (e) {
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -178,7 +178,7 @@ export const UpdateOrderForDb = async ({ updates, store_id, order_id }) => {
     const res = await pool.query(query_text, values);
     return res.rows[0];
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -188,6 +188,6 @@ export const DeleteOrderFromDb = async ({ store_id, order_id }) => {
     const res = await pool.query(query_text, [order_id, store_id]);
     return res.rows[0];
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };

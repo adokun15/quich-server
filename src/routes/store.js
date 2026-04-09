@@ -6,6 +6,7 @@ import {
   GetStoreProductsController,
   updateStoreController,
 } from "../controllers/store.js";
+import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
 
 const storeRoute = express.Router();
 
@@ -15,7 +16,10 @@ const storeRoute = express.Router();
  -Allow user update their store;
  */
 
-storeRoute.get("/:storeSlug/products", AsyncError(GetStoreProductsController));
+/*
+ Add a rate limit to both public api and a verify middleware
+ */
+storeRoute.get("/:storeId/products", AsyncError(GetStoreProductsController));
 
 //Fetch store base on user type;
 storeRoute
@@ -24,6 +28,6 @@ storeRoute
   //Might Be Needed by the browser to update
 
   //Add a verify token function here;
-  .patch(AsyncError(updateStoreController));
+  .patch(AuthorizationRouteMiddleware, AsyncError(updateStoreController));
 
 export default storeRoute;

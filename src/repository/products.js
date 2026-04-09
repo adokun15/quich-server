@@ -68,15 +68,17 @@ export const getProducts = async ({
     left join category c 
     on p.category_id = c.id
     where p.store_id = $1 
-    AND (c.name ILIKE $2 || "%" OR p.name ILIKE $2 || "%")
+    AND (c.name ILIKE $2 || '%' OR p.name ILIKE $2 || '%')
     order by ${OrderBy} ${direction}
     offset $3
     limit $4
     `,
-      [store_id, `${search}%`, offset, limit],
+      [store_id, search, offset, limit],
     );
+
     return { products: res.rows };
   } catch (e) {
+    console.log(e);
     throw new CustomError(e);
   }
 };

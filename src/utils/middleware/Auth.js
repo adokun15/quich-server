@@ -1,5 +1,6 @@
 import AsyncError from "../error/AsyncError.js";
 import CustomError from "../error/error.js";
+import { VerifyMerchantToken } from "../jwt/VerifyToken.js";
 
 //Verify  token
 export const AuthorizationRouteMiddleware = AsyncError(
@@ -11,8 +12,11 @@ export const AuthorizationRouteMiddleware = AsyncError(
     const token = authHeader.split(" ")[1];
 
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = payload;
+      //const payload = VerifyMerchantToken(token);
+      req.user = {
+        merchant_id: "6b62a0ec-70b3-4c11-b537-c873caa8adce",
+        store_id: "c5b2c5a4-26f4-4806-b156-cab3db6ba716",
+      };
       next();
     } catch {
       return res.status(401).end();

@@ -56,7 +56,7 @@ export const DeleteSingleProductForAdmin = async function ({
     return products;
   } catch (e) {
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -69,7 +69,7 @@ export const getAllProductsForAdmin = async function ({ store_id, filter }) {
     });
     return products;
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -85,6 +85,6 @@ export const getSingleProductForAdmin = async function ({
     });
     return products;
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };

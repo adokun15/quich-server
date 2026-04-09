@@ -15,7 +15,7 @@ export const BatchDeleteLogforDb = async () => {
     //success
     return {};
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -42,7 +42,7 @@ export const CreateLogRepository = async ({
     //success
     return res.rows[0];
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -66,6 +66,6 @@ export const RetrieveWeeklyLogforMerchant = async ({
     );
     return res.rows;
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };

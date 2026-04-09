@@ -54,7 +54,7 @@ export const CreateSubscriptionforMerchant = async ({
     return { subscription: res.rows[0] };
   } catch (e) {
     //Handle Database Error;
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -69,7 +69,7 @@ export const GetSubscriptionDetailForMerchant = async (query) => {
     );
     return { subscription: res.rows };
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -137,7 +137,7 @@ export const CreateInvoice = async ({
     );
     return { invoice: res.rows[0] };
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -162,7 +162,7 @@ export const GetSingleInvoiceDetailForMerchant = async ({
     );
     return { invoice: res.rows[0] };
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -181,7 +181,7 @@ export const GetInvoicesDetailForMerchant = async ({ query, filter }) => {
     );
     return { invoices: res.rows };
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -232,6 +232,6 @@ export const CreatePaymentforMerchant = async ({
     );
     return { payment: res.rows[0] };
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };

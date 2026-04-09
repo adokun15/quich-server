@@ -23,7 +23,7 @@ export async function CreateConversationStateRepository({
     //success
     return res.rows[0];
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 }
 
@@ -91,6 +91,6 @@ export async function ClearWhatsappMessages(query) {
     //success
     return {};
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 }

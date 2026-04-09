@@ -14,7 +14,7 @@ export const CreateMerchantforDb = async (query) => {
     return res.rows[0];
   } catch (e) {
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -40,7 +40,7 @@ export const UpdateMerchantFromDb = async ({ updates, merchant_id }) => {
     const res = await pool.query(query_text, values);
     return res.rows[0];
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -53,12 +53,12 @@ export const getMerchantFromDb = async (identifier) => {
     const res = await pool.query(query_text, identifier);
 
     if (!res.rows.length === 0) {
-      throw CustomError("Merchant not Found", 404);
+      throw new CustomError("Merchant not Found", 404);
     }
 
     return res.rows[0];
   } catch (e) {
-    throw CustomError(e?.message);
+    throw new CustomError(e?.message);
   }
 };
 

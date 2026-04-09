@@ -34,7 +34,7 @@ export const CreateCustomerforDb = async ({
     return res.rows[0];
   } catch (e) {
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -66,7 +66,7 @@ export const getSingleCustomerFromDb = async ({ storeId, customerId }) => {
     return res.rows[0];
   } catch (e) {
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -114,7 +114,7 @@ export const getCustomersFromDb = async ({
     ]);
     return res.rows;
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -142,7 +142,7 @@ export const UpdateCustomerFromDb = async ({
     const res = await pool.query(query_text, para_query);
     return res.rows[0];
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -155,6 +155,6 @@ export const DeleteCustomerDb = async ({ customer_id, store_id }) => {
     const res = await pool.query(query_text, [customer_id, store_id]);
     return res.rows[0];
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };

@@ -40,7 +40,7 @@ export const CreateCategoryRepository = async ({
     return { category: res.rows[0] };
   } catch (e) {
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -69,7 +69,7 @@ export const updateCategory = async ({ updates, category_id }) => {
   } catch (e) {
     await client.query("ROLLBACK");
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   } finally {
     client.release();
   }

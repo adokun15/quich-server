@@ -33,7 +33,7 @@ export const getSubcriptionInfo = async ({
     //later filter the 'latest active'
     return subcription[0];
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -43,12 +43,12 @@ export const getInvoices = async ({ subcription_code = "" }) => {
     const invoices = await GetInvoicesDetailForMerchant(subcription_code, {});
 
     if (invoices?.length !== 0) {
-      throw CustomError("No Invoices!");
+      throw new CustomError("No Invoices!");
     }
 
     return invoices;
   } catch (e) {
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 

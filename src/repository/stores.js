@@ -1,6 +1,7 @@
 //Clients!
 import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
 import pool from "../utils/database/db.js";
+import CustomError from "../utils/error/error.js";
 
 export const CreateMerchantStoreDB = async (query) => {
   try {
@@ -16,14 +17,13 @@ export const CreateMerchantStoreDB = async (query) => {
     return { store: res?.rows[0] };
   } catch (e) {
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
 export const GetMerchantStoreDetail = async (query) => {
-  try {
-    const res = await pool.query(
-      `
+  const res = await pool.query(
+    `
       select s.*,
       to_jsonb(m) AS merchant
       from stores s
@@ -31,14 +31,14 @@ export const GetMerchantStoreDetail = async (query) => {
         on s.merchant_id = m.id
         where s.slug = $1 OR s.id::TEXT = $1
       `,
-      query,
-    );
+    [query],
+  );
 
-    return { store: res?.rows[0] };
-  } catch (e) {
-    console.log(e);
-    throw CustomError(e);
+  if (res?.rows?.length === 0) {
+    throw new CustomError("Store not Found. Check Slug", 404);
   }
+
+  return { store: res?.rows[0] };
 };
 
 export const UpdateMerchantStoreDB = async ({ updates, store_id }) => {
@@ -73,7 +73,7 @@ export const UpdateMerchantStoreDB = async ({ updates, store_id }) => {
     return res.rows[0];
   } catch (e) {
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   }
 };
 
@@ -97,7 +97,7 @@ export const DeleteMerchantStore = async (query) => {
   } catch (e) {
     await client.query("ROLLBACK");
     console.log(e);
-    throw CustomError(e);
+    throw new CustomError(e);
   } finally {
     client.release();
   }

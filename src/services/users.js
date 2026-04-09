@@ -62,6 +62,6 @@ export const deleteMerchantAccount = async function ({ merchant_id, phone }) {
 
     return { message: "Account deleted." };
   } catch (e) {
-    throw CustomError(e?.message, 500);
+    throw new CustomError(e?.message, 500);
   }
 };

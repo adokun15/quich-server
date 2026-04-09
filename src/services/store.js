@@ -21,16 +21,11 @@ import { getMerchantInfo } from "./users.js";
 
 //Store front products
 export const getAllStoreProducts = async function ({ store_id, filter }) {
-  try {
-    const products = await getProducts({
-      ...filter,
-      store_id,
-    });
-    return products;
-  } catch (e) {
-    console.log(e);
-    throw CustomError(e);
-  }
+  const products = await getProducts({
+    ...filter,
+    store_id,
+  });
+  return products;
 };
 
 //Create Store With data collected from store
@@ -54,27 +49,17 @@ export const createMerchantStore = async ({ phone, data }) => {
 
     return res;
   } catch {
-    throw CustomError("Merchant not found");
+    throw new CustomError("Merchant not found");
   }
 };
 
 //Store Front Access
-export const getUserStore = async ({
-  merchant_id = null,
-  store_id_slug = "",
-}) => {
-  try {
-    const storeData = await GetMerchantStoreDetail(store_id_slug);
+export const getUserStore = async ({ store_id_slug = "" }) => {
+  const storeData = await GetMerchantStoreDetail(store_id_slug);
 
-    if (!storeData) {
-      throw new CustomError(
-        "THIS STORE DOES NOT EXIST. CHECK THE LINK AND TRY AGAIN!",
-      );
-    }
+  // Please fix this : add publish toggle;
 
-    // Please fix this : add publish toggle;
-
-    /*      if (
+  /*      if (
         storeData &&
         !storeData.published &&
         storeData.merchant?.id !== merchant_id
@@ -85,10 +70,7 @@ export const getUserStore = async ({
       }
       */
 
-    return storeData;
-  } catch (e) {
-    throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
-  }
+  return storeData;
 };
 
 export const updateUserStore = async (store_id, updates) => {

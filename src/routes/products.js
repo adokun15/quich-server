@@ -8,6 +8,7 @@ import {
   getProductController,
   UpdateProductController,
 } from "../controllers/products.js";
+import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
 
 const productRoute = express.Router();
 
@@ -19,18 +20,24 @@ const productRoute = express.Router();
 
 //Only created on whatsapp flow;
 
-productRoute
+/*productRoute
   .route("/:product_id/logo")
   .post(AsyncError(AddProductImageController))
   .delete(AsyncError(DeleteProductController));
+*/
+
+//Add Authorised MiddleWare Here
 
 productRoute
   .route("/:product_id")
+  .all(AuthorizationRouteMiddleware)
   .get(AsyncError(getProductController))
   .patch(AsyncError(UpdateProductController))
   .delete(AsyncError(DeleteProductController));
 
 //Read only by merchant on their browser; Must be authorized
-productRoute.route("/").get(AsyncError(getAllProductsController));
+productRoute
+  .route("/")
+  .get(AuthorizationRouteMiddleware, AsyncError(getAllProductsController));
 
 export default productRoute;
