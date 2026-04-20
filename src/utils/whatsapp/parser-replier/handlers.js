@@ -243,8 +243,9 @@ export const whatsapp_message_webhook_processsor = (body) => {
     !body?.entry[0]?.changes[0]?.value?.statuses
   ) {
     temp.name = body?.entry[0].changes[0]?.value?.contacts[0]?.profile?.name;
-    temp.phone = body?.entry[0].changes[0]?.value?.contact[0]?.wa_id;
-    temp.userId = body?.entry[0].changes[0]?.value?.contact[0]?.user_id;
+    temp.phone = body?.entry[0].changes[0]?.value?.contacts[0]?.wa_id;
+    temp.userId = body?.entry[0].changes[0]?.value?.contacts[0]?.user_id;
+    temp.messageId = body?.entry[0].changes[0]?.value?.messages[0]?.id;
 
     //Text Message
     if (body?.entry[0].changes[0]?.value?.messages[0]?.type === "text") {
