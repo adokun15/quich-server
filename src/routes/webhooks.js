@@ -1,5 +1,4 @@
 import express from "express";
-import bodyParser from "body-parser";
 import {
   whatsapp_verify_controller,
   whatsapp_webhook_controller,
@@ -42,18 +41,12 @@ const processWebhook = async (req, handler) => {
 
 // store the raw request body to use it for signature verification
 
-function captureRawBody(req, res, buf) {
-  if (buf && buf.length) {
-    req.rawBody = buf;
-  }
-}
-
 //Whatsapp webhook;
 webhook
   .route("/whatsapp")
   .get(whatsapp_verify_controller)
   .post(
-    bodyParser.json({ verify: captureRawBody }),
+    express.raw({ type: "*/*", limit: "1mb" }),
     whatsapp_webhook_controller,
   );
 

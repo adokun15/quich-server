@@ -64,14 +64,13 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
   //1.Send Back a Response : Acknowledge request!
   res.status(200).json({ message: "Webhook_Received" });
 
+  console.log(req.body);
   //2. Verify Request
   const signature = req.headers["x-hub-signature-256"];
 
-  const isValid = verifySignature(
-    req.rawBody,
-    signature,
-    process.env.META_APP_SECRET,
-  );
+  const raw = req.body.toString("utf8");
+
+  const isValid = verifySignature(raw, signature, process.env.META_APP_SECRET);
 
   console.log(isValid);
   if (!isValid) {
