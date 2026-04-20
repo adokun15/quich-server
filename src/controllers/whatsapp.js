@@ -52,7 +52,6 @@ export const whatsapp_verify_controller = async (req, res, next) => {
     mode === "subscribe" &&
     token === process.env.WHATSAPP_VERIFICATION_TOKEN
   ) {
-    console.log("Whatsapp Webhook verified");
     return res.status(200).send(challenge);
   }
   return res.sendStatus(403);
@@ -81,13 +80,16 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
 
   //4. Idempotency
 
+  //5. Response
   //--------Incoming Message-------
   if (type === "message") {
     //Text: Usally first step
     if (message_type === "text") {
       //1. Check user conversation state;
-      const state = await getUserConvoState(phone);
+      console.log(whatsapp_message_webhook_processsor(req.body));
+      return WhatsappTextMessage({ phone, text_message: "RECEIVED ONCE!" });
 
+      /*  const state = await getUserConvoState(phone);
       //Check if user is active;
       if (state?.active) {
         //Check and see if user is passing just text
@@ -144,6 +146,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
         //Ask if they need help, want to create an account, support
         await SendHelpToNewUser();
       }
+   */
     }
 
     //Interactive:
