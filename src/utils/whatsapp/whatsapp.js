@@ -10,7 +10,6 @@ export const WhatsappUrlForMessages = async ({ payload }) => {
     body: JSON.stringify(payload),
   };
 
-  console.log(option, "option");
   try {
     const api_endpoint = await fetch(
       `https://graph.facebook.com/v21.0/${process.env.WHATSAPP_PHONENUMBER_ID}/messages`,
@@ -43,10 +42,12 @@ export const WhatsappUrlForMessages = async ({ payload }) => {
     }
   */
     if (res?.error) {
+      console.log(res?.error);
       throw new CustomError(res?.error?.message);
     }
     return { status: "success", res };
   } catch (e) {
+    console.log(e);
     return { status: "failed", message: e?.message || "Failed to send!" };
   }
 };
