@@ -66,7 +66,11 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
 
   //2. Verify Request
   const signature = req.headers["x-hub-signature-256"];
-  const isValid = verifySignature(req.body, signature, process.env.META_SECRET);
+  const isValid = verifySignature(
+    req.body,
+    signature,
+    process.env.META_APP_SECRET,
+  );
   if (!isValid) {
     return res.status(401).send("Invalid Signature");
   }
