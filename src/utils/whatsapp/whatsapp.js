@@ -1,14 +1,13 @@
 import CustomError from "../error/error.js";
 
 export const WhatsappUrlForMessages = async ({ payload }) => {
-  console.log(payload);
   const option = {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ...payload }),
+    body: JSON.stringify(payload),
   };
 
   try {
@@ -18,6 +17,7 @@ export const WhatsappUrlForMessages = async ({ payload }) => {
     );
 
     const res = await api_endpoint.json();
+
     console.log(res);
 
     //Res can be
