@@ -8,6 +8,7 @@ export function verifySignature(rawBody, signatureHeader, secret) {
   const expected =
     "sha256=" +
     crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+  console.log(expected);
   return crypto.timingSafeEqual(
     Buffer.from(signatureHeader),
     Buffer.from(expected),
