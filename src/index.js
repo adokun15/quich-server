@@ -19,8 +19,10 @@ import categoryRoute from "./routes/category.js";
 
 const app = express();
 
-app.use(json());
 app.use(cors());
+app.use("/webhook", webhook);
+
+app.use(json());
 
 //Browser authorization
 app.use("/auth", authRoute);
@@ -36,8 +38,6 @@ app.use("/orders", orderRoute);
 
 //seller private customers route
 app.use("/customers", customerRoute);
-
-app.use("/webhook", webhook);
 
 app.use("/flow", endpointFlowRoute);
 
