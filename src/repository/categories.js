@@ -39,22 +39,26 @@ export const CreateCategoryRepository = async ({
     const res = await pool.query(query_text, [store_id, category_name, slug]);
     return { category: res.rows[0] };
   } catch (e) {
-    console.log(e);
     throw new CustomError(e);
   }
 };
 
 //Transactional:
 export const updateCategory = async ({ updates, category_id, store_id }) => {
-  const allowedField = ["name", "isVisible"];
+  const allowedField = ["name", "isvisible"];
 
   const { fields, setClause, values } = ClauseExtractor({
     updates,
-    id: category_id,
   });
-  if (!allowedField.includes(fields.toLowerCase())) {
-    throw Error("Invalid field!");
+
+  const isAllowed = fields.some((field) =>
+    allowedField.includes(field.toLowerCase()),
+  );
+
+  if (!isAllowed) {
+    throw new CustomError("Invalid field!", 400);
   }
+
   const client = await pool.client();
   try {
     await client.query("BEGIN");
@@ -84,7 +88,6 @@ export const getCategoriesFromDb = async ({
   sortOrder = "DESC",
 }) => {
   try {
-    console.log(store_id);
     const res = await pool.query(
       `
       select *
@@ -106,7 +109,6 @@ AND (
 
     return { categories: res.rows };
   } catch (e) {
-    console.log(e);
     throw new CustomError(e?.message);
   }
 };
@@ -128,9 +130,8 @@ export const getSingleCategory = async ({ store_id, category_id }) => {
       [store_id, category_id],
     );
 
-    return { category: res.rows };
+    return { category: res.rows[0] };
   } catch (e) {
-    console.log(e);
     throw new CustomError(e?.message);
   }
 };
@@ -149,7 +150,6 @@ export const DeleteCategory = async ({ category_id, store_id }) => {
 
     return { deleted_category: res.rows[0] };
   } catch (e) {
-    console.log(e);
     throw new CustomError(e?.message);
   }
 };

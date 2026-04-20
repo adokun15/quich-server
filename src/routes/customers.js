@@ -1,6 +1,7 @@
 import express from "express";
 import AsyncError from "../utils/error/AsyncError.js";
 import {
+  DeleteCustomerController,
   getAllCustomersController,
   getSingleCustomerController,
   updateCustomerStatus,
@@ -36,9 +37,15 @@ customerRoute.get(
   AsyncError(getSingleCustomerController),
 );
 
-customerRoute.post(
+customerRoute.patch(
   "/:customer_id",
   AuthorizationRouteMiddleware,
   AsyncError(updateCustomerStatus),
+);
+
+customerRoute.delete(
+  "/:customer_id",
+  AuthorizationRouteMiddleware,
+  AsyncError(DeleteCustomerController),
 );
 export default customerRoute;

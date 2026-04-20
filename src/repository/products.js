@@ -38,13 +38,13 @@ export const updateProduct = async ({ product_id, updates, store_id }) => {
     const res = await pool.query(
       `
         UPDATE products SET ${setClause} where id = $${q.length - 1} AND store_id = $${q.length} 
-        RETURNING *;
+        RETURNING id;
         `,
       q,
     );
     return res.rows[0];
   } catch (e) {
-    throw new CustomError(e);
+    throw new CustomError(e?.message);
   }
 };
 
@@ -78,7 +78,7 @@ export const getProducts = async ({
 
     return { products: res.rows };
   } catch (e) {
-    console.log(e);
+    // console.log(e);
     throw new CustomError(e);
   }
 };
@@ -90,13 +90,14 @@ export const getSingleProduct = async ({ store_id, product_id }) => {
   select p.*, to_jsonb(c) as category_info 
    from products p left join category c 
    on p.category_id = c.id
-   where p.merchant_id = $1 AND p.id = $2
+   where p.store_id = $1 AND p.id = $2
      `,
       [store_id, product_id],
     );
     return { product: res.rows[0] };
   } catch (e) {
-    throw new CustomError(e);
+    console.log(e);
+    throw new CustomError(e?.message);
   }
 };
 
@@ -104,12 +105,12 @@ export const DeleteProduct = async ({ product_id, store_id }) => {
   try {
     const res = await pool.query(
       `
-      DELETE FROM products WHERE id = $1 AND merchant_id = $2
-      RETURNING *
+      DELETE FROM products WHERE id = $1 AND store_id = $2
+      RETURNING id;
      `,
       [product_id, store_id],
     );
-    return { deleted_product: res.rows[0] };
+    return res.rows[0];
   } catch (e) {
     throw new CustomError(e);
   }

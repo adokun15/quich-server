@@ -39,7 +39,7 @@ export const EditSingleProductForAdmin = async function ({
     const updated_data = await updateProduct({ product_id, store_id, updates });
     return updated_data;
   } catch (err) {
-    throw new CustomError(e?.message);
+    throw new CustomError(err?.message);
   }
 };
 

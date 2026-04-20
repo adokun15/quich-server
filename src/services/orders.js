@@ -98,10 +98,10 @@ export const getOrders = async ({ store_id, filters }) => {
 };
 
 //accessible by anyone:
-export const getSingleOrder = async ({ order_id }) => {
+export const getSingleOrder = async ({ store_id, order_id }) => {
   //Auth: Device id, ips address and rate limit 1request/1sec
   try {
-    const order = await getOrderDetailsFromDb({ order_id });
+    const order = await getOrderDetailsFromDb({ store_id, order_id });
     return order;
   } catch (e) {
     throw new CustomError(e?.message);

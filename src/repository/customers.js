@@ -36,14 +36,14 @@ export const CreateCustomerforDb = async ({ phone, store_id, name = null }) => {
 };
 
 //Incomplete: add Orders Table
-export const getSingleCustomerFromDb = async ({ storeId, customerId }) => {
+export const getSingleCustomerFromDb = async ({ store_id, customer_id }) => {
   try {
     //
     const query_text_customers = ` 
     ------- CUSTOMER Info! ----
     SELECT 
     cs.*, 
-    buyer.phone as phone 
+    buyer.phone as phone, 
     (
       SELECT COALESCE(jsonb_agg(o.*), '[]')
       FROM (
@@ -59,7 +59,7 @@ export const getSingleCustomerFromDb = async ({ storeId, customerId }) => {
     where cs.store_id = $1 AND cs.customer_id = $2
     `;
 
-    const res = await pool.query(query_text_customers, [storeId, customerId]);
+    const res = await pool.query(query_text_customers, [store_id, customer_id]);
     return res.rows[0];
   } catch (e) {
     console.log(e);
@@ -124,11 +124,16 @@ export const UpdateCustomerFromDb = async ({
   customer_id,
   store_id,
 }) => {
-  const { setClause, values } = ClauseExtractor({ updates });
+  const { setClause, values, fields } = ClauseExtractor({ updates });
 
   const allowedField = ["email", "tag", "blacklisted", "name"];
-  if (!allowedField.includes(field.toLowerCase())) {
-    throw Error("Invalid field!");
+
+  const isAllowed = fields.some((field) =>
+    allowedField.includes(field.toLowerCase()),
+  );
+
+  if (!isAllowed) {
+    throw new CustomError("Invalid field!", 400);
   }
 
   try {

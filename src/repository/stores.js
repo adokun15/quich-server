@@ -42,8 +42,6 @@ export const GetMerchantStoreDetail = async (query) => {
 };
 
 export const UpdateMerchantStoreDB = async ({ updates, store_id }) => {
-  const field = Object.keys(updates);
-
   const allowedField = [
     "category",
     "slug",
@@ -53,12 +51,18 @@ export const UpdateMerchantStoreDB = async ({ updates, store_id }) => {
     "address",
     "video_profile",
   ];
+  const { id, setClause, values, fields } = ClauseExtractor({
+    updates,
+    id: store_id,
+  });
 
-  if (!allowedField.includes(field.toLowerCase())) {
-    throw Error("Invalid field!");
+  const isAllowed = fields.some((field) =>
+    allowedField.includes(field.toLowerCase()),
+  );
+
+  if (!isAllowed) {
+    throw new CustomError("Invalid field!", 400);
   }
-
-  const { id, setClause, values } = ClauseExtractor({ updates, id: store_id });
 
   try {
     const query_text = `      

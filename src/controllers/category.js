@@ -103,7 +103,7 @@ export const getSingleCategoryController = async (req, res, next) => {
       category_id: categoryId,
       store_id,
     });
-    res.json({ data: single_category, status: true });
+    res.json({ data: single_category?.category, status: true });
   } catch (e) {
     next(e);
   }

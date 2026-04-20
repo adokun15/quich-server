@@ -132,9 +132,9 @@ export const getOrdersFromDb = async ({
   }
 };
 
-export const getOrderDetailsFromDb = async ({ order_id }) => {
+export const getOrderDetailsFromDb = async ({ store_id, order_id }) => {
   try {
-    //By MERCHANT ID OR BY CUSTOMER ID
+    //By store ID OR BY CUSTOMER ID
     const query_text = ` 
     SELECT 
       o.*,
@@ -146,11 +146,11 @@ export const getOrderDetailsFromDb = async ({ order_id }) => {
     FROM orders o
     LEFT JOIN customer_store cs
     on cs.customer_id = o.customer_id
-    LEFT JOIN customer c
+    LEFT JOIN customers c
     on  c.id = o.customer_id
-    WHERE id = $1 
+    WHERE o.id = $1 AND o.store_id = $2
     `;
-    const res = await pool.query(query_text, [order_id]);
+    const res = await pool.query(query_text, [order_id, store_id]);
     return res.rows[0];
   } catch (e) {
     console.log(e);
@@ -159,25 +159,30 @@ export const getOrderDetailsFromDb = async ({ order_id }) => {
 };
 
 export const UpdateOrderForDb = async ({ updates, store_id, order_id }) => {
-  const { id, setClause, values, fields } = ClauseExtractor({
+  const { setClause, values, fields } = ClauseExtractor({
     updates,
-    id: order_id,
   });
 
   //Add Address
   const allowedField = ["note", "address", "status"];
 
-  if (!allowedField.includes(fields.toLowerCase())) {
-    throw Error("Invalid field!");
+  const isAllowed = fields.some((field) =>
+    allowedField.includes(field.toLowerCase()),
+  );
+
+  if (!isAllowed) {
+    throw new CustomError("Invalid field!", 400);
   }
 
   try {
-    const query_text = ` UPDATE orders
+    const para_query = [...values, order_id, store_id];
+    const query_text = ` 
+    UPDATE orders
     SET ${setClause}
-    WHERE id = $${id} 
-    returning *;
+    WHERE id = $${values.length - 1} AND store_id = $${values.length}  
+    returning id, status, note, address;
     `;
-    const res = await pool.query(query_text, values);
+    const res = await pool.query(query_text, para_query);
     return res.rows[0];
   } catch (e) {
     throw new CustomError(e);

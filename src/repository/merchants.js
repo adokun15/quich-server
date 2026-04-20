@@ -26,8 +26,12 @@ export const UpdateMerchantFromDb = async ({ updates, merchant_id }) => {
 
   const allowedField = ["id", "email", "name", "phone"];
 
-  if (!allowedField.includes(values.toLowerCase())) {
-    throw Error("Invalid field!");
+  const isAllowed = fields.some((field) =>
+    allowedField.includes(field.toLowerCase()),
+  );
+
+  if (!isAllowed) {
+    throw new CustomError("Invalid field!", 400);
   }
 
   try {
