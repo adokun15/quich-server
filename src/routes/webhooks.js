@@ -43,8 +43,8 @@ const processWebhook = async (req, handler) => {
 // store the raw request body to use it for signature verification
 webhook.use(
   express.json({
-    verify: (req, res, buf, encoding) => {
-      req.rawBody = buf?.toString(encoding || "utf8");
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
     },
   }),
 );
