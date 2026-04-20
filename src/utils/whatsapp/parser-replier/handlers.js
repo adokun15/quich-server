@@ -235,6 +235,7 @@ export const handleMenu = async (intent, phone) => {
 export const whatsapp_message_webhook_processsor = (body) => {
   let temp = {};
 
+  console.log(JSON.stringify(body));
   //Incoming messages
   if (
     body?.object === "whatsapp_business_account" &&
