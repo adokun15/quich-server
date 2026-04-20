@@ -1,7 +1,5 @@
 import crypto from "crypto";
 
-const crypto = require("crypto");
-
 //VERIFY whatsapp message webhook is valid;
 export function verifySignature(rawBody, signatureHeader, secret) {
   const expected =
