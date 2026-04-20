@@ -97,8 +97,9 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
         phone,
         text_message: `RECEIVED ONCE!: ${name}:${payload}`,
       });
+
       console.log(message);
-      return message;
+      return res.json({ json: message });
 
       /*  const state = await getUserConvoState(phone);
       //Check if user is active;
