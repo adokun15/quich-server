@@ -1,4 +1,5 @@
 import express from "express";
+import bodyParser from "body-parser";
 import {
   whatsapp_verify_controller,
   whatsapp_webhook_controller,
