@@ -2,11 +2,11 @@
 
 import { WhatsappUrlForMessages } from "../../whatsapp.js";
 
-export const WhatsappTextMessage = async (
+export const WhatsappTextMessage = async ({
   phone,
   text_message,
   enable_preview = false,
-) => {
+}) => {
   const message = {
     messaging_product: "whatsapp",
     recipient_type: "individual",

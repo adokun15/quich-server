@@ -1,7 +1,6 @@
 import CustomError from "../error/error.js";
 
 export const WhatsappUrlForMessages = async ({ payload }) => {
-  console.log(payload);
   const option = {
     method: "POST",
     headers: {
