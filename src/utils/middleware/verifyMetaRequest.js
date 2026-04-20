@@ -2,6 +2,9 @@ import crypto from "crypto";
 
 //VERIFY whatsapp message webhook is valid;
 export function verifySignature(rawBody, signatureHeader, secret) {
+  console.log(signatureHeader);
+  console.log(rawBody);
+  console.log(secret);
   const expected =
     "sha256=" +
     crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
