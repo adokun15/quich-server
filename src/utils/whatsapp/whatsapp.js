@@ -17,6 +17,7 @@ export const WhatsappUrlForMessages = async ({ payload }) => {
       option,
     );
 
+    console.log(JSON.stringify(api_endpoint));
     const res = await api_endpoint.json();
     console.log(res);
 

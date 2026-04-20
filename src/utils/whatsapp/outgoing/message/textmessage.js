@@ -10,7 +10,7 @@ export const WhatsappTextMessage = async ({
   const message = {
     messaging_product: "whatsapp",
     recipient_type: "individual",
-    to: `+${phone}`,
+    to: `${phone}`,
     type: "text",
     text: {
       preview_url: enable_preview,
@@ -19,8 +19,12 @@ export const WhatsappTextMessage = async ({
   };
 
   console.log(message);
-  const api_endpoint = await WhatsappUrlForMessages({ payload: message });
-  //{status: 'success' | 'error', message: if 'failed'}
-  console.log(api_endpoint);
-  return api_endpoint;
+  try {
+    const api_endpoint = await WhatsappUrlForMessages({ payload: message });
+    //{status: 'success' | 'error', message: if 'failed'}
+    console.log(api_endpoint);
+    return api_endpoint;
+  } catch (e) {
+    console.log("From WhatsappTextMessage", e);
+  }
 };
