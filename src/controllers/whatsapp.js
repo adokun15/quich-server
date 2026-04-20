@@ -66,18 +66,21 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
 
   console.log(req.body);
   //2. Verify Request
+
   const signature = req.headers["x-hub-signature-256"];
 
-  const raw = req.body.toString("utf8");
+  const raw = req.body; // ✅ buffer
 
   const isValid = verifySignature(raw, signature, process.env.META_APP_SECRET);
 
-  console.log(isValid);
   if (!isValid) {
     return res.status(401).send("Invalid Signature");
   }
 
-  console.log("Verified Webhook Payload:", req.body.toString());
+  // now safe to parse
+  const body = JSON.parse(raw.toString("utf8"));
+
+  console.log("Verified:", body);
 
   //3. Process & Transform Message
   //What did the Whatsapp send, then transform 'whatsapp' object;

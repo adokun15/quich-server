@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
 //VERIFY whatsapp message webhook is valid;
-export function verifySignature(rawBody, signatureHeader, secret) {
+/*export function verifySignature(rawBody, signatureHeader, secret) {
   console.log(signatureHeader);
   console.log(rawBody);
   console.log(secret);
@@ -13,6 +13,23 @@ export function verifySignature(rawBody, signatureHeader, secret) {
     Buffer.from(signatureHeader),
     Buffer.from(expected),
   );
+}
+*/
+
+export function verifySignature(rawBody, signatureHeader, secret) {
+  if (!signatureHeader) return false;
+
+  const expectedHash = crypto
+    .createHmac("sha256", secret)
+    .update(rawBody)
+    .digest("hex");
+
+  const incoming = Buffer.from(signatureHeader.replace("sha256=", ""), "hex");
+
+  const expected = Buffer.from(expectedHash, "hex");
+
+  console.log(expected, incoming);
+  return crypto.timingSafeEqual(expected, incoming);
 }
 
 //For Flow endpoint verification;
