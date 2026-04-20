@@ -13,7 +13,7 @@ export const WhatsappUrlForMessages = async ({ payload }) => {
   console.log(option);
   try {
     const api_endpoint = await fetch(
-      `https://graph.facebook.com/v21.0/${process.env.WHATSAPP_PHONENUMBER_ID}/messages`,
+      `https://graph.facebook.com/v25.0/${process.env.WHATSAPP_PHONENUMBER_ID}/messages`,
       option,
     );
 
