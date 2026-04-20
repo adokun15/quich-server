@@ -80,6 +80,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
   // now safe to parse
   const body = JSON.parse(raw.toString("utf8"));
 
+  console.log(body?.entry[0]);
   //3. Process & Transform Message
   //What did the Whatsapp send, then transform 'whatsapp' object;
   const { type, message_type, payload, name, phone } =
