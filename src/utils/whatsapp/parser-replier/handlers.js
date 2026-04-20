@@ -235,7 +235,7 @@ export const handleMenu = async (intent, phone) => {
 export const whatsapp_message_webhook_processsor = (body) => {
   let temp = {};
 
-  console.log(JSON.stringify(body));
+  //console.log(JSON.stringify(body));
   //Incoming messages
   if (
     body?.object === "whatsapp_business_account" &&
@@ -243,8 +243,8 @@ export const whatsapp_message_webhook_processsor = (body) => {
     !body?.entry[0]?.changes[0]?.value?.statuses
   ) {
     temp.name = body?.entry[0].changes[0]?.value?.contacts[0]?.profile?.name;
-    temp.phone =
-      body?.entry[0].changes[0]?.value?.metadata?.display_phone_number;
+    temp.phone = body?.entry[0].changes[0]?.value?.contact[0]?.wa_id;
+    temp.userId = body?.entry[0].changes[0]?.value?.contact[0]?.user_id;
 
     //Text Message
     if (body?.entry[0].changes[0]?.value?.messages[0]?.type === "text") {
@@ -308,3 +308,47 @@ export const whatsapp_message_webhook_processsor = (body) => {
   //Phone number change!
   return temp;
 };
+/*
+
+{
+    
+    "object": "whatsapp_business_account",
+    "entry": [
+        {
+            "id": "503154619538690",
+            "changes": [
+                {
+                    "value": {
+                        "messaging_product": "whatsapp",
+                        "metadata": {
+                            "display_phone_number": "2347057413268",
+                            "phone_number_id": "494335407087782"
+                        },
+                        "contacts": [
+                            {
+                                "profile": {
+                                    "name": "Ohida"
+                                },
+                                "wa_id": "2348129584035",
+                                "user_id": "NG.1263010485955944"
+                            }
+                        ],
+                        "messages": [
+                            {
+                                "from": "2348129584035",
+                                "from_user_id": "NG.1263010485955944",
+                                "id": "wamid.HBgNMjM0ODEyOTU4NDAzNRUCABIYIEE1MzI4QjdGRkZFMkQ2MDQzMjQ1Q0Q2QUEwMkQ3OTkzAA==",
+                                "timestamp": "1776722099",
+                                "text": {
+                                    "body": "Heyyy"
+                                },
+                                "type": "text"
+                            }
+                        ]
+                    },
+                    "field": "messages"
+                }
+            ]
+        }
+    ]
+}*/
