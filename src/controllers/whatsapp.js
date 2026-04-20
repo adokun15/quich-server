@@ -92,7 +92,6 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
   if (type === "message") {
     //Text: Usally first step
     if (message_type === "text") {
-      console.log(phone);
       //1. Check user conversation state;
       const message = await WhatsappTextMessage({
         phone,
