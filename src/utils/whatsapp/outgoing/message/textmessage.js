@@ -20,6 +20,5 @@ export const WhatsappTextMessage = async ({
 
   const api_endpoint = await WhatsappUrlForMessages({ payload: message });
   //{status: 'success' | 'error', message: if 'failed'}
-  console.log(api_endpoint);
   return api_endpoint;
 };
