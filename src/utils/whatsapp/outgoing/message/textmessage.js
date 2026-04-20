@@ -13,8 +13,8 @@ export const WhatsappTextMessage = async ({
     to: `+${phone}`,
     type: "text",
     text: {
-      body: text_message,
       preview_url: enable_preview,
+      body: text_message,
     },
   };
 
