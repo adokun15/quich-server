@@ -41,19 +41,19 @@ const processWebhook = async (req, handler) => {
 //});
 
 // store the raw request body to use it for signature verification
-webhook.use(
-  express.json({
-    verify: (req, res, buf) => {
-      req.rawBody = buf;
-    },
-  }),
-);
 
 //Whatsapp webhook; aDD A
 webhook
   .route("/whatsapp")
   .get(whatsapp_verify_controller)
-  .post(whatsapp_webhook_controller);
+  .post(
+    express.json({
+      verify: (req, res, buf) => {
+        req.rawBody = buf;
+      },
+    }),
+    whatsapp_webhook_controller,
+  );
 
 //Paystack Subscription only
 webhook.post(
