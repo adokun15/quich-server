@@ -1,24 +1,16 @@
 import crypto from "crypto";
 
+const crypto = require("crypto");
+
 //VERIFY whatsapp message webhook is valid;
-export function verifySignature(req) {
-  const signature = req.headers["x-hub-signature-256"];
-
-  if (!signature) return false;
-
-  console.log(req.rawBody);
-
-  if (!req.rawBody) {
-    console.log("No Rawbody!");
-    return false;
-  }
-
-  const hash = crypto
-    .createHmac("sha256", process.env.META_APP_SECRET)
-    .update(req.rawBody)
-    .digest("hex");
-
-  return signature === `sha256=${hash}`;
+export function verifySignature(rawBody, signatureHeader, secret) {
+  const expected =
+    "sha256=" +
+    crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+  return crypto.timingSafeEqual(
+    Buffer.from(signatureHeader),
+    Buffer.from(expected),
+  );
 }
 
 //For Flow endpoint verification;

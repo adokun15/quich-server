@@ -46,14 +46,7 @@ const processWebhook = async (req, handler) => {
 webhook
   .route("/whatsapp")
   .get(whatsapp_verify_controller)
-  .post(
-    express.json({
-      verify: (req, res, buf) => {
-        req.rawBody = buf;
-      },
-    }),
-    whatsapp_webhook_controller,
-  );
+  .post(express.raw({ type: "*/*" }), whatsapp_webhook_controller);
 
 //Paystack Subscription only
 webhook.post(
