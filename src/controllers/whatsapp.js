@@ -87,7 +87,6 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
     whatsapp_message_webhook_processsor(body);
 
   //4. Idempotency
-  console.log(whatsapp_message_webhook_processsor(body));
 
   //5. Response
   //--------Incoming Message-------
@@ -95,7 +94,10 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
     //Text: Usally first step
     if (message_type === "text") {
       //1. Check user conversation state;
-      return WhatsappTextMessage({ phone, text_message: "RECEIVED ONCE!" });
+      return WhatsappTextMessage({
+        phone,
+        text_message: `RECEIVED ONCE!: ${payload}`,
+      });
 
       /*  const state = await getUserConvoState(phone);
       //Check if user is active;

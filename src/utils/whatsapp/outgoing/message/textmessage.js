@@ -10,7 +10,7 @@ export const WhatsappTextMessage = async (
   const message = {
     messaging_product: "whatsapp",
     recipient_type: "individual",
-    to: `+234${phone}`,
+    to: phone,
     type: "text",
     text: {
       body: text_message,
