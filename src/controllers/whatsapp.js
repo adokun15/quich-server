@@ -80,7 +80,6 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
   // now safe to parse
   const body = JSON.parse(raw.toString("utf8"));
 
-  console.log(body?.entry[0]);
   //3. Process & Transform Message
   //What did the Whatsapp send, then transform 'whatsapp' object;
   const { type, message_type, payload, name, phone } =
@@ -93,11 +92,14 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
   if (type === "message") {
     //Text: Usally first step
     if (message_type === "text") {
+      console.log(phone);
       //1. Check user conversation state;
-      return WhatsappTextMessage({
+      const message = await WhatsappTextMessage({
         phone,
-        text_message: `RECEIVED ONCE!: ${payload}`,
+        text_message: `RECEIVED ONCE!: ${name}:${payload}`,
       });
+      console.log(message);
+      return message;
 
       /*  const state = await getUserConvoState(phone);
       //Check if user is active;
