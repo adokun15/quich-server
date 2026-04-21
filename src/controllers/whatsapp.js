@@ -96,7 +96,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
       //1. Check user conversation state;
 
       //Add to Queue
-      return await whatsappQueue.add(
+      const job = await whatsappQueue.add(
         "send-message",
         {
           phone,
@@ -112,6 +112,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
         },
       );
 
+      console.log("JOB CREATED:", job.id);
       //  const message = await WhatsappTextMessage({
       //  phone,
       //  text_message: `RECEIVED ONCE!: ${name}:${payload}`,
