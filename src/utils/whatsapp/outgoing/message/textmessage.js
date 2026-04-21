@@ -1,5 +1,4 @@
 //Utility Function to Send text to user;
-
 export const WhatsappTextMessage = async ({
   phone,
   text_message,

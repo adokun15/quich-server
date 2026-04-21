@@ -39,6 +39,7 @@ import {
   UpdateUserConvoState,
 } from "../services/conversation_state.js";
 import { detectIntent } from "../utils/whatsapp/parser-replier/parser.js";
+import { whatsappQueue } from "../utils/Queues/WhatsappQueue.js";
 
 //Only webhook can call this route
 // this controller is only meant to transform this request
@@ -93,13 +94,27 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
     //Text: Usally first step
     if (message_type === "text") {
       //1. Check user conversation state;
-      const message = await WhatsappTextMessage({
-        phone,
-        text_message: `RECEIVED ONCE!: ${name}:${payload}`,
-      });
 
-      console.log(message);
-      return message;
+      //Add to Queue
+      return await whatsappQueue.add(
+        "send-message",
+        {
+          phone,
+          text_message: `RECEIVED ONCE!: ${name}:${payload}`,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: "exponential",
+            delay: 2000,
+          },
+        },
+      );
+
+      //  const message = await WhatsappTextMessage({
+      //  phone,
+      //  text_message: `RECEIVED ONCE!: ${name}:${payload}`,
+      // });
 
       /*  const state = await getUserConvoState(phone);
       //Check if user is active;
