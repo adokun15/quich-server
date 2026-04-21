@@ -83,7 +83,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
   //What did the Whatsapp send, then transform 'whatsapp' object;
 
   //message_id
-  const { type, message_type, userId, payload, name, phone } =
+  const { type, message_type, messageId, userId, payload, name, phone } =
     whatsapp_message_webhook_processsor(body);
   //4. Idempotency
 
@@ -103,6 +103,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
           text_message: `RECEIVED ONCE!: ${name}:${payload}`,
         },
         {
+          jobId: messageId,
           attempts: 3,
           backoff: {
             type: "exponential",
