@@ -39,7 +39,7 @@ import {
   UpdateUserConvoState,
 } from "../services/conversation_state.js";
 import { detectIntent } from "../utils/whatsapp/parser-replier/parser.js";
-import { whatsappQueue } from "../utils/Queues/WhatsappQueue.js";
+//import { whatsappQueue } from "../utils/Job/WhatsappQueue.js";
 
 //Only webhook can call this route
 // this controller is only meant to transform this request
@@ -96,7 +96,7 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
       //1. Check user conversation state;
 
       //Add to Queue
-      const job = await whatsappQueue.add(
+      /*   const job = await whatsappQueue.add(
         "send-message",
         {
           phone,
@@ -111,8 +111,15 @@ export const whatsapp_webhook_controller = async (req, res, next) => {
           },
         },
       );
+*/
+      /* 
+   This script is supposedly created to chat with user: 
+   But at the momnet i have not acquire the knowledge to
+   run jobs yet so for that we are cancelling the webhook;
 
-      console.log("JOB CREATED:", job.id);
+*/
+
+      console.log("");
       //  const message = await WhatsappTextMessage({
       //  phone,
       //  text_message: `RECEIVED ONCE!: ${name}:${payload}`,

@@ -10,16 +10,15 @@ import {
 } from "../repository/products.js";
 import CustomError from "../utils/error/error.js";
 
-//From Whatsapp;
 export const CreateProductForAdmin = async function ({ store_id, data }) {
   try {
     //Create Product for user: Later if user want to create on browser
     const res = await CreateProduct({
       store_id,
-      desc: data.desc,
+      desc: data.description,
       name: data.name,
       price: data.price,
-      quantity: data,
+      quantity: data?.quantity,
     });
 
     //Return product

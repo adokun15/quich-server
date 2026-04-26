@@ -15,12 +15,12 @@ export const CreateProduct = async ({
       `
     INSERT INTO products 
     (store_id, name, price, quantity, description)
-    VALUES ($1, $2, $3, $4, $5,)
-    RETURNING *;
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id;
     `,
       [store_id, name, price, quantity, desc],
     );
-    return { product: res.rows[0] };
+    return res.rows[0];
   } catch (e) {
     throw new CustomError(e);
   }
@@ -56,12 +56,16 @@ export const getProducts = async ({
   OrderBy = "p.created_at", //p.price
   direction = "DESC",
   offset = 0,
-  limit = 20, //Default For Store Fetches only;
+  limit = 30, //Default For Store Fetches only;
 }) => {
+  /*
+   
+ */
   try {
     const res = await pool.query(
       `
     select p.*,
+    COUNT(p.id) OVER () as total_count,
     c.name as category_name,
     c.isVisible as category_visibility
     from products p 
@@ -72,13 +76,12 @@ export const getProducts = async ({
     order by ${OrderBy} ${direction}
     offset $3
     limit $4
-    `,
+      `,
       [store_id, search, offset, limit],
     );
-
-    return { products: res.rows };
+    return { products: res.rows, total_count: res?.rows[0]?.total_count };
   } catch (e) {
-    // console.log(e);
+    console.log(e);
     throw new CustomError(e);
   }
 };

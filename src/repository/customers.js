@@ -86,7 +86,6 @@ export const getCustomersFromDb = async ({
     throw new CustomError("Invalid Sort Field");
   }
 
-  console.log(storeId);
   try {
     const query_text = ` 
    SELECT 

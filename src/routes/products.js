@@ -2,6 +2,7 @@ import express from "express";
 import AsyncError from "../utils/error/AsyncError.js";
 
 import {
+  AddProductController,
   AddProductImageController,
   DeleteProductController,
   getAllProductsController,
@@ -9,6 +10,7 @@ import {
   UpdateProductController,
 } from "../controllers/products.js";
 import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
+import { ValidateQueryMiddleWare } from "../utils/middleware/VerifyQueryRequest.js";
 
 const productRoute = express.Router();
 
@@ -38,6 +40,9 @@ productRoute
 //Read only by merchant on their browser; Must be authorized
 productRoute
   .route("/")
-  .get(AuthorizationRouteMiddleware, AsyncError(getAllProductsController));
+  .all(AuthorizationRouteMiddleware)
+  .post(AsyncError(AddProductController))
+  //Add Ratelimit: 30req / min
+  .get(ValidateQueryMiddleWare, AsyncError(getAllProductsController));
 
 export default productRoute;

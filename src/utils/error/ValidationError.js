@@ -1,8 +1,8 @@
 class ValidationError extends Error {
-  constructor(message, statusCode, field) {
+  constructor(message, statusCode, details) {
     super(message);
     this.status = statusCode;
-    this.field = field;
+    this.details = details;
     Error.captureStackTrace(this, this.constructor);
   }
 }

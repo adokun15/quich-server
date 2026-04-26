@@ -7,8 +7,8 @@ import {
   getSingleCategoryService,
   updateSingleCategoryService,
 } from "../services/categoryService.js";
-import { getAllCustomers } from "../services/customers.js";
 import CustomError from "../utils/error/error.js";
+import ValidationError from "../utils/error/ValidationError.js";
 
 export const getAllCategoryController = async (req, res, next) => {
   const { store_id } = req?.user;
@@ -21,9 +21,8 @@ export const getAllCategoryController = async (req, res, next) => {
     //Validate filter and field
     const category = await getAllCategoryService({ store_id });
 
-    console.log(category);
     res.json({
-      data: { category: category.categories, page: 4, total_category: 90 },
+      data: { category: category.categories },
       status: true,
     });
   } catch (e) {
@@ -40,6 +39,7 @@ export const deleteCategoryController = async (req, res, next) => {
       store_id,
       category_id: categoryId,
     });
+
     res.json({ data: category, staus: true });
   } catch (e) {
     next(e);
@@ -51,17 +51,16 @@ export const createCategoryController = async (req, res, next) => {
   const { name } = req.body;
 
   if (!store_id) {
-    throw new CustomError("Unauthorized Access to Data!", 403);
+    // Auth Error
+    //throw new ValidationError("Unauthorized access to store data!", 401);
   }
 
   if (!name) {
-    throw new CustomError("Invalid Name", 400);
+    throw new ValidationError("Invalid data value!", 400);
   }
 
   try {
-    //Validate filter and field
     const category = await CreateCategoryService({ store_id, name });
-
     res.json({
       id: category.category?.id,
       status: true,
