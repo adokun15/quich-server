@@ -10,6 +10,7 @@ import {
   getUserBillingController,
   PaySubscriptionController,
 } from "../controllers/subscription.js";
+import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
 
 const userRoute = express.Router();
 
@@ -19,7 +20,7 @@ const userRoute = express.Router();
 //Browser (view & Update & Delete) for merchant
 userRoute
   .route("/")
-  .get(AsyncError(ViewMerchantController))
+  .get(AuthorizationRouteMiddleware, AsyncError(ViewMerchantController))
   .patch(AsyncError(UpdateMerchantController))
   .delete(AsyncError(deleteMerchantController));
 

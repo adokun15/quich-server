@@ -91,6 +91,7 @@ export const getOrders = async ({ store_id, filters }) => {
   //Set Filter From CONTROLLERS;
   try {
     const orders = await getOrdersFromDb({ store_id, ...filters });
+    
     return orders;
   } catch (e) {
     throw new CustomError(e?.message);

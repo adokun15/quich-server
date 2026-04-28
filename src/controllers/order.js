@@ -14,15 +14,25 @@ export const getAllOrdersController = async (req, res, next) => {
     throw new CustomError("Unauthorized Access to Order Data!", 403);
   }
 
+  let filters = req.query;
+
+  if (filters?.page) {
+    filters.offset = Number(filters?.page) - 1;
+  }
+
   try {
-    //Validate filter and field
-    const orders = await getOrders({ store_id });
+    const orders = await getOrders({ store_id, filters });
 
     res.json({
-      data: { orders: orders?.orders, page: 4, total_orders: 90 },
+      data: {
+        orders: orders?.orders,
+        page: filters?.page || 1,
+        total_orders: orders?.total_amount,
+      },
       status: true,
     });
   } catch (e) {
+    console.log(e);
     next(e);
   }
 };

@@ -11,7 +11,7 @@ import ValidationError from "../utils/error/ValidationError.js";
 //Handle filter
 export const getAllProductsController = async (req, res, next) => {
   try {
-    //Retrieve Mercahnt_id and Store_id from token
+    //Retrieve Store_id from token
     const { store_id } = req.user;
     let filter = req.query;
 
@@ -23,7 +23,7 @@ export const getAllProductsController = async (req, res, next) => {
     //Get Produsts
     const items = await getAllProductsForAdmin({
       store_id,
-      filter: filter,
+      filter,
     });
 
     res.json({

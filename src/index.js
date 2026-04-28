@@ -23,7 +23,6 @@ app.use(cors());
 app.use("/webhook", webhook);
 
 app.use(json());
-
 //Browser authorization
 app.use("/auth", authRoute);
 
@@ -41,7 +40,7 @@ app.use("/customers", customerRoute);
 
 app.use("/flow", endpointFlowRoute);
 
-app.use("/user", userRoute);
+app.use("/merchant", userRoute);
 
 //Temporary: remove soonn
 app.use("/db", dbRoute);

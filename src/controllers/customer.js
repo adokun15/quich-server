@@ -8,12 +8,21 @@ import CustomError from "../utils/error/error.js";
 export const getAllCustomersController = async (req, res, next) => {
   const { merchant_id, store_id } = req?.user;
 
+  let filters = req.query;
+
+  if (filters?.page) {
+    filters.offset = Number(filters?.page) - 1;
+  }
+
   try {
     //Validate filter and field
-    const customers = await getAllCustomers({ store_id });
+    const { customers, total_customers } = await getAllCustomers({
+      store_id,
+      filter: filters,
+    });
 
     res.json({
-      data: { customers, page: 4, total_customers: 90 },
+      data: { customers, page: filters?.page, total_customers },
       status: true,
     });
   } catch (e) {

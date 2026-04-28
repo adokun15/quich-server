@@ -88,10 +88,8 @@ export const getOrdersFromDb = async ({
     --cs.created_at AS member_since
     SELECT      
     o.id AS order_id,
-   -- COUNT(o.*) AS total_orders,
+    COUNT(o.id) OVER () AS total_orders,
     o.total_amount,
-    --sum(o.total_amount) AS total_order_amount,
-    --len(r) AS total_orders_made,
     o.status,
     o.created_at AS order_creation,
     c.phone AS customer_phone,
@@ -125,7 +123,7 @@ export const getOrdersFromDb = async ({
       limit,
       customer_id, //If null leave
     ]);
-    return { orders: res.rows };
+    return { orders: res.rows, total_amount: res.rows[0]?.total_orders };
   } catch (e) {
     console.log(e);
     throw new CustomError(e);

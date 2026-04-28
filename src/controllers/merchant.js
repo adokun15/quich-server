@@ -1,6 +1,9 @@
 //Get store & merchant table
 export const ViewMerchantController = async (req, res) => {
-  res.json(storeMerchant);
+  res.json({
+    data: {},
+    status: true,
+  });
 };
 
 export const deleteMerchantController = async (req, res) => {};

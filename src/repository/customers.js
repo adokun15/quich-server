@@ -89,7 +89,8 @@ export const getCustomersFromDb = async ({
   try {
     const query_text = ` 
    SELECT 
-   buyer.phone, cs.* 
+   buyer.phone, cs.*, 
+   COUNT(buyer.id) OVER () as total_customers
    from customer_store cs
    left join customers buyer 
    on cs.customer_id = buyer.id
@@ -110,8 +111,11 @@ export const getCustomersFromDb = async ({
       offset,
       limit,
     ]);
-    console.log(res.rows);
-    return res.rows;
+    //console.log(res.rows);
+    return {
+      customers: res.rows,
+      total_customers: res?.rows[0]?.total_customers,
+    };
   } catch (e) {
     console.log(e);
     throw new CustomError(e);

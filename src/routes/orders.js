@@ -9,6 +9,7 @@ import {
   UpdateOrderController,
 } from "../controllers/order.js";
 import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
+import { ValidateQueryMiddleWare } from "../utils/middleware/VerifyQueryRequest.js";
 const orderRoute = express.Router();
 
 //Get Merchant Orders
@@ -25,7 +26,11 @@ orderRoute
 //Read only by merchant on their browser; Must be authorized
 orderRoute
   .route("/")
-  .get(AuthorizationRouteMiddleware, AsyncError(getAllOrdersController))
+  .get(
+    AuthorizationRouteMiddleware,
+    ValidateQueryMiddleWare,
+    AsyncError(getAllOrdersController),
+  )
 
   //Rate Limit this endpoint!
   //Checkout: Create Customer / Order
