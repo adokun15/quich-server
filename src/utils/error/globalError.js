@@ -3,7 +3,7 @@ export function globalErr(err, req, res, next) {
 
   error.code = err?.status || 500;
   error.message =
-    typeof err === "string" ? err : err?.message || "SOMERHING WENT WRONG!";
+    typeof err === "string" ? err : err?.message || "Something went wrong!";
   error.details = err?.details || [];
 
   error.status = err?.status && false;

@@ -190,7 +190,7 @@ END$$;
      --Table Construct
         CREATE TABLE IF NOT EXISTS orders (  
         id SERIAL PRIMARY KEY,
-        customer_id UUID NOT NULL REFERENCES customer_store(customer_id) ON DELETE SET NULL,
+        customer_id UUID NOT NULL REFERENCES customer_store(customer_id) ON DELETE CASCADE,
         store_id UUID NOT NULL REFERENCES stores ON DELETE CASCADE,
         total_amount NUMERIC(15, 2) NOT NULL,
         cart_items json NOT NULL,
@@ -199,7 +199,7 @@ END$$;
         status order_status NOT NULL DEFAULT 'pending',
         updated_at TIMESTAMPTZ DEFAULT NOW(),
         created_at TIMESTAMPTZ DEFAULT NOW()
-        );   
+        );
         
         --Triggers (update at!)
         DROP TRIGGER IF EXISTS trg_orders_updated_at ON orders;

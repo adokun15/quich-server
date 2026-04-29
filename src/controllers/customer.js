@@ -42,6 +42,7 @@ export const updateCustomerStatus = async (req, res, next) => {
       customer_id,
       store_id,
     });
+    console.log(newCustomerData);
     res.json({ customer: newCustomerData, status: true });
   } catch (e) {
     next(e);
@@ -70,8 +71,8 @@ export const getSingleCustomerController = async (req, res, next) => {
     const { store_id } = req.user;
 
     const customer = await getSingleCustomer({ store_id, customer_id });
-    console.log(customer);
-    console.log(customer_id);
+    //  console.log(customer);
+    //console.log(customer_id);
     res.json({ customer, status: true });
   } catch (e) {
     next(e);

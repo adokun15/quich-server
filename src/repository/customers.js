@@ -127,6 +127,8 @@ export const UpdateCustomerFromDb = async ({
   customer_id,
   store_id,
 }) => {
+  //const { phone, ...UpdateWithOutPhone} = updates;
+
   const { setClause, values, fields } = ClauseExtractor({ updates });
 
   const allowedField = ["email", "tag", "blacklisted", "name"];
@@ -141,14 +143,15 @@ export const UpdateCustomerFromDb = async ({
 
   try {
     const para_query = [...values, customer_id, store_id];
-    const query_text = ` 
+
+    const query_text_customer_store = ` 
     UPDATE customer_store
     SET ${setClause}
-    WHERE customer_id = $${values.length - 1} AND store_id = $${values.length}  
-    returning *;
+    WHERE customer_id = $${para_query.length - 1} AND store_id = $${para_query.length}  
+    returning customer_id, name, tag, blacklisted, email;
      `;
 
-    const res = await pool.query(query_text, para_query);
+    const res = await pool.query(query_text_customer_store, para_query);
     return res.rows[0];
   } catch (e) {
     throw new CustomError(e);
@@ -157,13 +160,14 @@ export const UpdateCustomerFromDb = async ({
 
 export const DeleteCustomerDb = async ({ customer_id, store_id }) => {
   try {
-    const query_text = ` DELETE FROM customer_store 
+    const query_text = `DELETE FROM customer_store 
     where customer_id = $1 AND store_id = $2
-    returning *;
+    returning customer_id;
     `;
     const res = await pool.query(query_text, [customer_id, store_id]);
-    return res.rows[0];
+    return { id: res.rows[0]?.customer_id };
   } catch (e) {
+    console.log(e);
     throw new CustomError(e);
   }
 };
