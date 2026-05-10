@@ -12,6 +12,7 @@ import CustomError from "../utils/error/error.js";
 export const getSingleCategoryService = async ({ category_id, store_id }) => {
   try {
     const category = await getSingleCategory({ store_id, category_id });
+
     return category;
   } catch (e) {
     throw new CustomError(e.message);
@@ -44,7 +45,17 @@ export const updateSingleCategoryService = async ({
   updates,
 }) => {
   try {
-    const updated_data = await updateCategory({ updates, category_id });
+    const new_slug =
+      updates?.name && typeof updates?.name === "string"
+        ? updates?.name?.split(" ").join("_").toLowerCase()
+        : null;
+
+    const updated_data = await updateCategory({
+      new_slug,
+      updates,
+      category_id,
+      store_id,
+    });
     return updated_data;
   } catch (e) {
     throw new CustomError(e?.message);

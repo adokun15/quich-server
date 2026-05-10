@@ -9,6 +9,9 @@ const pool = new Pool({
   port: 5432, // default PostgreSQL port
 });
 
+pool.on("connect", (client) => {
+  console.log("DB connected!");
+});
 // export default pool;
 // for supabase postgres
 

@@ -10,10 +10,6 @@ import CustomError from "../utils/error/error.js";
 export const getAllOrdersController = async (req, res, next) => {
   const { merchant_id, store_id } = req.user;
 
-  if (!merchant_id || !store_id) {
-    throw new CustomError("Unauthorized Access to Order Data!", 403);
-  }
-
   let filters = req.query;
 
   if (filters?.page) {
@@ -32,7 +28,7 @@ export const getAllOrdersController = async (req, res, next) => {
       status: true,
     });
   } catch (e) {
-    console.log(e);
+    //console.log(e);
     next(e);
   }
 };
@@ -50,7 +46,7 @@ export const getOrderController = async (req, res, next) => {
 
     const order = await getSingleOrder({ store_id, order_id: orderId });
 
-    res.json({ order });
+    res.json({ order, status: true });
   } catch (e) {
     next(e);
   }
@@ -58,17 +54,23 @@ export const getOrderController = async (req, res, next) => {
 
 export const UpdateOrderController = async (req, res, next) => {
   try {
-    const { updates } = req.body;
+    const { updates, customer_id } = req.body;
     const { store_id } = req.user;
     const { orderId: order_id } = req.params;
 
     if (!updates) {
       throw new CustomError("Invalid Request!", 400);
     }
-    const order = await updateCustomerOrder({ updates, order_id, store_id });
+    const order = await updateCustomerOrder({
+      updates,
+      customer_id,
+      order_id,
+      store_id,
+    });
 
-    res.json({ order: order?.updated_order });
+    res.json({ order: order?.updated_order, status: true });
   } catch (e) {
+    console.log(e);
     next(e);
   }
 };
@@ -76,10 +78,19 @@ export const DeleteOrderController = async (req, res, next) => {
   try {
     const { orderId: order_id } = req.params;
     const { store_id } = req.user;
+    const { customer_id } = req.body;
 
-    const orderId = await DeleteSingleOrder({ store_id, order_id });
+    if (!customer_id) {
+      throw new CustomError("Invalid request!", 400);
+    }
 
-    res.json({ orderId });
+    const orderId = await DeleteSingleOrder({
+      store_id,
+      order_id,
+      customer_id,
+    });
+
+    res.json({ orderId, status: true });
   } catch (e) {
     next(e);
   }

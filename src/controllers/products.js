@@ -87,7 +87,6 @@ export const UpdateProductController = async (req, res, next) => {
     const { product_id } = req.params;
     const { updates } = req.body;
 
-    console.log(updates);
 
     //Validate update data;
     if (!updates) {

@@ -71,11 +71,21 @@ export const createOrderService = async ({
 };
 
 //Updated by webhook/merchant
-export const updateCustomerOrder = async ({ updates, order_id }) => {
+export const updateCustomerOrder = async ({
+  updates,
+  customer_id,
+  order_id,
+  store_id,
+}) => {
   //webhook: Acknowledge/reject;
   //merchant: add optional address;
   try {
-    const updated_order = await UpdateOrderForDb({ updates, order_id });
+    const updated_order = await UpdateOrderForDb({
+      updates,
+      customer_id,
+      order_id,
+      store_id,
+    });
     return { updated_order };
   } catch (e) {
     throw new CustomError(e?.message);
@@ -91,7 +101,7 @@ export const getOrders = async ({ store_id, filters }) => {
   //Set Filter From CONTROLLERS;
   try {
     const orders = await getOrdersFromDb({ store_id, ...filters });
-    
+
     return orders;
   } catch (e) {
     throw new CustomError(e?.message);
@@ -110,10 +120,18 @@ export const getSingleOrder = async ({ store_id, order_id }) => {
 };
 
 //Deletion by merchant:
-export const DeleteSingleOrder = async ({ store_id, order_id }) => {
+export const DeleteSingleOrder = async ({
+  store_id,
+  order_id,
+  customer_id,
+}) => {
   //Auth: Device id, ips address and rate limit 1request/1sec
   try {
-    const orderId = await DeleteOrderFromDb({ store_id, order_id });
+    const orderId = await DeleteOrderFromDb({
+      store_id,
+      order_id,
+      customer_id,
+    });
     return orderId;
   } catch (e) {
     throw new CustomError(e?.message);

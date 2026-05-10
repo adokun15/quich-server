@@ -1,6 +1,7 @@
 export function globalErr(err, req, res, next) {
   let error = {};
 
+  console.log(err);
   error.code = err?.status || 500;
   error.message =
     typeof err === "string" ? err : err?.message || "Something went wrong!";

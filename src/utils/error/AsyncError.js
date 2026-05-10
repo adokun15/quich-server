@@ -1,6 +1,3 @@
-import CustomError from "./error.js";
-
-//Timeout error
 export default function AsyncError(asyncFunc) {
   return (req, res, next) => {
     const Timeout = new Promise((res, rej) => {

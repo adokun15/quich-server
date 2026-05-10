@@ -40,7 +40,7 @@ export const deleteCategoryController = async (req, res, next) => {
       category_id: categoryId,
     });
 
-    res.json({ data: category, staus: true });
+    res.json({ data: category, status: true });
   } catch (e) {
     next(e);
   }

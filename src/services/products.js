@@ -34,12 +34,8 @@ export const EditSingleProductForAdmin = async function ({
   updates,
   product_id,
 }) {
-  try {
-    const updated_data = await updateProduct({ product_id, store_id, updates });
-    return updated_data;
-  } catch (err) {
-    throw new CustomError(err?.message);
-  }
+  const updated_data = await updateProduct({ product_id, store_id, updates });
+  return updated_data;
 };
 
 //DELETE PRODUCT:
@@ -77,13 +73,9 @@ export const getSingleProductForAdmin = async function ({
   store_id,
   product_id,
 }) {
-  try {
-    const products = await getSingleProduct({
-      product_id,
-      store_id,
-    });
-    return products;
-  } catch (e) {
-    throw new CustomError(e);
-  }
+  const products = await getSingleProduct({
+    product_id,
+    store_id,
+  });
+  return products;
 };

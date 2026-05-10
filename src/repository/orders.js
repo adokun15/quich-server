@@ -148,10 +148,14 @@ export const getOrderDetailsFromDb = async ({ store_id, order_id }) => {
     on  c.id = o.customer_id
     WHERE o.id = $1 AND o.store_id = $2
     `;
+
     const res = await pool.query(query_text, [order_id, store_id]);
+    if (res?.rows.length === 0) {
+      throw new CustomError("Order not found", 404);
+    }
+
     return res.rows[0];
   } catch (e) {
-    console.log(e);
     throw new CustomError(e);
   }
 };
@@ -161,14 +165,13 @@ export const UpdateOrderForDb = async ({ updates, store_id, order_id }) => {
     updates,
   });
 
-  //Add Address
   const allowedField = ["note", "address", "status"];
 
-  const isAllowed = fields.some((field) =>
-    allowedField.includes(field.toLowerCase()),
+  const isNotAllowed = fields.some(
+    (field) => !allowedField.includes(field.toLowerCase()),
   );
 
-  if (!isAllowed) {
+  if (isNotAllowed) {
     throw new CustomError("Invalid field!", 400);
   }
 
@@ -177,22 +180,38 @@ export const UpdateOrderForDb = async ({ updates, store_id, order_id }) => {
     const query_text = ` 
     UPDATE orders
     SET ${setClause}
-    WHERE id = $${values.length - 1} AND store_id = $${values.length}  
+    WHERE id = $${para_query.length - 1} 
+    AND store_id = $${para_query.length}  
     returning id, status, note, address;
     `;
     const res = await pool.query(query_text, para_query);
     return res.rows[0];
   } catch (e) {
-    throw new CustomError(e);
+    if (e?.code === "22P02") {
+      //sTATUS VALUE IS NOT AMONG ENUMS
+      throw new CustomError("Invalid value inserted!", e?.status);
+    }
+    throw new CustomError(e?.message, e?.status);
   }
 };
 
-export const DeleteOrderFromDb = async ({ store_id, order_id }) => {
+export const DeleteOrderFromDb = async ({
+  store_id,
+  order_id,
+  customer_id,
+}) => {
   try {
-    const query_text = ` DELETE FROM orders where store_id = $2 AND id = $1 returning id;`;
-    const res = await pool.query(query_text, [order_id, store_id]);
-    return res.rows[0];
+    const query_text = ` DELETE FROM orders
+     where 
+     store_id = $2 
+     AND 
+     id = $1 AND
+     customer_id = $3 
+     returning id;`;
+    const res = await pool.query(query_text, [order_id, store_id, customer_id]);
+    return { id: res.rows[0]?.id };
   } catch (e) {
-    throw new CustomError(e);
+    console.log(e);
+    throw new CustomError("Something went wrong!");
   }
 };

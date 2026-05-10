@@ -37,7 +37,11 @@ export const updateProduct = async ({ product_id, updates, store_id }) => {
   try {
     const res = await pool.query(
       `
-        UPDATE products SET ${setClause} where id = $${q.length - 1} AND store_id = $${q.length} 
+        UPDATE products
+        SET ${setClause} 
+        where id = $${q.length - 1}
+        AND 
+        store_id = $${q.length} 
         RETURNING id;
         `,
       q,
@@ -81,7 +85,6 @@ export const getProducts = async ({
     );
     return { products: res.rows, total_count: res?.rows[0]?.total_count };
   } catch (e) {
-    console.log(e);
     throw new CustomError(e);
   }
 };
@@ -97,10 +100,14 @@ export const getSingleProduct = async ({ store_id, product_id }) => {
      `,
       [store_id, product_id],
     );
+
+    if (res?.rows.length === 0) {
+      throw new CustomError("Product not found", 404);
+    }
+
     return { product: res.rows[0] };
   } catch (e) {
-    console.log(e);
-    throw new CustomError(e?.message);
+    throw new CustomError(e?.message, e?.status);
   }
 };
 
@@ -115,6 +122,7 @@ export const DeleteProduct = async ({ product_id, store_id }) => {
     );
     return res.rows[0];
   } catch (e) {
-    throw new CustomError(e);
+    console.log(e);
+    throw new CustomError("Something went wrong");
   }
 };
