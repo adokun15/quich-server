@@ -73,10 +73,13 @@ export const getUserStore = async ({ store_id_slug = "" }) => {
   return storeData;
 };
 
-export const updateUserStore = async (store_id, updates) => {
+export const updateUserStore = async ({ store_id, updates }) => {
   try {
-    const data = await UpdateMerchantStoreDB({ updates, store_id }); //fIX THIS
-    return { message: "Store Updated!", data };
+    const data = await UpdateMerchantStoreDB({
+      updates,
+      store_id,
+    }); //fIX THIS
+    return data;
   } catch (e) {
     throw new CustomError(e?.message || "SOMETHING WENT WRONG", 500);
   }

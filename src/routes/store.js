@@ -2,9 +2,10 @@ import AsyncError from "../utils/error/AsyncError.js";
 
 import express from "express";
 import {
+  GetAdminStore,
   GetStoreController,
   GetStoreProductsController,
-  updateStoreController,
+  updateAdminStoreController,
 } from "../controllers/store.js";
 import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
 
@@ -19,15 +20,16 @@ const storeRoute = express.Router();
 /*
  Add a rate limit to both public api and a verify middleware
  */
+
+//Public accessed store products via slug
 storeRoute.get("/:storeId/products", AsyncError(GetStoreProductsController));
 
-//Fetch store base on user type;
-storeRoute
-  .route("/:storeSlug")
-  .get(AsyncError(GetStoreController))
-  //Might Be Needed by the browser to update
+//Public accessed store via slug
+storeRoute.get("/:storeSlug", AsyncError(GetStoreController));
 
-  //Add a verify token function here;
-  .patch(AuthorizationRouteMiddleware, AsyncError(updateStoreController));
+storeRoute
+  .route("/")
+  .get(AuthorizationRouteMiddleware, AsyncError(GetAdminStore))
+  .patch(AuthorizationRouteMiddleware, AsyncError(updateAdminStoreController));
 
 export default storeRoute;

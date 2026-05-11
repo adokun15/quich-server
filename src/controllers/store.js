@@ -4,8 +4,25 @@ import getAllStoreProducts, {
 } from "../services/store.js";
 import CustomError from "../utils/error/error.js";
 
+export const GetAdminStore = async (req, res, next) => {
+  const { store_id, merchant_id } = req.user;
+
+  try {
+    //View private store info
+    if (!store_id || !merchant_id) {
+      throw new CustomError("Invalid Request", 400);
+    }
+
+    const store = await getUserStore({ store_id_slug: store_id });
+
+    //If data return publish false: throw Error(No store found)
+    res.json({ data: store, status: true });
+  } catch (e) {
+    next(e);
+  }
+};
 export const GetStoreController = async (req, res, next) => {
-  const storeLink = req.params.storeSlug;
+  const store_slug = req.params.storeSlug;
 
   //validate store_id
   /*
@@ -27,11 +44,13 @@ export const GetStoreController = async (req, res, next) => {
   };
  */
   try {
-    if (!storeLink) {
-      throw new CustomError("Invalid Slug!");
+    //View publicly
+    if (!store_slug) {
+      throw new CustomError("Invalid Request", 400);
     }
 
-    const store = await getUserStore({ store_id_slug: storeLink });
+    const store = await getUserStore({ store_id_slug: store_slug });
+
     res.json({ data: store, status: true });
   } catch (e) {
     next(e);
@@ -55,17 +74,23 @@ export const GetStoreProductsController = async (req, res, next) => {
   }
 };
 
-export const updateStoreController = async (req, res) => {
-  //const store = req.params.store;
+export const updateAdminStoreController = async (req, res, next) => {
+  const { store_id } = req.user;
+  const { updates } = req.body;
 
-  if (!req.body) {
-    //  throw new CustomError("No information provided.");
+  try {
+    if (!store_id) {
+      throw new CustomError("unauthorized access", 401);
+    }
+
+    const store = await updateUserStore({
+      store_id,
+      updates,
+    });
+    //If data return publish false: throw Error(No store found)
+
+    res.json({ data: store, status: true });
+  } catch (e) {
+    next(e);
   }
-
-  //if (!store) {
-  // throw new CustomError("Invalid store link.");
-  //}
-
-  //const updateMerchant = await updateUserStore(store, req?.body);
-  res.json(updateUserStore);
 };

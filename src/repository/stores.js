@@ -41,7 +41,11 @@ export const GetMerchantStoreDetail = async (query) => {
   return { store: res?.rows[0] };
 };
 
-export const UpdateMerchantStoreDB = async ({ updates, store_id }) => {
+export const UpdateMerchantStoreDB = async ({
+  updates,
+  store_id,
+  merchant_id,
+}) => {
   const allowedField = [
     "category",
     "slug",
@@ -56,11 +60,11 @@ export const UpdateMerchantStoreDB = async ({ updates, store_id }) => {
     id: store_id,
   });
 
-  const isAllowed = fields.some((field) =>
-    allowedField.includes(field.toLowerCase()),
+  const isNotAllowed = fields.some(
+    (field) => !allowedField.includes(field.toLowerCase()),
   );
 
-  if (!isAllowed) {
+  if (isNotAllowed) {
     throw new CustomError("Invalid field!", 400);
   }
 
@@ -69,7 +73,7 @@ export const UpdateMerchantStoreDB = async ({ updates, store_id }) => {
     UPDATE stores
     SET ${setClause}
     WHERE id = $${id} 
-    returning *;
+    returning id;
     `;
 
     const res = await pool.query(query_text, values);
@@ -77,7 +81,14 @@ export const UpdateMerchantStoreDB = async ({ updates, store_id }) => {
     return res.rows[0];
   } catch (e) {
     console.log(e);
-    throw new CustomError(e);
+    if (e?.code === "22P02") {
+      //sTATUS VALUE IS NOT AMONG ENUMS
+      throw new CustomError("Invalid value inserted!", e?.status);
+    }
+    if (e?.code === "23514" && e?.constraint === "store_slug_check") {
+      throw new CustomError("Invalid slug value!", 400);
+    }
+    throw new CustomError("Something went wrong", e?.status);
   }
 };
 
