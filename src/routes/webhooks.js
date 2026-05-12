@@ -5,7 +5,6 @@ import {
   whatsapp_webhook_controller,
 } from "../controllers/whatsapp.js";
 import { paystack_controller } from "../controllers/paystack.js";
-import { paystack_vs } from "../utils/middleware/verifyPaystackRequest.js";
 import { ResendWebhookController } from "../utils/resend/webhook.js";
 
 const webhook = express.Router();
@@ -55,14 +54,13 @@ webhook
 //Paystack Subscription only
 webhook.post(
   "/paystack",
-  bodyParser.raw({ type: "application/json" }),
-  paystack_vs,
+  express.raw({ type: "*/*", limit: "1mb" }),
   paystack_controller,
 );
 
 //Resend Webhook
 webhook
-  .route("/whatsapp")
+  .route("/resend")
   .post(express.raw({ type: "*/*", limit: "1mb" }), ResendWebhookController);
 
 //Supabase Trigger action

@@ -25,8 +25,7 @@ export async function paystack(config, data) {
 
     return response;
   } catch (err) {
-    console.log(err);
-    throw new Error(err?.message || "Something went wrong", 500);
+    throw new CustomError(err?.message || "Something went wrong", 500);
   }
 }
 export async function paystack_(config) {
@@ -52,6 +51,6 @@ export async function paystack_(config) {
 
     return response;
   } catch (err) {
-    throw new Error(err?.message || "Something went wrong", 500);
+    throw new CustomError(err?.message || "Something went wrong", 500);
   }
 }

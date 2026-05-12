@@ -107,7 +107,6 @@ END$$;
          FOR EACH ROW
          EXECUTE FUNCTION update_updated_at_column();
          `);
-    console.log(res);
   } catch (e) {
     console.log(e);
   }

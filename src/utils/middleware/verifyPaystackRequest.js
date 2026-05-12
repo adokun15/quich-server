@@ -1,15 +1,15 @@
-//Verify and Transform middleware;
-export const paystack_vs = (req, res, next) => {
-  try {
-    const hash = crypto
-      .createHmac("sha512", secret)
-      .update(JSON.stringify(req.body))
-      .digest("hex");
+export function verifyPaystackSignature(rawBody, signatureHeader, secret) {
+  if (!signatureHeader) return false;
 
-    // if (hash == req.headers["x-paystack-signature"]) {}
+  const expectedHash = crypto
+    .createHmac("sha512", secret)
+    .update(rawBody)
+    .digest("hex");
 
-    next();
-  } catch (e) {
-    console.log(e);
-  }
-};
+  const incoming = Buffer.from(signatureHeader.replace("sha512=", ""), "hex");
+
+  const expected = Buffer.from(expectedHash, "hex");
+
+  console.log(expected, incoming);
+  return crypto.timingSafeEqual(expected, incoming);
+}

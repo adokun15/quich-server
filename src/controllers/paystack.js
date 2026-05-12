@@ -1,30 +1,39 @@
+//import { GenerateSubscription } from "../services/subscription.js";
+import { verifyPaystackSignature } from "../utils/middleware/verifyPaystackRequest.js";
+
 //Process paystack
 const secret = `${process.env.PAYSTACK_SECRET_KEY}`;
 
-//Disable ---- Fetch(my db) ---- Start;
-export const start_subcription = async (req, res, next) => {
-  //Validate Input Field From User
-  //Retrieve
-};
-
-export const get_billings_subcription = async (req, res, next) => {};
-
-export const disable_subcription = async (req, res, next) => {};
-
 export const paystack_controller = async (req, res, next) => {
-  //Process
+  //1.Send Back a Response : Acknowledge request!
+  res.status(200).json({ message: "Webhook_Received" });
 
-  //Respond
+  //2. Verify Request
+  const signature = req.headers["x-paystack-signature"];
+
+  const raw = req.body;
+
+  const isValid = verifyPaystackSignature(raw, signature, secret);
+
+  if (!isValid) {
+    return res.status(401).send("Invalid Signature");
+  }
+
+  // now safe to parse
+  const body = JSON.parse(raw.toString("utf8"));
 
   //Use Ip addres
-  const { event, data } = req.body;
+  const { event, data } = body;
 
-  res.status(200).json({ message: "success" });
+  console.log(data);
 
   if (event === "subcription.create") {
     try {
-      //Create Subcription
+      //Queued to a cron-job: Create Subcription
+      //  await GenerateSubscription(data);
     } catch (e) {
+      //Discord Log
+
       next(e);
     }
   }
@@ -97,5 +106,6 @@ export const paystack_controller = async (req, res, next) => {
       }
     }
   }
-  return res.status(200).end();
+
+  //return res.status(200).end();
 };

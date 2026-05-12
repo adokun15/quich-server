@@ -20,9 +20,11 @@ import categoryRoute from "./routes/category.js";
 const app = express();
 
 app.use(cors());
+
 app.use("/webhook", webhook);
 
 app.use(json());
+
 //Browser authorization
 app.use("/auth", authRoute);
 

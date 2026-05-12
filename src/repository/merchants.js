@@ -1,6 +1,7 @@
 import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
 import pool from "../utils/database/db.js";
 import DatabaseError from "../utils/error/DatabaseError.js";
+import CustomError from "../utils/error/error.js";
 
 export const CreateMerchantforDb = async (query) => {
   try {
@@ -14,7 +15,7 @@ export const CreateMerchantforDb = async (query) => {
     return res.rows[0];
   } catch (e) {
     console.log(e);
-    throw new CustomError(e);
+    throw new CustomError(e?.message);
   }
 };
 
@@ -52,9 +53,9 @@ export const getMerchantFromDb = async (identifier) => {
   try {
     const query_text = `     
     select * from merchants 
-    where phone = $1 OR merchant_id = $1 OR email = $1        
+    where phone = $1 OR id = $1::UUID OR email = $1;        
     `;
-    const res = await pool.query(query_text, identifier);
+    const res = await pool.query(query_text, [identifier]);
 
     if (!res.rows.length === 0) {
       throw new CustomError("Merchant not Found", 404);
@@ -62,6 +63,7 @@ export const getMerchantFromDb = async (identifier) => {
 
     return res.rows[0];
   } catch (e) {
+    console.log(e);
     throw new CustomError(e?.message);
   }
 };

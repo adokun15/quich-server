@@ -1,5 +1,7 @@
 import pool from "../utils/database/db.js";
-//transactions
+import CustomError from "../utils/error/error.js";
+
+//----- Subscription --------------
 export const CreateSubscriptionforMerchant = async ({
   subscription_code = null,
   plan_code,
@@ -54,22 +56,22 @@ export const CreateSubscriptionforMerchant = async ({
     return { subscription: res.rows[0] };
   } catch (e) {
     //Handle Database Error;
-    throw new CustomError(e);
+    throw new CustomError(e?.message);
   }
 };
 
-export const GetSubscriptionDetailForMerchant = async (query) => {
+export const GetSubscriptionDetailForMerchant = async ({ merchant_id }) => {
   try {
     const res = await pool.query(
       `
         SELECT * FROM subscriptions
-        WHERE merchant_id = $1 AND ORDER BY created_at;
+        WHERE merchant_id = $1 ORDER BY created_at;
         `,
-      query,
+      [merchant_id],
     );
-    return { subscription: res.rows };
+    return res.rows[0] || {};
   } catch (e) {
-    throw new CustomError(e);
+    throw new CustomError(e?.message);
   }
 };
 
@@ -94,7 +96,7 @@ export const UpdateSubscriptionforMerchant = async ({ updates, id }) => {
   }
 };
 
-//Invoice
+//-------- Invoice -----------
 export const CreateInvoice = async ({
   invoice_code,
   subscription_code,
@@ -152,21 +154,27 @@ export const GetSingleInvoiceDetailForMerchant = async ({
         si.*,
         COALESCE(jsonb_agg(sp.*) FILTER (WHERE sp.invoice_code IS NOT NULL), '[]') 
         AS payments    
-        FROM subscription_invoices
+        FROM subscription_invoices si
         LEFT JOIN subscription_payments sp
         on si.invoice_code = sp.invoice_code
-        WHERE si.subcription_code = $2 AND (si.invoice_code = $1 OR si.id = $1);
-        GROUP BY si.invoice_code;
+        WHERE si.subscription_code = $2
+        AND (si.invoice_code = $1) 
+        GROUP BY si.invoice_code, si.id;
         `,
       [invoice_code, subscription_code],
     );
-    return { invoice: res.rows[0] };
+
+    return res.rows[0] || {};
   } catch (e) {
+    console.log(e);
     throw new CustomError(e);
   }
 };
 
-export const GetInvoicesDetailForMerchant = async ({ query, filter }) => {
+export const GetInvoicesDetailForMerchant = async ({
+  subscription_code,
+  filter,
+}) => {
   try {
     const res = await pool.query(
       `
@@ -177,9 +185,9 @@ export const GetInvoicesDetailForMerchant = async ({ query, filter }) => {
         OFFSET 0
         LIMIT 10
         `,
-      query,
+      [subscription_code],
     );
-    return { invoices: res.rows };
+    return res.rows;
   } catch (e) {
     throw new CustomError(e);
   }
@@ -205,7 +213,7 @@ export const UpdateInvoiceforMerchant = async ({ updates, id }) => {
   }
 };
 
-//pAYMENT
+//--------------- PAYMENT ------------------
 export const CreatePaymentforMerchant = async ({
   invoice_code,
   reference,
@@ -233,5 +241,24 @@ export const CreatePaymentforMerchant = async ({
     return { payment: res.rows[0] };
   } catch (e) {
     throw new CustomError(e);
+  }
+};
+
+//PAYMENT List
+export const GetPaymentsListForMerchant = async ({ merchant_id }) => {
+  try {
+    const res = await pool.query(
+      `
+        SELECT * FROM subscription_payments
+        WHERE merchant_id = $1
+        ORDER BY created_at DESC
+        OFFSET 0
+        LIMIT 10
+    `,
+      [merchant_id],
+    );
+    return { payments: res.rows };
+  } catch (e) {
+    throw new CustomError(e?.message);
   }
 };

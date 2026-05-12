@@ -1,10 +1,13 @@
 //Fetch subscription
 
+import { getMerchantFromDb } from "../repository/merchants.js";
+import { GetMerchantStoreDetail } from "../repository/stores.js";
 import {
   CreateInvoice,
   CreatePaymentforMerchant,
   CreateSubscriptionforMerchant,
   GetInvoicesDetailForMerchant,
+  GetPaymentsListForMerchant,
   GetSingleInvoiceDetailForMerchant,
   GetSubscriptionDetailForMerchant,
   UpdateInvoiceforMerchant,
@@ -12,6 +15,8 @@ import {
 } from "../repository/subscription.js";
 import DatabaseError from "../utils/error/DatabaseError.js";
 import CustomError from "../utils/error/error.js";
+import ValidationError from "../utils/error/ValidationError.js";
+import { paystack, paystack_ } from "../utils/paystack/paystack.js";
 import {
   disableSubscriptionFromPaystack,
   FetchSubscriptionFromPaystack,
@@ -21,30 +26,160 @@ import {
   sendBillingInvoiceStatus,
 } from "../utils/whatsapp/outgoing/message/templates/billing_invoice.js";
 
-export const getSubcriptionInfo = async ({
-  merchant_id = "",
-  subcription_id = "",
+//---------------------- USER ACTION(START) --------------------
+
+//Send new payment link to user!
+export const InitializeSubscription = async ({
+  merchant_id,
+  plan_code,
+  amount,
 }) => {
   try {
-    const subcription = await GetSubscriptionDetailForMerchant(
-      merchant_id || subcription_id,
-    );
+    //Get Email
+    const { email, phone } = await getMerchantFromDb(merchant_id);
 
-    //later filter the 'latest active'
-    return subcription[0];
+    if (!email) {
+      throw new ValidationError("Email is Required!");
+    }
+
+    const config = {
+      method: "POST",
+      endpoint: "/transaction/initialize",
+    };
+
+    const data = {
+      email,
+      amount,
+      plan: plan_code,
+      metadata: {
+        merchant_id,
+        phone,
+      },
+    };
+
+    const url = await paystack(config, data).then((data) => {
+      return data?.data?.authorization_url;
+    });
+
+    return url;
   } catch (e) {
-    throw new CustomError(e);
+    console.log(e);
+    if (e?.message === "fetch failed") {
+      throw new CustomError("No internet connection!");
+    }
+    throw new CustomError(e?.message);
   }
 };
 
-//Fetch invoices
-export const getInvoices = async ({ subcription_code = "" }) => {
+/*
+export const DisableSubscriptionAction = async ({ merchant_id }) => {
   try {
-    const invoices = await GetInvoicesDetailForMerchant(subcription_code, {});
+    //Get Email Token
+    const { email_token, subscription_code } =
+      await GetSubscriptionDetailForMerchant({
+        merchant_id,
+      });
 
-    if (invoices?.length !== 0) {
-      throw new CustomError("No Invoices!");
+    if (!email_token || !subscription_code) {
+      throw new ValidationError(
+        "Something went request. Subscription is not valid!",
+      );
     }
+
+    const config = {
+      method: "POST",
+      endpoint: "/subscription/disable",
+    };
+
+    const data = {
+      token: email_token,
+      code: subcription_code,
+      metadata: {
+        merchant_id,
+        phone,
+      },
+    };
+
+    const res = await paystack(config, data).then((data) => {
+      return data?.data;
+    });
+
+    return res;
+  } catch (e) {
+    console.log(e);
+    if (e?.message === "fetch failed") {
+      throw new CustomError("No internet connection!");
+    }
+    throw new CustomError(e?.message);
+  }
+};
+*/
+
+export const ManageSubscriptionLink = async ({ merchant_id }) => {
+  try {
+    //Get Email Token
+    const { subscription_code } = await GetSubscriptionDetailForMerchant({
+      merchant_id,
+    });
+
+    if (!subscription_code) {
+      throw new ValidationError(
+        "Something went wrong. Subscription is not active!",
+      );
+    }
+
+    //const subscription_code = "SUB_ekqi1w0cbv3hdtb";
+
+    const config = {
+      method: "GET",
+      endpoint: `/subscription/${subscription_code}/manage/link`,
+    };
+
+    const url = await paystack_(config).then((data) => {
+      return data?.data?.link;
+    });
+
+    return url;
+  } catch (e) {
+    console.log(e);
+    if (e?.message === "fetch failed") {
+      throw new CustomError("No internet connection!");
+    }
+    throw new CustomError(e?.message);
+  }
+};
+
+//Get Subscription Details
+export const getSubcriptionInfo = async ({
+  merchant_id = "",
+  subscription_id = "",
+}) => {
+  if (!merchant_id && !subscription_id) {
+    throw new ValidationError("Invalid input data!", 400);
+  }
+
+  const subcription = await GetSubscriptionDetailForMerchant({
+    merchant_id: merchant_id || subscription_id,
+  });
+
+  //later filter the 'latest active'
+  return subcription;
+};
+
+//Fetch invoices
+export const getInvoices = async ({ merchant_id, filters }) => {
+  try {
+    //Get subscription code;
+    const subscription = await GetSubscriptionDetailForMerchant({
+      merchant_id,
+    });
+
+    if (!subscription) return [];
+
+    //Get the invoices list; Filters Later
+    const invoices = await GetInvoicesDetailForMerchant({
+      subcription_code: subscription?.subcription_code,
+    });
 
     return invoices;
   } catch (e) {
@@ -53,25 +188,34 @@ export const getInvoices = async ({ subcription_code = "" }) => {
 };
 
 //Fetch 1 invoices
-export const getSingleInvoice = async ({
-  subcription_code = "",
-  invoice_code,
-}) => {
-  try {
-    const data = await GetSingleInvoiceDetailForMerchant({
-      subscription_code,
-      invoice_code,
-    });
-    if (!data) {
-      throw new CustomError(e);
-    }
-    return data;
-  } catch (e) {
-    throw new CustomError(e);
-  }
+export const getSingleInvoice = async ({ invoice_code, merchant_id }) => {
+  const subscription = await GetSubscriptionDetailForMerchant({
+    merchant_id,
+  });
+
+  /*
+  if (!subscription) {
+    throw new CustomError("Invoice not found!");
+  }*/
+
+  const data = await GetSingleInvoiceDetailForMerchant({
+    subscription_code: subscription?.subcription_code,
+    invoice_code,
+  });
+  return data;
 };
 
-//Generate new invoice ahead
+//Fetch all payments
+export const getAllUserPayments = async ({ merchant_id }) => {
+  const data = await GetPaymentsListForMerchant({ merchant_id });
+
+  return data;
+};
+
+//---------------------- USER ACTION (ENDS) --------------------
+
+//----------------------WEBHOOK ACTION (START) --------------------
+//Webhook: Generate new invoice ahead
 export const GenerateBillingInvoice = async ({
   invoice_info,
   merchant_phone,
@@ -87,7 +231,7 @@ export const GenerateBillingInvoice = async ({
   }
 };
 
-//Create Subscription
+//Webhook: Create Subscription
 export const GenerateSubscription = async ({ merchant_id, sub_code }) => {
   try {
     const { subcription } = await getSubcriptionInfo(merchant_id);
@@ -117,7 +261,7 @@ export const GenerateSubscription = async ({ merchant_id, sub_code }) => {
   }
 };
 
-//Manage billing invoice status
+//Webhook: Manage billing invoice status
 export const MarkBillingInvoiceStatus = async ({
   invoice_id,
   invoice_info,
@@ -176,7 +320,59 @@ export const ConfirmSubscriptionPayment = async ({ payment_details }) => {
   }
 };
 
-//------ sync subscription with paystack --- Before Expensive actions do this! ------------
+//SUCCESSFUL DEBITED PAYMENT
+export const addUserPaymentInfo = async (data) => {
+  const merchant_id = data?.metadata?.userId;
+  const plan = data?.metadata?.plan;
+  const plan_code = data?.plan; //maybe
+
+  try {
+    //FETCH USER WITH ID;
+    const merchant = await getMerchantFromDb(merchant_id);
+
+    //cHECK IF THEY EXIST;
+    if (!merchant) {
+      //Log to discord
+      //Throw error 401;
+    }
+
+    //uPDATE DB: PAYMENT;
+    await CreatePaymentforMerchant(data);
+
+    //Await Subscription;
+    await UpdateSubscriptionforMerchant(
+      {
+        code: data?.customer?.customer_code,
+        paymentDate: data?.paid_at,
+        authCode: data?.authorization.authorization_code,
+        amount: data.amount / 100 + amt,
+        plan: data?.metadata.plan,
+      },
+      null,
+    );
+
+    //sEND A WHATSAPP  TEMPLATE
+    /*
+              if (!data?.metadata?.phone) return;
+              await NewPaymentPlan(data?.metadata?.phone, {
+                          amt: (data.amount / 100).toLocaleString(),
+                          plan: `${data?.metadata.plan} plan`.toUpperCase(),
+                          name: data?.metadata.username || "No name",
+                        });
+              await UpgradedPaymentPlan(data?.metadata?.phone, {
+                amt: (data.amount / 100 + amt).toLocaleString(),
+                plan: `${data?.metadata.plan} plan`.toUpperCase(),
+                name: data?.metadata.username || "No name",
+              });
+              */
+  } catch (e) {
+    throw new CustomError(e?.message || e?.code || " Something went wrong!");
+  }
+};
+
+//----------------------WEBHOOK ACTION (END ) --------------------
+
+//------ CRON JOB: EVERY MIDNIGHT; - Batch sync subscriptions(days) with paystack; ---------------
 export const SyncSubscriptions = async (sub_code) => {
   try {
     const paystackSub = await FetchSubscriptionFromPaystack({
@@ -195,83 +391,6 @@ export const SyncSubscriptions = async (sub_code) => {
   } catch (e) {
     throw new CustomError(e);
   }
-};
-
-//------ CHECKS AND LIMITS FOR USAGE!------------
-
-export const addUserPaymentInfo = async (data) => {
-  /*
-  const uid = data?.metadata?.userId;
-  const plan = data?.metadata?.plan;
-
-  const userRef = getFirestore().collection(`users/`).doc(`${uid}`);
-  try {
-    const updateUserPlan = await getFirestore().runTransaction(
-      async (transaction) => {
-        const userDoc = await transaction.get(userRef);
-
-        if (!userDoc.exists) {
-          throw new Error("User not Found!");
-        }
-
-        //update custom claim
-        await getAuth().setCustomUserClaims(uid, {
-          role: plan,
-          expiresIn: null,
-        });
-
-        let amt = +userDoc.data()?.membership?.amount || 0;
-
-        if (data?.metadata.upgrade) {
-          //add plan to user DB --> plan
-          transaction.update(userRef, {
-            membership: {
-              code: data?.customer?.customer_code,
-              paymentDate: data?.paid_at,
-              authCode: data?.authorization.authorization_code,
-              amount: data.amount / 100 + amt,
-              plan: data?.metadata.plan,
-            },
-          });
-
-          if (!data?.metadata?.phone) return;
-          //Notice on whatsapp(later)
-          await UpgradedPaymentPlan(data?.metadata?.phone, {
-            amt: (data.amount / 100 + amt).toLocaleString(),
-            plan: `${data?.metadata.plan} plan`.toUpperCase(),
-            name: data?.metadata.username || "No name",
-          });
-        }
-
-        //New Payment
-        if (!data?.metadata.upgrade) {
-          transaction.update(userRef, {
-            membership: {
-              code: data?.customer?.customer_code,
-              paymentDate: data?.paid_at,
-              authCode: data?.authorization.authorization_code,
-              amount: data.amount / 100,
-              plan: data?.metadata.plan,
-            },
-          });
-
-          if (!data?.metadata?.phone) return;
-
-          await NewPaymentPlan(data?.metadata?.phone, {
-            amt: (data.amount / 100).toLocaleString(),
-            plan: `${data?.metadata.plan} plan`.toUpperCase(),
-            name: data?.metadata.username || "No name",
-          });
-        }
-        return "User plan updated!";
-      },
-    );
-
-    return updateUserPlan;
-  } catch (e) {
-    throw new CustomError(e?.message || e?.code || " Something went wrong!");
-  }
-*/
 };
 
 /**
