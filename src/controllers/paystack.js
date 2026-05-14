@@ -13,14 +13,19 @@ export const paystack_controller = async (req, res, next) => {
 
   const raw = req.body;
 
+  /*
   const isValid = verifyPaystackSignature(raw, signature, secret);
 
   if (!isValid) {
     return res.status(401).send("Invalid Signature");
   }
+   */
+
+  console.log(JSON.stringify(signature));
 
   // now safe to parse
   const body = JSON.parse(raw.toString("utf8"));
+  console.log(body);
 
   //Use Ip addres
   const { event, data } = body;
@@ -62,7 +67,7 @@ export const paystack_controller = async (req, res, next) => {
   if (event === "invoice.create") {
     try {
       /*
-       create invoice,; status pending
+       create invoice with status pending
        notify user;
       */
     } catch (e) {
@@ -73,7 +78,7 @@ export const paystack_controller = async (req, res, next) => {
   if (event === "invoice.payment_failed") {
     try {
       /*
-       update invoice,; status failed
+       update invoice; status failed
        update subscription status to 'attention'
        notify user: 'payment failed, we added grace period of 3 days to resume your subscrip';
        "Add extra 3day- grace-- EXTENDED END-DATE; on Subscription Table!"
