@@ -1,20 +1,17 @@
 import crypto from "crypto";
 
-export function verifyPaystackSignature(rawBody, signatureHeader, secret) {
-  if (!signatureHeader) return false;
+export function verifyPaystackSignature(rawBody, signature, secret) {
+  if (!signature) return false;
 
-  const expectedHash = crypto
+  const hash = crypto
     .createHmac("sha512", secret)
     .update(rawBody)
     .digest("hex");
 
-  console.log(signatureHeader);
-  console.log(expectedHash);
-  console.log(secret);
+  const expected = Buffer.from(hash, "hex");
+  const incoming = Buffer.from(signature, "hex");
 
-  const incoming = Buffer.from(signatureHeader.replace("sha512=", ""), "hex");
-
-  const expected = Buffer.from(expectedHash, "hex");
+  if (expected.length !== incoming.length) return false;
 
   return crypto.timingSafeEqual(expected, incoming);
 }

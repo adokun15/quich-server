@@ -128,7 +128,7 @@ export const ManageSubscriptionLink = async ({ merchant_id }) => {
       );
     }
 
-    //const subscription_code = "SUB_ekqi1w0cbv3hdtb";
+    //const subscription_code = "SUB_6jw0c7vxie03rs4";
 
     const config = {
       method: "GET",

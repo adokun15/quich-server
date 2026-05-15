@@ -5,6 +5,7 @@ import { verifyPaystackSignature } from "../utils/middleware/verifyPaystackReque
 //Process paystack
 export const paystack_controller = async (req, res, next) => {
   //1.Send Back a Response : Acknowledge request!
+  res.status(200).json({ message: "Webhook_Received", isValid });
 
   //2. Verify Request
   const signature = req.headers["x-paystack-signature"];
@@ -19,11 +20,10 @@ export const paystack_controller = async (req, res, next) => {
     process.env.PAYSTACK_SECRET_KEY,
   );
 
+  console.log(isValid);
   if (!isValid) {
     return res.status(401).send("Invalid Signature");
   }
-
-  res.status(200).json({ message: "Webhook_Received", isValid });
 
   /*
 
@@ -210,8 +210,8 @@ export const paystack_controller = async (req, res, next) => {
   if (event === "invoice.create") {
     try {
       /*
-       create invoice with status pending
-       notify user;
+      create invoice with status pending
+      notify user;
       */
     } catch (e) {
       next(e);
@@ -221,8 +221,8 @@ export const paystack_controller = async (req, res, next) => {
   if (event === "invoice.payment_failed") {
     try {
       /*
-       update invoice; status failed
-       update subscription status to 'attention'
+      update invoice; status failed
+      update subscription status to 'attention'
        notify user: 'payment failed, we added grace period of 3 days to resume your subscrip';
        "Add extra 3day- grace-- EXTENDED END-DATE; on Subscription Table!"
       */
@@ -233,6 +233,7 @@ export const paystack_controller = async (req, res, next) => {
     if (event === "charge.success") {
       try {
         /*
+        GET https://api.paystack.co/transaction/verify/:reference
        update invoice if invoice_parameter is there; status "paid", paid_at : "121"
        insert/create payment; status "paid", paid_at : "121"
        notify user;
