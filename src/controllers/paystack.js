@@ -13,14 +13,14 @@ export const paystack_controller = async (req, res, next) => {
   // "7b579c11dc39d9395a73669c4fd51ccea9cfc64fc1aaabb0f05aa140b8d62be369852b8e0fdd17c04ba10cd1ea014e2d690cb026b9d97de47b3258401c14532d";
 
   const raw = req.body;
-
+  /*
   const isValid = verifyPaystackSignature(
     raw,
     signature,
     process.env.PAYSTACK_SECRET_KEY,
   );
-
-  console.log(isValid);
+*/
+  //console.log(isValid);
   /*if (!isValid) {
     return res.status(401).send("Invalid Signature");
   }
@@ -170,11 +170,11 @@ export const paystack_controller = async (req, res, next) => {
 
   // now safe to parse
   const body = JSON.parse(raw.toString("utf8"));
+  console.log(body);
+  console.log(signature);
 
   //Use Ip addres
   const { event, data } = body;
-  console.log(body);
-
   if (event === "subcription.create") {
     try {
       //Queued to a cron-job: Create Subcription
