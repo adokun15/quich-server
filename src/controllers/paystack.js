@@ -21,10 +21,10 @@ export const paystack_controller = async (req, res, next) => {
   );
 
   console.log(isValid);
-  if (!isValid) {
+  /*if (!isValid) {
     return res.status(401).send("Invalid Signature");
   }
-
+*
   /*
 
   1.
@@ -173,7 +173,7 @@ export const paystack_controller = async (req, res, next) => {
 
   //Use Ip addres
   const { event, data } = body;
-  console.log(data);
+  console.log(body);
 
   if (event === "subcription.create") {
     try {
