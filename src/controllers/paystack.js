@@ -5,7 +5,7 @@ import { verifyPaystackSignature } from "../utils/middleware/verifyPaystackReque
 //Process paystack
 export const paystack_controller = async (req, res, next) => {
   //1.Send Back a Response : Acknowledge request!
-  res.status(200).json({ message: "Webhook_Received", isValid });
+  res.status(200).json({ message: "Webhook_Received" });
 
   //2. Verify Request
   const signature = req.headers["x-paystack-signature"];
