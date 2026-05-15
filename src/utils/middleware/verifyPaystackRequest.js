@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 export function verifyPaystackSignature(rawBody, signatureHeader, secret) {
   if (!signatureHeader) return false;
 
@@ -6,10 +8,13 @@ export function verifyPaystackSignature(rawBody, signatureHeader, secret) {
     .update(rawBody)
     .digest("hex");
 
+  console.log(signatureHeader);
+  console.log(expectedHash);
+  console.log(secret);
+
   const incoming = Buffer.from(signatureHeader.replace("sha512=", ""), "hex");
 
   const expected = Buffer.from(expectedHash, "hex");
 
-  console.log(expected, incoming);
   return crypto.timingSafeEqual(expected, incoming);
 }
