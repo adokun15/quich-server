@@ -1,20 +1,29 @@
+import { ClauseExtractor } from "../utils/database/ClauseExtractor.js";
 import pool from "../utils/database/db.js";
 import CustomError from "../utils/error/error.js";
 
+/*
+charge.success
+
+start date,
+merchant_id,
+
+*/
 //----- Subscription --------------
 export const CreateSubscriptionforMerchant = async ({
   subscription_code = null,
   plan_code,
+  plan_name,
+  email,
+  invoice_limit,
+  interval,
   currency = "NGN",
   amount,
-  status,
-  merchant_id,
+  subscription_status,
   customer_code,
   email_token,
-  start_date,
-  end_date = null,
   next_payment_date,
-  created_at,
+  merchant_id,
 }) => {
   try {
     const res = await pool.query(
@@ -25,15 +34,16 @@ export const CreateSubscriptionforMerchant = async ({
         currency,
         amount,
         status,
-        merchant_id,
         customer_code,
         email_token,
-        start_date,
-        end_date,
         next_payment_date,
-        created_at
+        plan_name,
+        email,
+        invoice_limit,
+        interval,
+        merchant_id
         )
-      VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING *;
     `,
       [
@@ -41,17 +51,17 @@ export const CreateSubscriptionforMerchant = async ({
         plan_code,
         currency,
         amount,
-        status,
-        merchant_id,
+        subscription_status,
         customer_code,
         email_token,
-        start_date,
-        end_date,
         next_payment_date,
-        created_at,
+        plan_name,
+        email,
+        invoice_limit,
+        interval,
+        merchant_id,
       ],
     );
-
     //success
     return { subscription: res.rows[0] };
   } catch (e) {
@@ -60,37 +70,48 @@ export const CreateSubscriptionforMerchant = async ({
   }
 };
 
-export const GetSubscriptionDetailForMerchant = async ({ merchant_id }) => {
+export const GetSubscriptionDetailForMerchant = async ({ identifier }) => {
   try {
-    const res = await pool.query(
-      `
+    let queryText = "";
+
+    if (identifier?.startsWith("SUB_")) {
+      queryText = `
         SELECT * FROM subscriptions
-        WHERE merchant_id = $1 ORDER BY created_at;
-        `,
-      [merchant_id],
-    );
-    return res.rows[0] || {};
+        WHERE  subscription_code = $1 ORDER BY created_at;
+        `;
+    } else {
+      queryText = `
+        SELECT * FROM subscriptions
+        WHERE  merchant_id = $1 ORDER BY created_at;
+        `;
+    }
+    const res = await pool.query(queryText, [identifier]);
+    return res.rows || {};
   } catch (e) {
+    console.log(e);
     throw new CustomError(e?.message);
   }
 };
 
-export const UpdateSubscriptionforMerchant = async ({ updates, id }) => {
-  const setClause = Object.keys(updates)
-    .map((key, i) => `"${key}" = $${i + 1}`)
-    .join(", ");
+export const UpdateSubscriptionforMerchant = async ({
+  updates,
+  id: identifier,
+}) => {
+  const { setClause, values, id } = ClauseExtractor({
+    updates,
+    id: identifier,
+  });
 
-  //Just the [value1, value2]
-  const values = Object.values(updates);
-  values.push(id);
   try {
     const res = await pool.query(
       `
         UPDATE subscriptions SET ${setClause}
-        where id = ${values.length} OR subscription_code = ${values.length};
+        where id = $${id}::UUID OR subscription_code = $${id}::TEXT
+        RETURNING id, subscription_code, status, plan_code, merchant_id, email_token;
         `,
       values,
     );
+    return res.rows[0];
   } catch (e) {
     throw new CustomError(e);
   }
@@ -215,28 +236,28 @@ export const UpdateInvoiceforMerchant = async ({ updates, id }) => {
 
 //--------------- PAYMENT ------------------
 export const CreatePaymentforMerchant = async ({
+  merchant_id,
   invoice_code,
   reference,
   status,
   paid_at,
   amount,
-  created_at,
 }) => {
   try {
     const res = await pool.query(
       `
       INSERT INTO subscription_payments(
+        merchant_id, 
         invoice_code, 
         reference,
         status,
-        paid_at
-        amount,
-        created_at
+        paid_at,
+        amount
         )
-      VALUES ( $1, $2, $3, $4, $5, $6)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `,
-      [invoice_code, reference, status, paid_at, amount, created_at],
+      [merchant_id, invoice_code, reference, status, paid_at, amount],
     );
     return { payment: res.rows[0] };
   } catch (e) {

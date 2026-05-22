@@ -16,6 +16,7 @@ import {
 import DatabaseError from "../utils/error/DatabaseError.js";
 import CustomError from "../utils/error/error.js";
 import ValidationError from "../utils/error/ValidationError.js";
+import { DiscordPaystackLogger } from "../utils/middleware/logger.js";
 import { paystack, paystack_ } from "../utils/paystack/paystack.js";
 import {
   disableSubscriptionFromPaystack,
@@ -152,14 +153,14 @@ export const ManageSubscriptionLink = async ({ merchant_id }) => {
 //Get Subscription Details
 export const getSubcriptionInfo = async ({
   merchant_id = "",
-  subscription_id = "",
+  subscription_code = "",
 }) => {
   if (!merchant_id && !subscription_id) {
     throw new ValidationError("Invalid input data!", 400);
   }
 
   const subcription = await GetSubscriptionDetailForMerchant({
-    merchant_id: merchant_id || subscription_id,
+    identifier: merchant_id || subscription_code,
   });
 
   //later filter the 'latest active'
@@ -232,16 +233,28 @@ export const GenerateBillingInvoice = async ({
 };
 
 //Webhook: Create Subscription
-export const GenerateSubscription = async ({ merchant_id, sub_code }) => {
+export const GenerateSubscription = async (data) => {
   try {
-    const { subcription } = await getSubcriptionInfo(merchant_id);
+    //Does it exist already:
+    const subscription = await GetSubscriptionDetailForMerchant({
+      identifier: data?.subscription_code,
+    });
+
+    let status = data?.subscription_status;
+
+    //Is Limited for a month;
+    if (status === "non-renewing" && data?.invoice_limit === 1) {
+      status = "trial"; // 1k 30days
+    }
+
+    if (status === "non-renewing") {
+      status = "non_renew";
+    }
+
+    const { id } = await getMerchantFromDb(data?.email);
 
     const deactivatesubs = async (sub) => {
-      //Update is_current to false
-      await UpdateSubscription({
-        details: { is_current: false },
-        code: sub?.subscription_code,
-      });
+      if (sub?.subcription_code === data?.subscription_code) return;
 
       //Manually disable all other subscriptions;
       await disableSubscriptionFromPaystack({
@@ -250,12 +263,22 @@ export const GenerateSubscription = async ({ merchant_id, sub_code }) => {
       });
     };
 
-    if (subcription?.length > 0) {
-      subcription.forEach(deactivatesubs);
+    //Update is_current to false
+    //await UpdateSubscription({
+    // details: { status : "cancelled"},
+    //  code: sub?.subscription_code,
+    //});
+
+    if (subscription) {
+      subscription.forEach(deactivatesubs);
     }
 
     //Create new subscription and set is_current to true
-    await CreateSubscriptionforMerchant(data);
+    await CreateSubscriptionforMerchant({
+      ...data,
+      merchant_id: id,
+      subscription_status: status,
+    });
   } catch (e) {
     throw new CustomError(e);
   }
@@ -293,18 +316,37 @@ export const UpdateSubscription = async ({ details, code }) => {
 };
 
 //Disable User Subcription;
-export const CancelSubscription = async (merchant_id) => {
+export const CancelSubscription = async (data) => {
   try {
-    const subscription = await getSubcriptionInfo(merchant_id);
+    const {
+      plan: { plan_code },
+      customer: { email },
+    } = data;
 
-    if (subscription.error) {
-      throw DatabaseError(subscription.error?.message);
-    }
-
-    const data = await disableSubscriptionFromPaystack({
-      sub_code: subscription?.subscription_code,
-      email_token: subscription?.email_token,
+    const subscriptions = await GetSubscriptionDetailForMerchant({
+      identifier: email,
     });
+
+    const single_sub = subscriptions?.find(
+      (sub) => sub?.plan_code === plan_code,
+    );
+
+    /*
+        const data = await disableSubscriptionFromPaystack({
+          sub_code: single_sub?.subscription_code,
+          email_token: single_sub?.email_token,
+        });
+*/
+
+    //Update Subcription
+    await UpdateSubscriptionforMerchant({
+      updates: {
+        status: "inactice",
+        start_date: end_date,
+      },
+      id: single_sub?.id,
+    });
+
     return data;
   } catch (e) {
     throw new CustomError(e);
@@ -320,41 +362,75 @@ export const ConfirmSubscriptionPayment = async ({ payment_details }) => {
   }
 };
 
-//SUCCESSFUL DEBITED PAYMENT
 export const addUserPaymentInfo = async (data) => {
-  const merchant_id = data?.metadata?.userId;
-  const plan = data?.metadata?.plan;
-  const plan_code = data?.plan; //maybe
-
   try {
+    const {
+      status: payment_status,
+      reference,
+      amount,
+      paid_at,
+      ip_address,
+      plan: { plan_code },
+      metadata: { merchant_id, phone },
+      fees,
+    } = data;
+
     //FETCH USER WITH ID;
     const merchant = await getMerchantFromDb(merchant_id);
 
     //cHECK IF THEY EXIST;
-    if (!merchant) {
-      //Log to discord
-      //Throw error 401;
-    }
+    //    if (!merchant) {
+    //Log ipaddress to discord
+    //Throw error 401;
+    //  return;
+    //  }
 
-    //uPDATE DB: PAYMENT;
-    await CreatePaymentforMerchant(data);
+    //Plan code matched: update few details
+    const subscriptions = await GetSubscriptionDetailForMerchant({
+      identifier: merchant_id,
+    });
 
-    //Await Subscription;
-    await UpdateSubscriptionforMerchant(
-      {
-        code: data?.customer?.customer_code,
-        paymentDate: data?.paid_at,
-        authCode: data?.authorization.authorization_code,
-        amount: data.amount / 100 + amt,
-        plan: data?.metadata.plan,
-      },
-      null,
+    const single_sub = subscriptions?.find(
+      (sub) => sub?.plan_code === plan_code,
     );
+
+    //Update Subcription
+    const u = await UpdateSubscriptionforMerchant({
+      updates: {
+        status:
+          payment_status === "success"
+            ? single_sub?.invoice_limit === 1 ///Cross check with  plan_code
+              ? "trial"
+              : "active"
+            : "completed",
+        start_date: paid_at || null,
+      },
+      id: single_sub?.id,
+    });
+
+    //Create PAYMENT;
+    const p = await CreatePaymentforMerchant(
+      {
+        merchant_id,
+        reference,
+        paid_at,
+        amount,
+        status: payment_status,
+      },
+      u?.merchant_id,
+    );
+
+    //Log to Our Discord;
+    await DiscordPaystackLogger({
+      merchant_id,
+      action_type: `${payment_status}_subscription_payment`,
+      note: `This User(${ip_address}) Paid on ${paid_at}, Phone: ${phone}, Fee: NGN${fees}`,
+    });
 
     //sEND A WHATSAPP  TEMPLATE
     /*
-              if (!data?.metadata?.phone) return;
-              await NewPaymentPlan(data?.metadata?.phone, {
+      if (!data?.metadata?.phone) return;
+        await NewPaymentPlan(data?.metadata?.phone, {
                           amt: (data.amount / 100).toLocaleString(),
                           plan: `${data?.metadata.plan} plan`.toUpperCase(),
                           name: data?.metadata.username || "No name",
@@ -363,13 +439,44 @@ export const addUserPaymentInfo = async (data) => {
                 amt: (data.amount / 100 + amt).toLocaleString(),
                 plan: `${data?.metadata.plan} plan`.toUpperCase(),
                 name: data?.metadata.username || "No name",
-              });
+                });
               */
   } catch (e) {
-    throw new CustomError(e?.message || e?.code || " Something went wrong!");
+    console.log(e?.message);
   }
 };
 
+export const SendSubscriptionNonRenewing = async (data) => {
+  try {
+    const {
+      plan: { plan_code },
+      customer: { email },
+    } = data;
+
+    const subscriptions = await GetSubscriptionDetailForMerchant({
+      identifier: email,
+    });
+
+    const single_sub = subscriptions?.find(
+      (sub) => sub?.plan_code === plan_code,
+    );
+
+    //Update Subcription
+    await UpdateSubscriptionforMerchant({
+      updates: {
+        status: "non_renew",
+        start_date: end_date,
+      },
+      id: single_sub?.id,
+    });
+
+    //Send Whatsapp notification;
+
+    return data;
+  } catch (e) {
+    throw new CustomError(e);
+  }
+};
 //----------------------WEBHOOK ACTION (END ) --------------------
 
 //------ CRON JOB: EVERY MIDNIGHT; - Batch sync subscriptions(days) with paystack; ---------------

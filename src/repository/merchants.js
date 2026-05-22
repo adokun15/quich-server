@@ -51,10 +51,27 @@ export const UpdateMerchantFromDb = async ({ updates, merchant_id }) => {
 
 export const getMerchantFromDb = async (identifier) => {
   try {
-    const query_text = `     
+    let query_text = ``;
+
+    if (typeof identifier === "string" && identifier.includes("@")) {
+      query_text = `     
     select * from merchants 
-    where phone = $1 OR id = $1::UUID OR email = $1;        
+    where email = $1;        
     `;
+    } else if (
+      (!isNaN(identifier) && identifier.length === 10) ||
+      typeof identifier === "number"
+    ) {
+      query_text = `     
+     select * from merchants 
+     where phone = $1;        
+     `;
+    } else {
+      query_text = `     
+     select * from merchants 
+     where id = $1;        
+     `;
+    }
     const res = await pool.query(query_text, [identifier]);
 
     if (!res.rows.length === 0) {
