@@ -4,6 +4,7 @@ import pool from "./db.js";
 export const create_update_at_trigger = async () => {
   try {
     const res = await pool.query(`
+     
       CREATE OR REPLACE FUNCTION update_updated_at_column()
       RETURNS TRIGGER AS $$
       BEGIN
@@ -394,13 +395,18 @@ END$$;
         
         invoice_code TEXT NOT NULL UNIQUE,
         subscription_code TEXT,
-        subscription_id UUID REFERENCES subscriptions ON DELETE SET NULL,
+      
+        --remove id use subscription code
+       subscription_id UUID REFERENCES subscriptions ON DELETE SET NULL,
           
         period_start TIMESTAMPTZ NOT NULL,  
         period_end TIMESTAMPTZ NOT NULL,  
         
         amount INTEGER NOT NULL,
-        currency VARCHAR(3) NOT NULL,
+
+        --add default 
+        --currency VARCHAR(3) NOT NULL,
+        currency VARCHAR(3) NOT NULL DEFAULT 'NGN',
        
         status payment_status NOT NULL DEFAULT 'pending',
         

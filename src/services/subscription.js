@@ -26,6 +26,7 @@ import {
   sendBillingInvoiceNotice,
   sendBillingInvoiceStatus,
 } from "../utils/whatsapp/outgoing/message/templates/billing_invoice.js";
+import { NewPaymentPlan } from "../utils/whatsapp/outgoing/message/templates/payment.js";
 
 //---------------------- USER ACTION(START) --------------------
 
@@ -69,6 +70,44 @@ export const InitializeSubscription = async ({
       throw new CustomError("No internet connection!");
     }
     throw new CustomError(e?.message);
+  }
+};
+
+//Send new payment link to user!
+export const VerifySubscriptionPayment = async ({ reference, merchant_id }) => {
+  try {
+    if (!reference) {
+      throw new ValidationError("Reference is Required!");
+    }
+
+    const config = {
+      method: "GET",
+      endpoint: `/transaction/verify/${reference}`,
+    };
+
+    return await paystack_(config).then((data) => {
+      const info = data?.data;
+
+      //Make sure you can only view your reference not others;
+      if (info?.metadata?.merchant_id !== merchant_id) {
+        throw new CustomError(
+          "Unauthorized access to payment information!",
+          403,
+        );
+      }
+
+      return {
+        paid_at: info?.paid_at,
+        status: info?.status,
+        amount: info?.amount / 100,
+        plan: info?.plan_object?.name,
+      };
+    });
+  } catch (e) {
+    if (e?.message === "fetch failed") {
+      throw new CustomError("No internet connection!");
+    }
+    throw new CustomError(e?.message, e?.status || 500);
   }
 };
 
@@ -116,21 +155,27 @@ export const DisableSubscriptionAction = async ({ merchant_id }) => {
 };
 */
 
-export const ManageSubscriptionLink = async ({ merchant_id }) => {
+export const ManageSubscriptionLink = async ({
+  merchant_id,
+  subscription_code,
+}) => {
   try {
-    //Get Email Token
-    const { subscription_code } = await GetSubscriptionDetailForMerchant({
-      merchant_id,
-    });
-
-    if (!subscription_code) {
-      throw new ValidationError(
-        "Something went wrong. Subscription is not active!",
-      );
-    }
-
     //const subscription_code = "SUB_6jw0c7vxie03rs4";
 
+    //Check if it belong to the user;
+    const subscriptions = await GetSubscriptionDetailForMerchant({
+      identifier: merchant_id,
+    });
+
+    const match_sub = subscriptions
+      ?.sort((a, b) => b?.updated_at - a?.updated_at)
+      .find((sub) => sub?.subscription_code === subscription_code);
+
+    if (!match_sub) {
+      throw new ValidationError("Subscription is not found!", 400);
+    }
+
+    //Reaching out to third party!
     const config = {
       method: "GET",
       endpoint: `/subscription/${subscription_code}/manage/link`,
@@ -146,7 +191,7 @@ export const ManageSubscriptionLink = async ({ merchant_id }) => {
     if (e?.message === "fetch failed") {
       throw new CustomError("No internet connection!");
     }
-    throw new CustomError(e?.message);
+    throw new CustomError(e?.message, e?.status || 500);
   }
 };
 
@@ -209,7 +254,6 @@ export const getSingleInvoice = async ({ invoice_code, merchant_id }) => {
 //Fetch all payments
 export const getAllUserPayments = async ({ merchant_id }) => {
   const data = await GetPaymentsListForMerchant({ merchant_id });
-
   return data;
 };
 
@@ -217,20 +261,41 @@ export const getAllUserPayments = async ({ merchant_id }) => {
 
 //----------------------WEBHOOK ACTION (START) --------------------
 //Webhook: Generate new invoice ahead
-export const GenerateBillingInvoice = async ({
-  invoice_info,
-  merchant_phone,
-}) => {
+/*export const GenerateBillingInvoice = async (data) => {
   try {
     //Extract Info
-    const data = await CreateInvoice(invoice_info);
+    const {
+      invoice_code,
+      amount,
+      period_start,
+      period_end,
+      created_at,
+      subscription: { subscription_code },
+      customer: { email },
+    } = data;
 
+    //does merchant exist?
+    const { phone } = await getMerchantFromDb(email);
+
+    const copied = {
+      invoice_code,
+      amount: amount / 100,
+      period_start,
+      period_end,
+      subscription_code,
+      created_at,
+    };
+
+    await CreateInvoice(copied);
+
+    if (!phone) return;
     //Send Remainder to User Whatsapp;
-    await sendBillingInvoiceNotice(merchant_phone, data);
+    await sendBillingInvoiceNotice(phone, copied);
   } catch (e) {
     throw new CustomError(e);
   }
 };
+*/
 
 //Webhook: Create Subscription
 export const GenerateSubscription = async (data) => {
@@ -247,7 +312,8 @@ export const GenerateSubscription = async (data) => {
       status = "trial"; // 1k 30days
     }
 
-    if (status === "non-renewing") {
+    //Last Subscription: you canncelled
+    if (status === "non-renewing" && data?.invoice_limit !== 1) {
       status = "non_renew";
     }
 
@@ -256,18 +322,15 @@ export const GenerateSubscription = async (data) => {
     const deactivatesubs = async (sub) => {
       if (sub?.subcription_code === data?.subscription_code) return;
 
+      //if (sub?.status !== "active") return;
+      //Delete from Db? Nah after 6month just delete;
+
       //Manually disable all other subscriptions;
       await disableSubscriptionFromPaystack({
         sub_code: sub?.subscription_code,
         email_token: sub?.email_token,
       });
     };
-
-    //Update is_current to false
-    //await UpdateSubscription({
-    // details: { status : "cancelled"},
-    //  code: sub?.subscription_code,
-    //});
 
     if (subscription) {
       subscription.forEach(deactivatesubs);
@@ -285,8 +348,9 @@ export const GenerateSubscription = async (data) => {
 };
 
 //Webhook: Manage billing invoice status
-export const MarkBillingInvoiceStatus = async ({
-  invoice_id,
+
+/*export const MarkBillingInvoiceStatus = async ({
+  invoice_code,
   invoice_info,
 }) => {
   try {
@@ -304,11 +368,15 @@ export const MarkBillingInvoiceStatus = async ({
     throw new CustomError(e);
   }
 };
+*/
 
 //Manage User Subscription; id or code
 export const UpdateSubscription = async ({ details, code }) => {
   try {
-    const data = await UpdateSubscriptionforMerchant(details, code);
+    const data = await UpdateSubscriptionforMerchant({
+      updates: details,
+      id: code,
+    });
     return data;
   } catch (e) {
     throw new CustomError(e);
@@ -331,13 +399,6 @@ export const CancelSubscription = async (data) => {
       (sub) => sub?.plan_code === plan_code,
     );
 
-    /*
-        const data = await disableSubscriptionFromPaystack({
-          sub_code: single_sub?.subscription_code,
-          email_token: single_sub?.email_token,
-        });
-*/
-
     //Update Subcription
     await UpdateSubscriptionforMerchant({
       updates: {
@@ -354,15 +415,7 @@ export const CancelSubscription = async (data) => {
 };
 
 //Create New Payment data only when money is available
-export const ConfirmSubscriptionPayment = async ({ payment_details }) => {
-  try {
-    await CreatePaymentforMerchant(payment_details);
-  } catch (e) {
-    throw new CustomError(e);
-  }
-};
-
-export const addUserPaymentInfo = async (data) => {
+export const ConfirmSubscriptionPayment = async (data) => {
   try {
     const {
       status: payment_status,
@@ -370,7 +423,7 @@ export const addUserPaymentInfo = async (data) => {
       amount,
       paid_at,
       ip_address,
-      plan: { plan_code },
+      plan: { plan_code, name: plan_name },
       metadata: { merchant_id, phone },
       fees,
     } = data;
@@ -379,11 +432,11 @@ export const addUserPaymentInfo = async (data) => {
     const merchant = await getMerchantFromDb(merchant_id);
 
     //cHECK IF THEY EXIST;
-    //    if (!merchant) {
-    //Log ipaddress to discord
-    //Throw error 401;
-    //  return;
-    //  }
+    if (!merchant) {
+      //Log ipaddress to discord
+      //Throw error 401;
+      return;
+    }
 
     //Plan code matched: update few details
     const subscriptions = await GetSubscriptionDetailForMerchant({
@@ -420,6 +473,14 @@ export const addUserPaymentInfo = async (data) => {
       u?.merchant_id,
     );
 
+    //sEND A WHATSAPP  TEMPLATE
+    if (!phone) return;
+    await NewPaymentPlan(phone, {
+      amt: (amount / 100).toLocaleString(),
+      plan: plan_name,
+      name: merchant?.name || "No name",
+    });
+
     //Log to Our Discord;
     await DiscordPaystackLogger({
       merchant_id,
@@ -427,26 +488,20 @@ export const addUserPaymentInfo = async (data) => {
       note: `This User(${ip_address}) Paid on ${paid_at}, Phone: ${phone}, Fee: NGN${fees}`,
     });
 
-    //sEND A WHATSAPP  TEMPLATE
-    /*
-      if (!data?.metadata?.phone) return;
-        await NewPaymentPlan(data?.metadata?.phone, {
-                          amt: (data.amount / 100).toLocaleString(),
+    /*          
+                        await UpgradedPaymentPlan(data?.metadata?.phone, {
+                          amt: (data.amount / 100 + amt).toLocaleString(),
                           plan: `${data?.metadata.plan} plan`.toUpperCase(),
-                          name: data?.metadata.username || "No name",
-                        });
-              await UpgradedPaymentPlan(data?.metadata?.phone, {
-                amt: (data.amount / 100 + amt).toLocaleString(),
-                plan: `${data?.metadata.plan} plan`.toUpperCase(),
                 name: data?.metadata.username || "No name",
                 });
-              */
+                */
   } catch (e) {
     console.log(e?.message);
   }
 };
 
-export const SendSubscriptionNonRenewing = async (data) => {
+/*
+export const SubscriptionNonRenewing = async (data) => {
   try {
     const {
       plan: { plan_code },
@@ -477,6 +532,7 @@ export const SendSubscriptionNonRenewing = async (data) => {
     throw new CustomError(e);
   }
 };
+*/
 //----------------------WEBHOOK ACTION (END ) --------------------
 
 //------ CRON JOB: EVERY MIDNIGHT; - Batch sync subscriptions(days) with paystack; ---------------
@@ -488,13 +544,15 @@ export const SyncSubscriptions = async (sub_code) => {
 
     if (!paystackSub) return;
 
+    /*
+    BATCH UPDATE INSTEAD BRR
     await UpdateSubscription({
       details: {
         status: paystackSub?.status,
         next_payment_date: paystackSub?.next_payment_date,
       },
       code: sub_code,
-    });
+    });*/
   } catch (e) {
     throw new CustomError(e);
   }

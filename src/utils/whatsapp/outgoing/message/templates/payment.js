@@ -1,4 +1,4 @@
-import { whatsappMessage } from "../../../utils/whatsapp.js";
+import { WhatsappUrlForMessages } from "../../../whatsapp.js";
 
 //Subscribe to a plan
 export async function NewPaymentPlan(phonenumber, user) {
@@ -31,7 +31,7 @@ export async function NewPaymentPlan(phonenumber, user) {
     },
   };
 
-  return await whatsappMessage(phonenumber, extras)
+  return await WhatsappUrlForMessages(phonenumber, extras)
     .then((data) => console.log(data))
     .catch((e) => console.log(e));
 }

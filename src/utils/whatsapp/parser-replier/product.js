@@ -5,7 +5,7 @@ import {
   WhatsappInteractiveListButton,
   WhatsappInteractiveReplyButton,
 } from "../outgoing/message/interactive.js";
-import { sendProductFlowForm } from "../outgoing/message/templates/sendProduct.js";
+//import { sendProductFlowForm } from "../outgoing/message/templates/sendProduct.js";
 
 const TRIAL_PRODUCT_LIMIT = 10;
 const BASIC_PRODUCT_LIMIT = 30;
@@ -76,7 +76,7 @@ export const startAddProductFlow = async (phone) => {
   }
 
   // update flow state to product_submission;
-  await sendProductFlowForm();
+  // await sendProductFlowForm();
 };
 
 export const ManageSingleProductFlow = async (phone, query) => {

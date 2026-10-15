@@ -6,6 +6,8 @@ export const ViewMerchantController = async (req, res) => {
   });
 };
 
+//Request to delete account
 export const deleteMerchantController = async (req, res) => {};
 
+//Settings Update
 export const UpdateMerchantController = async (req, res) => {};

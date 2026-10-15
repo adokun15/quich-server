@@ -70,17 +70,17 @@ export const getProducts = async ({
       `
     select p.*,
     COUNT(p.id) OVER () as total_count,
-    c.name as category_name,
+    c.name as category_name,    
     c.isVisible as category_visibility
     from products p 
     left join category c 
     on p.category_id = c.id
-    where p.store_id = $1 
-    AND (c.name ILIKE $2 || '%' OR p.name ILIKE $2 || '%')
+    where p.store_id = $1
+    AND (c.name ILIKE  c OR p.name ILIKE $2 || '%')
     order by ${OrderBy} ${direction}
     offset $3
     limit $4
-      `,
+      `,n
       [store_id, search, offset, limit],
     );
     return { products: res.rows, total_count: res?.rows[0]?.total_count };

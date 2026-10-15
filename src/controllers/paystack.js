@@ -1,13 +1,11 @@
-//import { GenerateSubscription } from "../services/subscription.js";
-import { console } from "inspector/promises";
 import { verifyPaystackSignature } from "../utils/middleware/verifyPaystackRequest.js";
 import {
-  addUserPaymentInfo,
   CancelSubscription,
-  GenerateBillingInvoice,
+  ConfirmSubscriptionPayment,
   GenerateSubscription,
-  SendSubscriptionNonRenewing,
+  UpdateSubscription,
 } from "../services/subscription.js";
+import { DiscordPaystackLogger } from "../utils/middleware/logger.js";
 
 //Process paystack
 export const paystack_controller = async (req, res, next) => {
@@ -72,37 +70,39 @@ export const paystack_controller = async (req, res, next) => {
 
   if (event === "subscription.disable") {
     try {
-      await CancelSubscription(data);
       /*
       Update Subcription status : inactive,
       Update Subcription end_date,
       */
+      await CancelSubscription(data);
     } catch (e) {
       next(e);
     }
   }
 
+  /*
   if (event === "subscription.non_renew") {
     try {
-      await SendSubscriptionNonRenewing(data);
-      /*
+      await SubscriptionNonRenewing(data);
+      
       Update Subcription status : non_renew,
-      */
+      
     } catch (e) {
       next(e);
     }
   }
+  */
 
   if (event === "invoice.create") {
     try {
-      const {} = data;
-
-      await GenerateBillingInvoice({
-        merchant_phone: 120313,
-        invoice_info: "asdad",
+      //Log to discord to see how it is first!
+      await DiscordPaystackLogger({
+        merchant_id: data?.customer?.email || "No Available",
+        action_type: "subscription_invoice_initiated",
+        note: JSON.stringify(data),
       });
-
       /*
+      await GenerateBillingInvoice(data);
       create invoice with status pending
       notify user;
       */
@@ -113,12 +113,31 @@ export const paystack_controller = async (req, res, next) => {
 
   if (event === "invoice.payment_failed") {
     try {
-      /*
-      update invoice; status failed
-      update subscription status to "attention"
-      notify user: "payment failed, we added grace period of 3 days to resume your subscrip";
-      "Add extra 3day- grace-- EXTENDED END-DATE; on Subscription Table!"
-      */
+      //Log to Discord to see how it is first;
+      await DiscordPaystackLogger({
+        merchant_id: data?.customer?.email || "No Available",
+        action_type: "subscription_payment_failed",
+        note: JSON.stringify(data),
+      });
+
+      //update invoice; status failed
+      //notify user: "payment failed, we added grace period of 3 days to resume your subscrip";
+      /*  await MarkBillingInvoiceStatus({
+        invoice_info: {
+          status: "failed",
+          paid_at: null,
+        },
+      });
+*/
+      //update subscription status to "attention"
+      // "Add extra 3day- grace-- EXTENDED END-DATE; on Subscription Table!"
+      await UpdateSubscription({
+        code: data?.subscription?.subscription_code,
+        details: {
+          status: "failed",
+          //grace_day: "3days",
+        },
+      });
     } catch (e) {
       next(e);
     }
@@ -126,26 +145,25 @@ export const paystack_controller = async (req, res, next) => {
 
   if (event === "charge.success") {
     try {
-      await addUserPaymentInfo(data);
-      /*
-        GET https://api.paystack.co/transaction/verify/:reference to get full details
-        update invoice if invoice_parameter is there; status "paid", paid_at : "121"
-        insert/create payment; status "paid", paid_at : "121"
-        notify user;
-      */
+      await ConfirmSubscriptionPayment(data);
     } catch (e) {
       console.log(e);
       next(e);
     }
   }
 
-  //
   if (event === "subscription.expiring_cards") {
     try {
+      await DiscordPaystackLogger({
+        merchant_id: data?.customer?.email || "No Available",
+        action_type: "subscription_expiring_cards",
+        note: JSON.stringify(data),
+      });
       /*
+      await sendExpiringCardNotice();
         notify user via Email!;
         send a link to reset!
-      */
+        */
     } catch (e) {
       next(e);
     }

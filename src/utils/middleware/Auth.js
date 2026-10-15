@@ -3,7 +3,6 @@ import AsyncError from "../error/AsyncError.js";
 import CustomError from "../error/error.js";
 import { VerifyMerchantToken } from "../jwt/VerifyToken.js";
 
-import { createRemoteJWKSet, jwtVerify } from "jose";
 //Verify  token
 /*export const AuthorizationRouteMiddleware = AsyncError(
   async function (req, res, next) {
@@ -26,12 +25,6 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
   },
 );
 */
-const JWKS = createRemoteJWKSet(
-  // new URL(`${process.env.SUPABASE_PROJECT_URL}/auth/v1/keys`),
-  new URL(
-    `https://fcjjonixemxsnkqirwsj.supabase.co/auth/v1/.well-known/jwks.json`,
-  ),
-);
 
 export const AuthorizationRouteMiddleware = AsyncError(
   async function (req, res, next) {
@@ -42,17 +35,14 @@ export const AuthorizationRouteMiddleware = AsyncError(
     const token = authHeader.split(" ")[1];
 
     try {
-      /*
-      const { payload } = await jwtVerify(token, JWKS);
-      const { sub: merchant_id, email, session_id} = payload
-       
-      
-      //Get store Id
-      const store = await getMerchantInfo(merchant_id);
-      
-      store.id
-      */
+      console.log(token);
+      const { userId } = await VerifyMerchantToken(token);
 
+      console.log(userId);
+      //Get store Id
+      const store = await getMerchantInfo(userId);
+
+      console.log(store);
       req.user = {
         merchant_id: "6b62a0ec-70b3-4c11-b537-c873caa8adce",
         store_id: "c5b2c5a4-26f4-4806-b156-cab3db6ba716",
@@ -60,11 +50,22 @@ export const AuthorizationRouteMiddleware = AsyncError(
       next();
     } catch (e) {
       console.log(e);
-      //userid, email
       if (e.code === "ERR_JWT_EXPIRED") {
         throw new CustomError("Session timed-out", 401);
       }
-      throw new CustomError("Auth Error", 401);
+
+      if (e.message === "fetch failed") {
+        throw new CustomError("Network failed! ", 500);
+      }
+
+      if (e.code === "ERR_JWKS_TIMEOUT") {
+        throw new CustomError("Network failed! ", 500);
+      }
+      if (e.code === "ERR_JWS_INVALID") {
+        throw new CustomError("Invalid token received! ", 404);
+      }
+
+      throw new CustomError(e?.message, 500);
     }
   },
 );

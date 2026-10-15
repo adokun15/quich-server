@@ -58,6 +58,20 @@ export const whatsapp_verify_controller = async (req, res, next) => {
   return res.sendStatus(403);
 };
 
+//whatsapp verify phone request; 1request/min
+export const whatsapp_request_phone_verification_controller = async (
+  req,
+  res,
+  next,
+) => {
+  try {
+    //Validate phone number;
+    //Send verification to Number
+  } catch (e) {
+    next(e);
+  }
+};
+
 //Process incoming Request
 export const whatsapp_webhook_controller = async (req, res, next) => {
   //RECEIVE ALL WEBHOOK: Flow and message!

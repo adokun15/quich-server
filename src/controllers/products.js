@@ -87,7 +87,6 @@ export const UpdateProductController = async (req, res, next) => {
     const { product_id } = req.params;
     const { updates } = req.body;
 
-
     //Validate update data;
     if (!updates) {
       throw new CustomError("Invalid Input", 400);
@@ -154,8 +153,7 @@ export const AddProductController = async (req, res, next) => {
       throw new ValidationError("Error", 400, errors);
     }
 
-    //Update Product
-
+    //create product
     const product_id = await CreateProductForAdmin({
       store_id,
       data: {

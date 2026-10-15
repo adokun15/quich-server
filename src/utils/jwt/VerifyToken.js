@@ -1,9 +1,24 @@
 //Json web token midddleware
+//import jwt from "jsonwebtoken";
+import { createRemoteJWKSet, jwtVerify } from "jose";
+import CustomError from "../error/error.js";
 
-import jwt from "jsonwebtoken";
+const JWKS = createRemoteJWKSet(
+  new URL(
+    `https://fcjjonixemxsnkqirwsj.supabase.co/auth/v1/.well-known/jwks.json`,
+  ),
+);
 
 //From Whatsapp: 45mins
-export function VerifyMerchantToken(token) {
+export async function VerifyMerchantToken(token) {
+  const {
+    payload: { sub, email },
+  } = await jwtVerify(token, JWKS);
+
+  return { userId: sub, email };
+}
+
+/*export function VerifyMerchantToken(token) {
   return jwt.verify(token, process.env.JWT_SECRET_KEY, (err, payload) => {
     //More Error!
     if (err?.message === "invalid token") {
@@ -19,3 +34,4 @@ export function VerifyMerchantToken(token) {
     return { status: true, payload };
   });
 }
+*/

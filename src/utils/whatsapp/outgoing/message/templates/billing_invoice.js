@@ -5,8 +5,8 @@ import { WhatsappUrlForTemplate } from "../../../whatsapp.js";
 //Subscription expiring cards
 //Invoice: successful(charge.success) / Failed(invoice.payment_failed)
 //Invoice Notice of 3 days;
-export async function sendExpiringCardNotice(phonenumber, data) {}
 export async function sendBillingInvoiceStatus(phonenumber, data) {}
+export async function sendExpiringCardNotice(phonenumber, data) {}
 export async function sendBillingInvoiceNotice(phonenumber, data) {
   const extras = {
     type: "template",

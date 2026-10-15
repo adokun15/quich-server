@@ -14,6 +14,7 @@ import {
   getUserPaymentsController,
   manageSubcriptionController,
   PaySubscriptionController,
+  VerifySubscriptionPaymentController,
 } from "../controllers/subscription.js";
 import { AuthorizationRouteMiddleware } from "../utils/middleware/Auth.js";
 
@@ -57,9 +58,15 @@ userRoute.post(
 */
 
 userRoute.get(
-  "/billing/manage",
+  "/billing/manage/:sub_code",
   AuthorizationRouteMiddleware,
   AsyncError(manageSubcriptionController),
+);
+
+userRoute.get(
+  "/billing/verify/:reference",
+  AuthorizationRouteMiddleware,
+  AsyncError(VerifySubscriptionPaymentController),
 );
 
 userRoute

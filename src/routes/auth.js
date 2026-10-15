@@ -3,25 +3,31 @@ import AsyncError from "../utils/error/AsyncError.js";
 
 import {
   authController,
-  RequestOtpController,
-  VerifyLoginTokenController,
-  VerifyOtpController,
+  onBoardController,
+  //  RequestOtpController,
+  // VerifyLoginTokenController,
+  //VerifyOtpController,
 } from "../controllers/auth.js";
+import { whatsapp_request_phone_verification_controller } from "../controllers/whatsapp.js";
 
 const authRoute = express.Router();
 
 //Verify once
 authRoute.route("/").get(AsyncError(authController));
 
+//Onboard: use rate limit here
+authRoute.route("/onboard").post(AsyncError(onBoardController));
+
 //Whatsapp
 authRoute
-  .route("/verify-whatsapp-token")
-  .get(AsyncError(VerifyLoginTokenController));
+  .route("/request_whatsapp_verification")
+  .get(AsyncError(whatsapp_request_phone_verification_controller));
 
 //Browser!
+
 /* Rate limit middleware: 5req / 2mins */
-authRoute.route("/request-otp").get(AsyncError(RequestOtpController));
+//authRoute.route("/request-otp").get(AsyncError(RequestOtpController));
 
 /* Rate limit middleware: 10req / min - IP address */
-authRoute.route("/verify-otp").get(AsyncError(VerifyOtpController));
+//authRoute.route("/verify-otp").get(AsyncError(VerifyOtpController));
 export default authRoute;

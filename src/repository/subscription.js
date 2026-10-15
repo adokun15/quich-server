@@ -124,28 +124,20 @@ export const CreateInvoice = async ({
   period_start,
   period_end,
   amount,
-  currency,
   created_at,
 }) => {
   try {
     const res = await pool.query(
       `
-
-      --INSERT INTO invoices (invoice_id, status, amount)
--- VALUES ($1, $2, $3)
-
       INSERT INTO subscription_invoices(
         invoice_code, 
         subscription_code,
         period_start,
         period_end,
         amount,
-        currency,
         created_at
         )
-      VALUES ( $1, $2, $3, $4, $5, $6, $7)
-      --ON CONFLICT (invoice_id)
-     -- DO UPDATE SET status = EXCLUDED.status;
+      VALUES ( $1, $2, $3, $4, $5, $6)
       RETURNING *;    
     `,
       [
@@ -154,7 +146,6 @@ export const CreateInvoice = async ({
         period_start,
         period_end,
         amount,
-        currency,
         created_at,
       ],
     );

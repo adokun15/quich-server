@@ -26,7 +26,7 @@ app.use("/webhook", webhook);
 app.use(json());
 
 //Browser authorization
-app.use("/auth", authRoute);
+app.use("/verify", authRoute);
 
 app.use("/store", storeRoute);
 

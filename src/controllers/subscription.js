@@ -6,6 +6,7 @@ import {
   getSubcriptionInfo,
   InitializeSubscription,
   ManageSubscriptionLink,
+  VerifySubscriptionPayment,
 } from "../services/subscription.js";
 import CustomError from "../utils/error/error.js";
 import ValidationError from "../utils/error/ValidationError.js";
@@ -79,6 +80,7 @@ export const disableSubcriptionController = async (req, res, next) => {
 export const manageSubcriptionController = async (req, res, next) => {
   try {
     const { merchant_id } = req.user;
+    const { sub_code } = req.params;
 
     if (!merchant_id) {
       throw new CustomError("Invalid request!", 400);
@@ -86,9 +88,31 @@ export const manageSubcriptionController = async (req, res, next) => {
 
     const url = await ManageSubscriptionLink({
       merchant_id,
+      subscription_code: sub_code,
     });
 
     res.json({ data: { url }, status: true });
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const VerifySubscriptionPaymentController = async (req, res, next) => {
+  try {
+    const { merchant_id } = req.user;
+    const { reference } = req.params;
+
+    if (!merchant_id) {
+      throw new CustomError("Invalid request!", 400);
+    }
+
+    const data = await VerifySubscriptionPayment({
+      merchant_id,
+      reference,
+    });
+
+    console.log(data);
+    res.json({ data, status: true });
   } catch (e) {
     next(e);
   }
