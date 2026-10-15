@@ -14,7 +14,6 @@ dotenv.config({ path: ".env.local" });
 import { globalErr } from "./utils/error/globalError.js";
 import endpointFlowRoute from "./routes/flow.js";
 import productRoute from "./routes/products.js";
-import dbRoute from "./utils/database/create.js";
 import categoryRoute from "./routes/category.js";
 
 const app = express();
@@ -43,9 +42,6 @@ app.use("/customers", customerRoute);
 app.use("/flow", endpointFlowRoute);
 
 app.use("/merchant", userRoute);
-
-//Temporary: remove soonn
-app.use("/db", dbRoute);
 
 //Error
 app.use(globalErr);
